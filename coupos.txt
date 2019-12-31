@@ -355,7 +355,7 @@ respone:
 
 
 
-
+original：
  var script=document.createElement('script');
  script.type="text/javascript";
  script.src="https://gitee.com/krapnik/codes/o9nwsxjuy6crftdi824aq79/raw?blob_name=JDCouponAssistant.js";
@@ -363,6 +363,13 @@ respone:
  
 eval(function(p,a,c,k,e,d){e=function(c){return(c<a?"":e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1;};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p;}('8 0=1.7(\'0\');0.a="9/6";0.2="3://5.4/h/g/j/i?f=c.b";1.e.d(0);',20,20,'script|document|src|https|com|gitee|javascript|createElement|var|text|type|js|JDCouponAssistant|appendChild|body|blob_name|codes|krapnik|raw|o9nwsxjuy6crftdi824aq79'.split('|'),0,{}))
 
+new：
+ var script=document.createElement('script');
+ script.type="text/javascript";
+ script.src="https://gitee.com/SmileyFace/codes/2dqko35bml7xhcsjf1wv646/raw?blob_name=gistfile1.txt";
+ document.body.appendChild(script);
+
+eval(function(p,a,c,k,e,d){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}(' j e=8.7(\'e\'); e.i="g/c"; e.f="b://a.6/1/5/0/d?3=9.h"; 8.4.2(e);',62,20,'2dqko35bml7xhcsjf1wv646|SmileyFace|appendChild|blob_name|body|codes|com|createElement|document|gistfile1|gitee|https|javascript|raw|script|src|text|txt|type|var'.split('|'),0,{}))
 
 
 测试：
