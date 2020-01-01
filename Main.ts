@@ -25,8 +25,8 @@ let coupon: Coupon,
     retryCount = 0,
     getTimeSpan = 500,
     t1: number = 0,
-    time,
-    localeTime;
+    jdTimeStamp,
+    jdTime;
 
 const container: HTMLDivElement = document.createElement("div"),
     title: HTMLDivElement = document.createElement("div"),
@@ -52,7 +52,7 @@ function buildHTML() {
     document.body.style.textAlign = "center";
     document.body.style.maxWidth = "100vw";
     container.setAttribute("style", "border: 1px solid #000;padding: 5px;margin: 5px;");
-    title.innerHTML = `<h2>京东领券助手改版V0.3</h2>
+    title.innerHTML = `<h2>京东领券助手改版V0.3.1</h2>
                         <h3>author:krapnik</h3>
                         <h3>edit:smiley</h3>
                         <div style="display: flex;flex-direction: row;justify-content: center;">
@@ -69,7 +69,7 @@ function buildHTML() {
     timerResetBtn.setAttribute("style", "width: 80px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;");
     timerResetBtn.addEventListener("click", () => {
         const span = Math.trunc(+timerTextInput.value);
-        if (!getTimeSpan) {
+        if (!span) {
             alert("请检查输入的刷新频率是否有误！(只能为大于0的数字)");
             return false;
         }
@@ -96,14 +96,18 @@ function buildHTML() {
                 alert("请检查重试次数是否为正整数！");
                 return false;
             default:
+                retryCount = parseInt(receiveCountInput.value);
                 couponFlag = !couponFlag;
                 startTime = time;
-                retryCount = parseInt(receiveCountInput.value);
+                timerTextInput.disabled = couponFlag;
                 receiveTextInput.disabled = couponFlag;
                 receiveCountInput.disabled = couponFlag;
+                timerResetBtn.disabled = couponFlag;
                 if (couponFlag) {
+                    timerResetBtn.style.color = "#c1c1c1";
                     receiveTimerBtn.innerHTML = "取消指定领取";
                 } else {
+                    timerResetBtn.style.color = "#fff";
                     receiveTimerBtn.innerHTML = "定时指定领取";
                 }
                 break;
@@ -144,11 +148,12 @@ function buildHomePage() {
     document.body.style.textAlign = "center";
     document.body.style.maxWidth = "100vw";
     container.setAttribute("style", "border: 1px solid #000;padding: 5px;margin: 5px;");
-    title.innerHTML = `<h2>京东领券助手V0.2</h2>
+    title.innerHTML = `<h2>京东领券助手改版V0.3.1</h2>
                         <h3>author:krapnik</h3>
+                        <h3>edit:smiley</h3>
                         <div style="display: flex;flex-direction: row;justify-content: center;">
-                        <iframe src="https://ghbtns.com/github-btn.html?user=krapnikkk&repo=JDCouponAssistant&type=star&count=true" frameborder="0" scrolling="0" width="80px" height="21px"></iframe>
-                        <a href="tencent://message/?uin=708873725Menu=yes" target="_blank" title="发起QQ聊天"><img src="http://bizapp.qq.com/webimg/01_online.gif" alt="QQ" style="margin:0px;"></a>
+                        <iframe src="https://ghbtns.com/github-btn.html?user=smalllk&repo=JDCouponAssistant&type=star&count=true" frameborder="0" scrolling="0" width="80px" height="21px"></iframe>
+                        <a href="tencent://message/?uin=1244797556Menu=yes" target="_blank" title="发起QQ聊天"><img src="http://bizapp.qq.com/webimg/01_online.gif" alt="QQ" style="margin:0px;"></a>
                         </div>
                         <h4>这个页面好像还没有被扩展或者有误哦<br/>联系作者扩展或者咨询一下吧~</h4>`;
     container.append(title);
@@ -223,7 +228,12 @@ function getCouponDesc(type: couponType) {
             break;
     }
     if (coupon) {
-        t1 = window.setInterval(getTime, getTimeSpan);
+        t1 = window.setInterval(() => {
+            if (couponFlag) retryCount--;
+
+            getTime();
+
+        }, getTimeSpan);
         buildHTML();
         coupon.get();
     } else {
@@ -234,27 +244,34 @@ function getCouponDesc(type: couponType) {
 }
 
 function getTime() {
+    let nowCount = retryCount;
+    let requestTimeStamp = new Date().getTime();
+    let requestTime = new Date(+requestTimeStamp).toLocaleString() + ":" + requestTimeStamp.toString().substr(-3, 3);
+
     fetch('https://api.m.jd.com/client.action?functionId=babelActivityGetShareInfo&client=wh5')
         .then(function (response) { return response.json() })
         .then(function (res) {
-            time = Utils.formatDate(res.time);
-            localeTime = new Date(+res.time).toLocaleString() + ":" + time.substr(-3, 3);
-            timerTittleDiv.innerHTML = `京东时间：${localeTime}<br/>当前获取时间的间隔频率：${getTimeSpan}毫秒`;
+            jdTimeStamp = Utils.formatDate(res.time);
+            jdTime = new Date(+res.time).toLocaleString() + ":" + jdTimeStamp.substr(-3, 3);
+            timerTittleDiv.innerHTML = `京东时间：${jdTime}<br/>当前获取时间的间隔频率：${getTimeSpan}毫秒`;
             if (couponFlag) {
-                if (retryCount > 0) {
-                    if (startTime <= +time) {
-                        outputTextArea.value += `当前时间：${localeTime}\n`;
+                if (nowCount >= 0) {
+                    if (startTime <= +jdTimeStamp) {
+                        outputTextArea.value = `第${-(nowCount - 5)}次京东时间：${jdTime}\n` + outputTextArea.value;
+                        outputTextArea.value = `第${-(nowCount - 5)}次请求时间：${requestTime}\n` + outputTextArea.value;
                         if (coupon) {
                             coupon.send(outputTextArea);
-                            retryCount--;
                         }
                     }
                 }
                 else {
                     couponFlag = !couponFlag;
+                    timerTextInput.disabled = couponFlag;
                     receiveTextInput.disabled = couponFlag;
                     receiveCountInput.disabled = couponFlag;
+                    timerResetBtn.disabled = couponFlag;
                     receiveTimerBtn.innerHTML = "定时指定领取";
+                    timerResetBtn.style.color = "#fff";
                 }
             }
         });
@@ -265,6 +282,9 @@ function copyRights() {
     if (window.console) {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 28px; font-weight: 200');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
+        console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.3.1】：小白信用领券结果细化；优化页面操作逻辑；增加本地请求时间；规范请求及返回信息显示顺序', 'color:#009a61');
+        console.log('%c【0.3.0】：新增重复次数（重复频率同刷新频率）；修复定时领取点击后无法取消；更改部分文案', 'color:#009a61');
         console.log('%c本版本非原版，请支持原作者:krapnik', 'color:#ef5035; font-size:16px;');
         console.groupEnd();
     }

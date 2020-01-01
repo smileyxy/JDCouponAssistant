@@ -61,11 +61,53 @@ export default class WhiteCoupon implements Coupon {
             fetch(url)
                 .then((res) => { return res.json() })
                 .then((json) => {
-                    if (json.isSuccess) {
-                        this.outputTextarea.value = `第${i + 1}张 领券结果:领取成功！}\n` + this.outputTextarea.value;
-                    } else {
-                        this.outputTextarea.value = `第${i + 1}张 领券结果:领取失败！\n` + this.outputTextarea.value;
+                    let resultMsg = '';
+                    switch (parseInt(json.responseCode)) {
+                        case 2:
+                        case 999:
+                        case 13002:
+                        case 13007:
+                        case 13009:
+                            resultMsg = '啊喔，出问题了，请稍候再试';
+                            break;
+                        case 2000:
+                            resultMsg = '用户未登录';
+                            break;
+                        case 13001:
+                            resultMsg = '领取成功，感谢您的参与';
+                            break;
+                        case 13004:
+                        case 13015:
+                            resultMsg = '您不满足领取条件';
+                            break;
+                        case 13005:
+                            resultMsg = '您未开通小白信用，不满足领取条件';
+                            break;
+                        case 13008:
+                            resultMsg = '您曾经开通过小白信用，不满足领取条件';
+                            break;
+                        case 13010:
+                            resultMsg = '操作太快了喔';
+                            break;
+                        case 13011:
+                            resultMsg = '活动未开始';
+                            break;
+                        case 13012:
+                            resultMsg = '活动已结束';
+                            break;
+                        case 13013:
+                            resultMsg = '本时段优惠券已抢光';
+                            break;
+                        default:
+                            resultMsg = '优惠券已抢光';
+                            break;
                     }
+                    //if (json.isSuccess) {
+                    //    this.outputTextarea.value = `第${i + 1}张 领券结果:领取成功！}\n` + this.outputTextarea.value;
+                    //} else {
+                    //    this.outputTextarea.value = `第${i + 1}张 领券结果:领取失败！\n` + this.outputTextarea.value;
+                    //}
+                    this.outputTextarea.value = `领券结果:${resultMsg}！\n` + this.outputTextarea.value;
                 });
         }
     }
