@@ -228,12 +228,7 @@ function getCouponDesc(type: couponType) {
             break;
     }
     if (coupon) {
-        t1 = window.setInterval(() => {
-            if (couponFlag) retryCount--;
-
-            getTime();
-
-        }, getTimeSpan);
+        t1 = window.setInterval(getTime, getTimeSpan);
         buildHTML();
         coupon.get();
     } else {
@@ -258,6 +253,7 @@ function getTime() {
                         outputTextArea.value = `第${-(nowCount - 5)}次请求时间：${jdTime}\n` + outputTextArea.value;
                         if (coupon) {
                             coupon.send(outputTextArea);
+                            retryCount--;
                         }
                     }
                 }
