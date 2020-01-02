@@ -245,8 +245,6 @@ function getCouponDesc(type: couponType) {
 
 function getTime() {
     let nowCount = retryCount;
-    let requestTimeStamp = new Date().getTime();
-    let requestTime = new Date(+requestTimeStamp).toLocaleString() + ":" + requestTimeStamp.toString().substr(-3, 3);
 
     fetch('https://api.m.jd.com/client.action?functionId=babelActivityGetShareInfo&client=wh5')
         .then(function (response) { return response.json() })
@@ -257,8 +255,7 @@ function getTime() {
             if (couponFlag) {
                 if (nowCount >= 0) {
                     if (startTime <= +jdTimeStamp) {
-                        outputTextArea.value = `第${-(nowCount - 5)}次京东时间：${jdTime}\n` + outputTextArea.value;
-                        outputTextArea.value = `第${-(nowCount - 5)}次请求时间：${requestTime}\n` + outputTextArea.value;
+                        outputTextArea.value = `第${-(nowCount - 5)}次请求时间：${jdTime}\n` + outputTextArea.value;
                         if (coupon) {
                             coupon.send(outputTextArea);
                         }
@@ -283,7 +280,7 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 28px; font-weight: 200');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
-        console.log('%c【0.3.1】：小白信用领券结果细化；优化页面操作逻辑；增加本地请求时间；规范请求及返回信息显示顺序', 'color:#009a61');
+        console.log('%c【0.3.1】：小白信用领券结果细化；优化页面操作逻辑；规范请求及返回信息显示顺序', 'color:#009a61');
         console.log('%c【0.3.0】：新增重复次数（重复频率同刷新频率）；修复定时领取点击后无法取消；更改部分文案', 'color:#009a61');
         console.log('%c本版本非原版，请支持原作者:krapnik', 'color:#ef5035; font-size:16px;');
         console.groupEnd();
