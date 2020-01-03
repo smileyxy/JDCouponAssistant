@@ -3,10 +3,6 @@
 }
 
 
-// type attributes = {
-//     innerHTML: string
-// }
-
 export default class Utils {
     static formateDate(date: string): string {
         let dateObj = new Date(+date),
@@ -101,6 +97,40 @@ export default class Utils {
         postMessage(res, '*');
     }
 
+    static outPutLog(output: HTMLTextAreaElement, log: string): void {
+        output.value = `${output.value}\n${log}`;
+    }
+
+    static random(n: number, m: number): number {
+        return Math.floor(Math.random() * (m - n + 1) + n);
+    }
+
+    static copyText(text: string) {
+        if (text === "") {
+            alert("好像没有需要复制的内容哦！");
+            return;
+        }
+        var oInput: HTMLInputElement | null = document.querySelector('.oInput');
+        if (!oInput) {
+            oInput = document.createElement('input');
+            oInput.className = 'oInput';
+            document.body.appendChild(oInput);
+        }
+        oInput.style.display = 'block';
+        oInput.value = text;
+        oInput.select();
+        document.execCommand("Copy");
+        oInput.style.display = 'none';
+        alert('内容已经复制到黏贴板啦');
+    }
+
+    static loadCss(url: string) {
+        var link = document.createElement("link");
+        link.type = "text/css";
+        link.rel = "stylesheet";
+        link.href = url;
+        document.getElementsByTagName("head")[0].appendChild(link);
+    };
     // static HTMLfactory(type: string, attributes: any, parent: HTMLElement): HTMLElement {
     //     let ele: any = document.createElement(type);
     //     for (let k in attributes) {
