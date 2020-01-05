@@ -98,7 +98,11 @@ export default class Utils {
     }
 
     static outPutLog(output: HTMLTextAreaElement, log: string): void {
-        output.value = `${output.value}\n${log}`;
+        if (output.value) {
+            output.value = `${log}\n${output.value}`;
+        } else {
+            output.value = log;
+        }
     }
 
     static random(n: number, m: number): number {
@@ -131,6 +135,23 @@ export default class Utils {
         link.href = url;
         document.getElementsByTagName("head")[0].appendChild(link);
     };
+
+    static stringify(params: any): string {
+        return Object.keys(params).map((key) =>  { 
+            console.log();
+            return `${key}=${this.isObject(params[key]) ? JSON.stringify(params[key]) : encodeURIComponent(params[key])}`;
+        }).join("&");
+    }
+
+    static isObject(value: any) {
+        let type = typeof value;
+        return value != null && (type == 'object' || type == 'function');
+    }
+
+    static isNumber(obj: any) {  
+        return typeof obj === 'number' && !isNaN(obj);  
+    }
+
     // static HTMLfactory(type: string, attributes: any, parent: HTMLElement): HTMLElement {
     //     let ele: any = document.createElement(type);
     //     for (let k in attributes) {

@@ -11,6 +11,7 @@ import CoinPurchase from "./coupons/coinPurchase";
 import GcConvert from "./coupons/gcConvert";
 import MonsterNian from "./activitys/MonsterNian";
 import Config from "./config/config";
+import BrandCitySpring from "./activitys/brandCitySpring";
 enum couponType {
     none,
     receiveCoupons = "receiveCoupons",
@@ -27,6 +28,7 @@ enum couponType {
 enum activityType {
     none,
     monsterNian = "monsterNian",
+    brandCitySpring = "brandCitySpring",
 }
 
 let coupon: Coupon,
@@ -37,21 +39,17 @@ let coupon: Coupon,
 const container: HTMLDivElement = document.createElement("div"),
     title: HTMLDivElement = document.createElement("div"),
     timerTittleDiv: HTMLDivElement = document.createElement("div"),
-    timerDiv: HTMLDivElement = document.createElement("div"),
-    timerTextInput: HTMLInputElement = document.createElement("input"),
-    timerResetBtn: HTMLButtonElement = document.createElement("button"),
-    receiveDiv: HTMLDivElement = document.createElement("div"),
     receiveTextInput: HTMLInputElement = document.createElement("input"),
+    receiveTimerBtn: HTMLButtonElement = document.createElement("button"),
+    outputTextArea: HTMLTextAreaElement = document.createElement("textarea"),
+    loginMsgDiv: HTMLDivElement = document.createElement("div"),
+    receiveDiv: HTMLDivElement = document.createElement("div"),
     receiveCountInput: HTMLInputElement = document.createElement("input"),
     receiveAreaDiv: HTMLDivElement = document.createElement("div"),
     receiveAllBtn: HTMLButtonElement = document.createElement("button"),
-    receiveTimerBtn: HTMLButtonElement = document.createElement("button"),
-    outputTextArea: HTMLTextAreaElement = document.createElement("textarea"),
-    operateAreaDiv: HTMLDivElement = document.createElement("div"),
-    promotionArea: HTMLDivElement = document.createElement("div"),
-    recommandArea: HTMLDivElement = document.createElement("div"),
-    activityArea: HTMLDivElement = document.createElement("div"),
-    loginMsgDiv: HTMLDivElement = document.createElement("div");
+    timerTextInput: HTMLInputElement = document.createElement("input"),
+    timerResetBtn: HTMLButtonElement = document.createElement("button"),
+    timerDiv: HTMLDivElement = document.createElement("div");
 
 let getLoginMsg = function (res: any) {
     if (res.base.nickname) {
@@ -64,6 +62,7 @@ let getLoginMsg = function (res: any) {
 Object.assign(window, { "getLoginMsg": getLoginMsg, "krapnik": krapnik, "Utils": Utils, "Config": Config });
 
 function buildOperate() {
+    const operateAreaDiv: HTMLDivElement = document.createElement("div");
     if (coupon) {
         operateAreaDiv.setAttribute("style", "border: 1px solid #000;");
         operateAreaDiv.innerHTML = "<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;padding: 0 37.5vw 5px;'>操作区</h3>";
@@ -112,11 +111,11 @@ function buildOperate() {
                     if (Config.timingFlag) {
                         timerResetBtn.style.color = "#c1c1c1";
                         receiveTimerBtn.innerHTML = "取消指定领取";
-                        outputTextArea.value += `已开启定时领取\n`;
+                        Utils.outPutLog(outputTextArea, `已开启定时领取`);
                     } else {
                         timerResetBtn.style.color = "#fff";
                         receiveTimerBtn.innerHTML = "定时指定领取";
-                        outputTextArea.value += `已关闭定时领取\n`;
+                        Utils.outPutLog(outputTextArea, `已关闭定时领取`);
                     }
                     break;
             }
@@ -167,7 +166,7 @@ function buildTitle() {
     container.setAttribute("style", "border: 1px solid #000;padding: 5px;margin: 5px;");
     title.innerHTML = `<h1 style="font-weight:700">${Config.title} ${Config.version}</h1>
                         <h3>author:${Config.author}</h3>
-                        <h3>author:${Config.edit}</h3>
+                        <h3>edit:${Config.edit}</h3>
                         <div style="display: flex;flex-direction: row;justify-content: center;">
                         <iframe src="https://ghbtns.com/github-btn.html?user=smalllk&repo=JDCouponAssistant&type=star&count=true" frameborder="0" scrolling="0" width="80px" height="21px"></iframe>
                         <a href="tencent://message/?uin=1244797556Menu=yes" target="_blank" title="发起QQ聊天"><img src="http://bizapp.qq.com/webimg/01_online.gif" alt="QQ" style="margin:0px;"></a>
@@ -177,20 +176,36 @@ function buildTitle() {
 }
 
 function buildActivity() {
+    const activityArea: HTMLDivElement = document.createElement("div");
     activityArea.setAttribute("style", "border: 1px solid #000;margin:10px");
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>活动推荐</h3>
-    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://bunearth.m.jd.com/babelDiy/Zeus/4PWgqmrFHunn8C38mJA712fufguU/index.html#/wxhome" target="_blank">全民炸年兽</a></p>`;
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://bunearth.m.jd.com/babelDiy/Zeus/4PWgqmrFHunn8C38mJA712fufguU/index.html#/wxhome" target="_blank">全民炸年兽</a></p>
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://bunearth.m.jd.com/babelDiy/Zeus/w6y8PYbzhgHJc8Lu1weihPReR2T/index.html#/home" target="_blank">十二生肖来送福</a></p>`;
     container.append(activityArea);
 }
 
 function buildRecommend() {
+    const recommandArea: HTMLDivElement = document.createElement("div");
     recommandArea.setAttribute("style", "border: 1px solid #000;margin:10px");
-    recommandArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>每天好券推荐</h3>
-    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://m.jr.jd.com/member/9GcConvert/?channel=01-shouye-191214" target="_blank">9金币抢兑</a> | <a  style="color:red" href="https://coupon.m.jd.com/coupons/show.action?key=26ef0709795d4fb793d41e7a8b0acac2&roleId=26885907&to=https://shop.m.jd.com/?shopId=1000132921&sceneval=2&time=1577796913938" target="_blank">自营键鼠199-100</a></p>`;
+    //recommandArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>好券推荐</h3>
+    //<p style="color:red;font-weight:bold;">
+    //<a style="color:red" href="https://m.jr.jd.com/member/9GcConvert/?channel=01-shouye-191214" target="_blank">9金币抢兑</a>
+    //</p>
+    //<p style="color:red;font-weight:bold;">
+    //<a style="color:red" href="https://coupon.m.jd.com/coupons/show.action?key=26ef0709795d4fb793d41e7a8b0acac2&roleId=26885907&to=https://shop.m.jd.com/?shopId=1000132921&sceneval=2&time=1577796913938" target="_blank">自营键鼠199-100</a>
+    //</p>
+    //<p style="color:red;font-weight:bold;">
+    //<a style="color:red" href="https://pro.m.jd.com/wq/active/FYXPxE3J9bnJ5LHvRMBNf4gJxMb/index.html" target="_blank">零食满99-88</a>
+    //</p>`;
+    recommandArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>好券推荐</h3>
+    <p style="color:red;font-weight:bold;">
+    <a style="color:red" href="https://m.jr.jd.com/member/9GcConvert/?channel=01-shouye-191214" target="_blank">9金币抢兑</a>
+    </p>`;
     container.append(recommandArea);
 }
 
 function buildPromotion() {
+    const promotionArea: HTMLDivElement = document.createElement("div");
     promotionArea.setAttribute("style", "border: 1px solid #000;margin:10px");
     promotionArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>推广区</h3>
     <p style="color:red;font-weight:bold;"><a  style="color:red" href="http://krapnik.cn/project/jd/dayTask.html" target="_blank">每日京东红包汇总</a></p>`;
@@ -199,8 +214,23 @@ function buildPromotion() {
 
 function buildUAarea() {
     let UATipsDiv: HTMLDivElement = document.createElement("div");
-    UATipsDiv.innerHTML = `<div style="border: 1px solid #000;margin:10px"><h2>该活动需要设置user-Agent为京东APP</h2><p><a style="color:red" href="https://jingyan.baidu.com/article/20095761d41761cb0621b46f.html" target="_blank">点击查看教程</a></p><button style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block" onclick=Utils.copyText(Config.JDAppUA)>复制user-Agent</button></div>`;
+    UATipsDiv.innerHTML = `<div style="border: 1px solid #000;margin:10px"><h2>该活动需要设置user-Agent为京东APP</h2><p><a style="color:red" href="https://jingyan.baidu.com/article/20095761d41761cb0621b46f.html" target="_blank">点击查看教程</a></p><p>部分浏览器插件会覆盖UA设置，请自行排查并关闭</p><button style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block" onclick=Utils.copyText(Config.JDAppUA)>复制user-Agent</button></div>`;
     container.append(UATipsDiv);
+}
+
+function buildTimeoutArea() {
+    let timeoutDiv: HTMLDivElement = document.createElement("div"),
+        timeoutInput: HTMLInputElement = document.createElement("input");
+    timeoutInput.setAttribute("style", "width:80vw;height: 25px;font-size:14px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;");
+    timeoutInput.placeholder = "请输入任务的提交间隔时间【默认:1500毫秒】";
+    timeoutDiv.innerHTML = `<p style="font-size:14px;">任务提交时间将会在设置提交间隔时间的基础上随机增加300~500毫秒</p>`;
+    timeoutDiv.append(timeoutInput);
+    timeoutInput.onchange = () => {
+        if (Utils.isNumber(+timeoutInput!.value)) {
+            Config.timeoutSpan = +timeoutInput!.value || 1500;
+        }
+    }
+    container.append(timeoutDiv);
 }
 
 function getCouponType(): couponType | activityType {
@@ -226,9 +256,12 @@ function getCouponType(): couponType | activityType {
     } else if (/coupons\/show.action\?key=(\S*)&roleId=(\S*)/.test(Config.locationHref)) {
         type = couponType.mfreecoupon
     }
-
-    if (Config.locationHref.includes("4PWgqmrFHunn8C38mJA712fufguU")) {
-        type = activityType.monsterNian
+    if (Config.locationHref.includes("bunearth.m.jd.com")) {
+        if (Config.locationHref.includes("4PWgqmrFHunn8C38mJA712fufguU")) {
+            type = activityType.monsterNian;
+        } else if (Config.locationHref.includes("w6y8PYbzhgHJc8Lu1weihPReR2T")) {
+            type = activityType.brandCitySpring;
+        }
     }
     return type;
 }
@@ -273,6 +306,8 @@ function getCouponDesc(type: couponType | activityType) {
             activity = new MonsterNian(null, container, outputTextArea);
             Config.UAFlag = true;
             break;
+        case activityType.brandCitySpring:
+            activity = new BrandCitySpring(null, container, outputTextArea);
         default:
             break;
     }
@@ -285,8 +320,11 @@ function getCouponDesc(type: couponType | activityType) {
         coupon.get();
     } else if (activity) {
         buildOperate();
+        buildTimeoutArea();
+        buildActivity();
         activity.get();
     } else {
+        Utils.loadCss("https://meyerweb.com/eric/tools/css/reset/reset200802.css");
         buildTips();
         buildRecommend();
         buildActivity();
@@ -307,7 +345,7 @@ function getTime() {
             if (Config.timingFlag) {
                 if (nowResidueCount >= 0) {
                     if (startTime <= +time) {
-                        outputTextArea.value = `第${-(nowResidueCount - Config.retryCount)}次领取时间：${Config.localeTime}\n` + outputTextArea.value;
+                        Utils.outPutLog(outputTextArea, `第${-(nowResidueCount - Config.retryCount)}次领取时间：${Config.localeTime}`);
                         if (coupon) {
                             coupon.send(outputTextArea);
                             Config.residueCount--;
@@ -322,7 +360,7 @@ function getTime() {
                     timerResetBtn.disabled = Config.timingFlag;
                     receiveTimerBtn.innerHTML = "定时指定领取";
                     timerResetBtn.style.color = "#fff";
-                    outputTextArea.value += `已关闭定时领取\n`;
+                    Utils.outPutLog(outputTextArea, `已关闭定时领取`);
                 }
             }
         });
@@ -334,9 +372,10 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.3.3】：合并原作者更新内容；优化提示信息；优化页面逻辑；修复活动部分错误并修改运行逻辑', 'color:#009a61');
         console.log('%c【0.3.2】：合并原作者更新内容', 'color:#009a61');
         console.log('%c【0.3.1】：小白信用领券结果细化；优化页面操作逻辑；规范请求及返回信息显示顺序', 'color:#009a61');
-        console.log('%c【0.3.0】：新增重复次数（重复频率同刷新频率）；修复定时领取点击后无法取消；更改部分文案', 'color:#009a61');
+        //console.log('%c【0.3.0】：新增重复次数（重复频率同刷新频率）；修复定时领取点击后无法取消；更改部分文案', 'color:#009a61');
         console.log('%c本版本非原版，请支持原作者:krapnik', 'color:#ef5035; font-size:16px;');
         console.groupEnd();
     }
@@ -351,8 +390,6 @@ function statistical() {
         s.parentNode!.insertBefore(hm, s);
     })();
 }
-
-Utils.loadCss("https://meyerweb.com/eric/tools/css/reset/reset200802.css");
 
 getCouponDesc(getCouponType());
 copyRights();
