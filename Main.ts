@@ -73,7 +73,7 @@ function buildOperate() {
         timerResetBtn.setAttribute("style", "width: 80px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;");
         timerResetBtn.addEventListener("click", () => {
             const span = Math.trunc(+timerTextInput.value);
-            if (!Config.intervalSpan) {
+            if (!span) {
                 alert("请检查输入的刷新频率是否有误！(只能为大于0的数字)");
                 return false;
             }
