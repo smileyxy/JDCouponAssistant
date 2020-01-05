@@ -24,10 +24,10 @@ export default class BrandCitySpring implements Activity {
         const content = document.createElement("div");
         let msg = `
         <div style="margin:10px;">
-        <button class="visit" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键浏览店铺</button>
-        <button class="linkgame" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键小游戏</button>
-        <button class="exchange" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键福币兑换</button>
-        <button class="auto" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键自动完成</button></div>`;
+        <button class="auto" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键完成任务</button>
+        <button class="visit" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">浏览店铺</button>
+        <button class="linkgame" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">小游戏</button>
+        <button class="exchange" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">福币兑换</button></div>`;
 
         content.innerHTML = msg;
         this.container.appendChild(content);
@@ -103,9 +103,11 @@ export default class BrandCitySpring implements Activity {
 
                     (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
 
-                    for (let i = 0; i < btnControl.length; i++) {
-                        btnControl[i].disabled = false;
-                        btnControl[i].style.color = '#fff';
+                    if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                        for (let i = 0; i < btnControl.length; i++) {
+                            btnControl[i].disabled = false;
+                            btnControl[i].style.color = '#fff';
+                        }
                     }
 
                     clearInterval(sendInterval);
@@ -145,9 +147,11 @@ export default class BrandCitySpring implements Activity {
 
                     (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
 
-                    for (let i = 0; i < btnControl.length; i++) {
-                        btnControl[i].disabled = false;
-                        btnControl[i].style.color = '#fff';
+                    if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                        for (let i = 0; i < btnControl.length; i++) {
+                            btnControl[i].disabled = false;
+                            btnControl[i].style.color = '#fff';
+                        }
                     }
 
                     clearInterval(visitInterval);
@@ -187,9 +191,11 @@ export default class BrandCitySpring implements Activity {
 
                     (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
 
-                    for (let i = 0; i < btnControl.length; i++) {
-                        btnControl[i].disabled = false;
-                        btnControl[i].style.color = '#fff';
+                    if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                        for (let i = 0; i < btnControl.length; i++) {
+                            btnControl[i].disabled = false;
+                            btnControl[i].style.color = '#fff';
+                        }
                     }
 
                     clearInterval(gameInterval);
