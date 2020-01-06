@@ -45,110 +45,12 @@ export default class MonsterNian implements Activity {
         <div style="margin:10px;">
         <button class="everyday" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">开启每日自动</button>
         <button class="auto" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键自动完成</button>
-        <button class="raise" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">炸年兽</button>
-        <button class="shop" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">逛逛好店</button>
-        <button class="product" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">好物加购</button>
-        <button class="shopping" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">逛逛会场</button>
-        <button class="activity" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">好玩互动</button>
-        <button class="video" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">视频直播</button>
-        <button class="record" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">LBS定位</button>
-        <button class="nianHelp" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">帮作者年兽助力</button>
-        <button class="teamHelp" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">帮作者战队助力</button>
-        <button class="invite" style = "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">获取邀请链接</button>
         </div>`;
-        // <button class="join" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">加入作者战队</button>
         content.innerHTML = msg;
         this.container.appendChild(content);
-        const o = document.querySelector('.shop'),
-            n = document.querySelector('.nianHelp'),
-            t = document.querySelector('.teamHelp'),
-            a = document.querySelector('.activity'),
-            v = document.querySelector('.video'),
-            r = document.querySelector('.record'),
-            s = document.querySelector('.shopping'),
-            i = document.querySelector('.invite'),
-            // j = document.querySelector('.join'),
-            b = document.querySelector('.raise'),
-            u = document.querySelector('.auto'),
-            l = document.querySelector('.product'),
+        const u = document.querySelector('.auto'),
             d = document.querySelector('.everyday');
  
-
-        o!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动逛逛好店任务！`)
-            this.send(this.data.taskVos[2]["browseShopVo"], this.data.taskVos[2]["taskId"], -1, '逛逛好店');
-        });
-        l!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动好物加购任务！`)
-            this.send(this.data.taskVos[1]["productInfoVos"], this.data.taskVos[1]["taskId"], -1, '好物加购');
-        });
-        s!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动逛逛会场任务！`)
-            this.send(this.data.taskVos[3]["shoppingActivityVos"], this.data.taskVos[3]["taskId"], -1, '逛逛会场');
-        });
-        a!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动好玩互动任务！`)
-            this.send(this.data.taskVos[4]["shoppingActivityVos"], this.data.taskVos[4]["taskId"], -1, '好玩互动');
-        });
-        v!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动视频直播任务！`)
-            this.send(this.data.taskVos[5]["shoppingActivityVos"], this.data.taskVos[5]["taskId"], -1, '视频直播');
-        });
-        r!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动LBS定位任务！`)
-            this.send([this.data.taskVos[6]["simpleRecordInfoVo"]], this.data.taskVos[6]["taskId"], -1, 'LBS定位');
-        });
-        i!.addEventListener('click', () => {
-            Utils.copyText(`https://bunearth.m.jd.com/babelDiy/SGFJVMOZADGTQCZWGEYU/4PWgqmrFHunn8C38mJA712fufguU/index.html?shareType=taskHelp&inviteId=${this.data["inviteId"]}&taskId=1&itemId=${this.data["taskVos"][0]["assistTaskDetailVo"]["itemId"]}&shareFrom=key`);
-        });
-        n!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            this.invite();
-        });
-        t!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            this.assist();
-        });
-        // j!.addEventListener('click', () => {
-        //     this.join();
-        // })
-        b!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            this.raise();
-        });
         var e = document.createEvent("MouseEvents");
         e.initEvent("click", true, true);
         u!.addEventListener('click', () => {

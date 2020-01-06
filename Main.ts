@@ -152,7 +152,7 @@ function buildOperate() {
 
 function buildTips() {
     const tips = document.createElement('h4');
-    tips.innerHTML = '<h4>页面地址暂未被扩展或者有误！</h4><p>本插件只能在指定活动地址或领券地址使用！</p><p>如果这是个活动地址或领券地址，可以<a href="tencent://message/?uin=1244797556Menu=yes" target="_blank" title="发起QQ聊天">联系作者</a>扩展~</p>'
+    tips.innerHTML = '<h4>页面地址暂未被扩展或者有误！</h4><p>本插件只能在指定活动地址使用！</p>'
     title.append(tips);
 }
 
@@ -165,11 +165,6 @@ function buildTitle() {
     document.body.style.maxWidth = "100vw";
     container.setAttribute("style", "border: 1px solid #000;padding: 5px;margin: 5px;");
     title.innerHTML = `<h1 style="font-weight:700">${Config.title} ${Config.version}</h1>
-                        <h3>author:${Config.author}</h3>
-                        <h3>edit:${Config.edit}</h3>
-                        <div style="display: flex;flex-direction: row;justify-content: center;">
-                        <iframe src="https://ghbtns.com/github-btn.html?user=smalllk&repo=JDCouponAssistant&type=star&count=true" frameborder="0" scrolling="0" width="80px" height="21px"></iframe>
-                        <a href="tencent://message/?uin=1244797556Menu=yes" target="_blank" title="发起QQ聊天"><img src="http://bizapp.qq.com/webimg/01_online.gif" alt="QQ" style="margin:0px;"></a>
                         </div>`;
     container.append(title);
     document.body.append(container);
@@ -268,7 +263,7 @@ function getCouponType(): couponType | activityType {
 
 function getCouponDesc(type: couponType | activityType) {
     buildTitle();
-    buildPromotion();
+    //buildPromotion();
     switch (type) {
         case couponType.none:
             break;
@@ -326,7 +321,7 @@ function getCouponDesc(type: couponType | activityType) {
     } else {
         Utils.loadCss("https://meyerweb.com/eric/tools/css/reset/reset200802.css");
         buildTips();
-        buildRecommend();
+        //buildRecommend();
         buildActivity();
     }
     Utils.createJsonp(`${Config.JDUserInfoURL}&callback=getLoginMsg`);
@@ -369,16 +364,16 @@ function getTime() {
 function copyRights() {
     console.clear();
     if (window.console) {
-        console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
-        console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
+        console.group('%c京东小助手', 'color:#009a61; font-size: 36px; font-weight: 400');
+        //console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
         console.log('%c【0.3.5】：新增每日自动完成活动任务；修复部分Bug', 'color:#009a61');
-        console.log('%c【0.3.4】：合并原作者更新内容；修改部分提示信息；修复按钮释放时机错误；新增为作者战队助力', 'color:#009a61');
-        console.log('%c【0.3.3】：合并原作者更新内容；优化提示信息；优化页面逻辑；修复活动部分错误并修改运行逻辑', 'color:#009a61');
+        console.log('%c【0.3.4】：修改部分提示信息；修复按钮释放时机错误；新增为作者战队助力', 'color:#009a61');
+        console.log('%c【0.3.3】：优化提示信息；优化页面逻辑；修复活动部分错误并修改运行逻辑', 'color:#009a61');
         //console.log('%c【0.3.2】：合并原作者更新内容', 'color:#009a61');
         //console.log('%c【0.3.1】：小白信用领券结果细化；优化页面操作逻辑；规范请求及返回信息显示顺序', 'color:#009a61');
         //console.log('%c【0.3.0】：新增重复次数（重复频率同刷新频率）；修复定时领取点击后无法取消；更改部分文案', 'color:#009a61');
-        console.log('%c本版本非原版，请支持原作者:krapnik', 'color:#ef5035; font-size:16px;');
+        //console.log('%c本版本非原版，请支持原作者:krapnik', 'color:#ef5035; font-size:16px;');
         console.groupEnd();
     }
 }

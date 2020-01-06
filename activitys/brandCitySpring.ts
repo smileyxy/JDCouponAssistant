@@ -25,43 +25,13 @@ export default class BrandCitySpring implements Activity {
         let msg = `
         <div style="margin:10px;">
 	    <button class="everyday" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">开启每日自动</button>
-        <button class="auto" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键自动完成</button>
-        <button class="visit" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">浏览店铺</button>
-        <button class="linkgame" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">小游戏</button>
-        <button class="exchange" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">福币兑换</button></div>`;
+        <button class="auto" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键自动完成</button></div>`;
 
         content.innerHTML = msg;
         this.container.appendChild(content);
-        const e = document.querySelector('.exchange'),
-            v = document.querySelector('.visit'),
-            g = document.querySelector('.linkgame'),
-            a = document.querySelector('.auto'),
+        const a = document.querySelector('.auto'),
             d = document.querySelector('.everyday');
 
-        e!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动福币兑换`);
-            this.send();
-        });
-        v!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动浏览店铺`);
-            this.visit();
-        });
-        g!.addEventListener('click', () => {
-            for (let i = 0; i < btnControl.length; i++) {
-                btnControl[i].disabled = true;
-                btnControl[i].style.color = '#c1c1c1';
-            }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动小游戏`);
-            this.game();
-        });
         a!.addEventListener('click', () => {
             for (let i = 0; i < btnControl.length; i++) {
                 btnControl[i].disabled = true;
