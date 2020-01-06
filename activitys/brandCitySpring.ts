@@ -24,7 +24,8 @@ export default class BrandCitySpring implements Activity {
         const content = document.createElement("div");
         let msg = `
         <div style="margin:10px;">
-        <button class="auto" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键完成任务</button>
+	    <button class="everyday" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">开启每日自动</button>
+        <button class="auto" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键自动完成</button>
         <button class="visit" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">浏览店铺</button>
         <button class="linkgame" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">小游戏</button>
         <button class="exchange" style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">福币兑换</button></div>`;
@@ -34,7 +35,8 @@ export default class BrandCitySpring implements Activity {
         const e = document.querySelector('.exchange'),
             v = document.querySelector('.visit'),
             g = document.querySelector('.linkgame'),
-            a = document.querySelector('.auto');
+            a = document.querySelector('.auto'),
+            d = document.querySelector('.everyday');
 
         e!.addEventListener('click', () => {
             for (let i = 0; i < btnControl.length; i++) {
@@ -65,10 +67,31 @@ export default class BrandCitySpring implements Activity {
                 btnControl[i].disabled = true;
                 btnControl[i].style.color = '#c1c1c1';
             }
-            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动全部任务`);
+            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动完成所有任务`);
             this.visit(0);
             this.game(1);
             this.send(2);
+        });
+        var ent = document.createEvent("MouseEvents");
+        ent.initEvent("click", true, true);
+        d!.addEventListener('click', () => {
+            let startTime = 0;
+            Config.autoEveryDay = !Config.autoEveryDay;
+            d!.innerHTML = Config.autoEveryDay ? '取消每日自动' : '开启每日自动';
+            Utils.outPutLog(this.outputTextarea, `${(Config.autoEveryDay ? '已开启每日自动【开启后立即执行一次，往后每天10点后执行，监测频率30~60分钟/次】' : '已取消每日自动')}`);
+            setInterval(() => {
+                fetch(Config.JDTimeInfoURL)
+                    .then(function (response) { return response.json() })
+                    .then(function (res) {
+                        let time = Utils.formatDate2(res.time);
+                        if (Config.autoEveryDay) {
+                            if (startTime == 0 || (+time > startTime && new Date(+res.time).getHours() >= 10)) {
+                                startTime = +time;
+                                a!.dispatchEvent(ent);
+                            }
+                        }
+                    });
+            }, (startTime == 0 ? Config.timeoutSpan : 1800000 + Utils.random(0, 1800000)));
         });
     }
 
@@ -101,9 +124,9 @@ export default class BrandCitySpring implements Activity {
                 else {
                     Utils.outPutLog(self.outputTextarea, `${new Date().toLocaleString()} 福币兑换任务已完成`);
 
-                    (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
-
+                    if (progress >= 0 && Config.taskProgress < Config.taskCount) Config.taskProgress++;
                     if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                        Config.taskProgress = 0;
                         for (let i = 0; i < btnControl.length; i++) {
                             btnControl[i].disabled = false;
                             btnControl[i].style.color = '#fff';
@@ -145,9 +168,9 @@ export default class BrandCitySpring implements Activity {
                 else {
                     Utils.outPutLog(self.outputTextarea, `${new Date().toLocaleString()} 浏览店铺任务已完成`);
 
-                    (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
-
+                    if (progress >= 0 && Config.taskProgress < Config.taskCount) Config.taskProgress++;
                     if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                        Config.taskProgress = 0;
                         for (let i = 0; i < btnControl.length; i++) {
                             btnControl[i].disabled = false;
                             btnControl[i].style.color = '#fff';
@@ -189,9 +212,9 @@ export default class BrandCitySpring implements Activity {
                 else {
                     Utils.outPutLog(self.outputTextarea, `${new Date().toLocaleString()} 小游戏任务已完成`);
 
-                    (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
-
+                    if (progress >= 0 && Config.taskProgress < Config.taskCount) Config.taskProgress++;
                     if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                        Config.taskProgress = 0;
                         for (let i = 0; i < btnControl.length; i++) {
                             btnControl[i].disabled = false;
                             btnControl[i].style.color = '#fff';

@@ -16,7 +16,7 @@ export default class MonsterNian implements Activity {
         this.container = containerDiv;
         this.outputTextarea = outputTextarea;
         this.outputTextarea.value = `当你看到这行文字时，说明你还没有配置好浏览器UA！`;
-        Config.taskCount = 9;
+        Config.taskCount = 8;
     }
     get(): void {
         var postData = "functionId=bombnian_getTaskDetail&body={}&client=wh5&clientVersion=1.0.0";
@@ -43,7 +43,8 @@ export default class MonsterNian implements Activity {
         const content = document.createElement("div");
         let msg = `
         <div style="margin:10px;">
-        <button class="auto" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键完成任务</button>
+        <button class="everyday" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">开启每日自动</button>
+        <button class="auto" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">一键自动完成</button>
         <button class="raise" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">炸年兽</button>
         <button class="shop" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">逛逛好店</button>
         <button class="product" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">好物加购</button>
@@ -69,7 +70,8 @@ export default class MonsterNian implements Activity {
             // j = document.querySelector('.join'),
             b = document.querySelector('.raise'),
             u = document.querySelector('.auto'),
-            l = document.querySelector('.product');
+            l = document.querySelector('.product'),
+            d = document.querySelector('.everyday');
  
 
         o!.addEventListener('click', () => {
@@ -147,31 +149,48 @@ export default class MonsterNian implements Activity {
             }
             this.raise();
         });
-        //var e = document.createEvent("MouseEvents");
-        //e.initEvent("click", true, true);
+        var e = document.createEvent("MouseEvents");
+        e.initEvent("click", true, true);
         u!.addEventListener('click', () => {
-            if (confirm('此功能会默认为作者年兽助力一次（如作者助力次数已满则不消耗次数）以及战队助力一次，介意的请取消并使用以下按钮完成活动')) {
-                for (let i = 0; i < btnControl.length; i++) {
-                    btnControl[i].disabled = true;
-                    btnControl[i].style.color = '#c1c1c1';
-                }
-                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 一键自动开始任务！`);
-                this.assist(0);
-                this.invite(1);
-                this.send(this.data.taskVos[2]["browseShopVo"], this.data.taskVos[2]["taskId"], 2, '逛逛好店');
-                this.send(this.data.taskVos[1]["productInfoVos"], this.data.taskVos[1]["taskId"], 3, '好物加购');
-                this.send(this.data.taskVos[3]["shoppingActivityVos"], this.data.taskVos[3]["taskId"], 4, '逛逛会场');
-                this.send(this.data.taskVos[4]["shoppingActivityVos"], this.data.taskVos[4]["taskId"], 5, '好玩互动');
-                this.send(this.data.taskVos[5]["shoppingActivityVos"], this.data.taskVos[5]["taskId"], 6, '视频直播');
-                this.send([this.data.taskVos[6]["simpleRecordInfoVo"]], this.data.taskVos[6]["taskId"], 7, 'LBS定位');
-                this.raise(8);
-                //b!.dispatchEvent(e);
-                //o!.dispatchEvent(e);
-                //a!.dispatchEvent(e);
-                //v!.dispatchEvent(e);
-                //s!.dispatchEvent(e);
-                //l!.dispatchEvent(e);
+            for (let i = 0; i < btnControl.length; i++) {
+                btnControl[i].disabled = true;
+                btnControl[i].style.color = '#c1c1c1';
             }
+            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 开始自动完成所有任务！`);
+            this.assist(0);
+            //this.invite(1);
+            this.send(this.data.taskVos[2]["browseShopVo"], this.data.taskVos[2]["taskId"], 1, '逛逛好店');
+            this.send(this.data.taskVos[1]["productInfoVos"], this.data.taskVos[1]["taskId"], 2, '好物加购');
+            this.send(this.data.taskVos[3]["shoppingActivityVos"], this.data.taskVos[3]["taskId"], 3, '逛逛会场');
+            this.send(this.data.taskVos[4]["shoppingActivityVos"], this.data.taskVos[4]["taskId"], 4, '好玩互动');
+            this.send(this.data.taskVos[5]["shoppingActivityVos"], this.data.taskVos[5]["taskId"], 5, '视频直播');
+            this.send([this.data.taskVos[6]["simpleRecordInfoVo"]], this.data.taskVos[6]["taskId"], 6, 'LBS定位');
+            this.raise(7);
+            //b!.dispatchEvent(e);
+            //o!.dispatchEvent(e);
+            //a!.dispatchEvent(e);
+            //v!.dispatchEvent(e);
+            //s!.dispatchEvent(e);
+            //l!.dispatchEvent(e);
+        });
+        d!.addEventListener('click', () => {
+            let startTime = 0;
+            Config.autoEveryDay = !Config.autoEveryDay;
+            d!.innerHTML = Config.autoEveryDay ? '取消每日自动' : '开启每日自动';
+            Utils.outPutLog(this.outputTextarea, `${(Config.autoEveryDay ? '已开启每日自动【开启后立即执行一次，往后每天10点后执行，监测频率30~60分钟/次】' : '已取消每日自动')}`);
+            setInterval(() => {
+                fetch(Config.JDTimeInfoURL)
+                    .then(function (response) { return response.json() })
+                    .then(function (res) {
+                        let time = Utils.formatDate2(res.time);
+                        if (Config.autoEveryDay) {
+                            if (startTime == 0 || (+time > startTime && new Date(+res.time).getHours() >= 10)) {
+                                startTime = +time;
+                                u!.dispatchEvent(e);
+                            }
+                        }
+                    });
+            }, (startTime == 0 ? Config.timeoutSpan : 1800000 + Utils.random(0, 1800000)));
         });
     }
 
@@ -204,8 +223,10 @@ export default class MonsterNian implements Activity {
                 else {
                     clearInterval(sendInterval);
                     Utils.outPutLog(self.outputTextarea, `${new Date().toLocaleString()} ${taskName}任务已完成！`);
-                    (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
+
+                    if (progress >= 0 && Config.taskProgress < Config.taskCount) Config.taskProgress++;
                     if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                        Config.taskProgress = 0;
                         for (let i = 0; i < btnControl.length; i++) {
                             btnControl[i].disabled = false;
                             btnControl[i].style.color = '#fff';
@@ -231,8 +252,10 @@ export default class MonsterNian implements Activity {
             return response.json()
         }).then((res) => {
             Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 年兽助力成功！感谢您的帮助！`);
-            (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
+
+            if (progress >= 0 && Config.taskProgress < Config.taskCount) Config.taskProgress++;
             if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                Config.taskProgress = 0;
                 for (let i = 0; i < btnControl.length; i++) {
                     btnControl[i].disabled = false;
                     btnControl[i].style.color = '#fff';
@@ -274,8 +297,10 @@ export default class MonsterNian implements Activity {
             return response.json()
         }).then((res) => {
             Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 战队助力成功！感谢您的帮助！`);
-            (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
+
+            if (progress >= 0 && Config.taskProgress < Config.taskCount) Config.taskProgress++;
             if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                Config.taskProgress = 0;
                 for (let i = 0; i < btnControl.length; i++) {
                     btnControl[i].disabled = false;
                     btnControl[i].style.color = '#fff';
@@ -305,8 +330,10 @@ export default class MonsterNian implements Activity {
                     } else {
                         clearInterval(raiseInterval);
                         Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 炸年兽任务已完成！`);
-                        (progress < 0 || Config.taskProgress >= Config.taskCount) ? Config.taskProgress = 0 : Config.taskProgress++;
+
+                        if (progress >= 0 && Config.taskProgress < Config.taskCount) Config.taskProgress++;
                         if (progress < 0 || Config.taskProgress >= Config.taskCount) {
+                            Config.taskProgress = 0;
                             for (let i = 0; i < btnControl.length; i++) {
                                 btnControl[i].disabled = false;
                                 btnControl[i].style.color = '#fff';

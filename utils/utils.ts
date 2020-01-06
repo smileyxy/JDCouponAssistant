@@ -4,29 +4,6 @@
 
 
 export default class Utils {
-    static formateDate(date: string): string {
-        let dateObj = new Date(+date),
-            hours: string | number = dateObj.getHours(),
-            mins: string | number = dateObj.getMinutes(),
-            secs: string | number = dateObj.getSeconds(),
-            msecs: string | number = dateObj.getMilliseconds();
-        if (hours < 10) {
-            hours = "0" + hours;
-        }
-        if (mins < 10) {
-            mins = "0" + mins;
-        }
-        if (secs < 10) {
-            secs = "0" + secs;
-        }
-        if (msecs < 10) {
-            msecs = "00" + msecs;
-        } else if (msecs < 100 && msecs >= 10) {
-            msecs = "0" + msecs;
-        }
-        return hours + "" + mins + "" + secs + "" + msecs;
-    }
-
     static obtainLocal(ck: string): string {
         return ck.replace(/(?:(?:^|.*;\s*)3AB9D23F7A4B3C9B\s*=\s*([^;]*).*$)|^.*$/, "$1");
     };
@@ -56,6 +33,20 @@ export default class Utils {
             msecs = "0" + msecs;
         }
         return hours + "" + mins + "" + secs + "" + msecs;
+    }
+
+    static formatDate2(date: string): string {
+        let dateObj = new Date(+date),
+            year: string | number = dateObj.getFullYear(),
+            month: string | number = dateObj.getMonth() + 1,
+            day: string | number = dateObj.getDate();
+        if (month < 10) {
+            month = "0" + month;
+        }
+        if (day < 10) {
+            day = "0" + day;
+        }
+        return year + "" + month + "" + day;
     }
 
     static GetQueryString(name: string): string {
