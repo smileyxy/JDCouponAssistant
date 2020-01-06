@@ -79,7 +79,7 @@ export default class MonsterNian implements Activity {
             let startTime = 0;
             Config.autoEveryDay = !Config.autoEveryDay;
             d!.innerHTML = Config.autoEveryDay ? '取消每日自动' : '开启每日自动';
-            Utils.outPutLog(this.outputTextarea, `${(Config.autoEveryDay ? '已开启每日自动【开启后立即执行一次，往后每天10点后执行，监测频率30~60分钟/次】' : '已取消每日自动')}`);
+            Utils.outPutLog(this.outputTextarea, `${(Config.autoEveryDay ? '已开启每日自动【每天10点后执行，监测频率30~60分钟/次】' : '已取消每日自动')}`);
             setInterval(() => {
                 fetch(Config.JDTimeInfoURL)
                     .then(function (response) { return response.json() })
@@ -92,7 +92,7 @@ export default class MonsterNian implements Activity {
                             }
                         }
                     });
-            }, (startTime == 0 ? Config.timeoutSpan : 1800000 + Utils.random(0, 1800000)));
+            }, 1800000 + Utils.random(0, 1800000));
         });
     }
 
