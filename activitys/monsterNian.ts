@@ -77,7 +77,8 @@ export default class MonsterNian implements Activity {
         });
         d!.addEventListener('click', () => {
             let startTime = 0,
-                detectionInterval = 0;
+                detectionInterval = 0,
+                self = this;
             Config.autoEveryDay = !Config.autoEveryDay;
             if (Config.autoEveryDay) {
                 d!.innerHTML = '取消每日自动';
@@ -95,6 +96,21 @@ export default class MonsterNian implements Activity {
                         if (Config.autoEveryDay) {
                             if (startTime == 0 || (+time > startTime && new Date(+res.time).getHours() >= 10)) {
                                 startTime = +time;
+                                var postData = "functionId=bombnian_getTaskDetail&body={}&client=wh5&clientVersion=1.0.0";
+                                fetch(self.detailurl, {
+                                    method: "POST",
+                                    mode: "cors",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/x-www-form-urlencoded"
+                                    },
+                                    body: postData
+                                }).then(function (response) {
+                                    return response.json()
+                                }).then((res) => {
+                                    self.data = res.data.result;
+                                    Utils.outPutLog(self.outputTextarea, `获取数据成功\n已加购物车：${self.data.taskVos[1]["times"]}/${self.data.taskVos[1]["productInfoVos"].length}\n已逛店铺：${self.data.taskVos[2]["times"]}/${self.data.taskVos[2]["browseShopVo"].length}\n已逛会场：${self.data.taskVos[3]["times"]}/${self.data.taskVos[3]["shoppingActivityVos"].length}\n已参与互动：${self.data.taskVos[4]["times"]}/${self.data.taskVos[4]["shoppingActivityVos"].length}\n已看直播：${self.data.taskVos[5]["times"]}/${self.data.taskVos[5]["shoppingActivityVos"].length}\n已LBS定位：${self.data.taskVos[6]["times"]}/1`);
+                                })
                                 u!.dispatchEvent(e);
                             }
                         }
