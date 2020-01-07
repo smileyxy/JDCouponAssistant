@@ -48,9 +48,15 @@ export default class BrandCitySpring implements Activity {
             let startTime = 0,
                 detectionInterval = 0;
             Config.autoEveryDay = !Config.autoEveryDay;
-            d!.innerHTML = Config.autoEveryDay ? '取消每日自动' : '开启每日自动';
+            if (Config.autoEveryDay) {
+                d!.innerHTML = '取消每日自动';
+            }
+            else {
+                d!.innerHTML = '开启每日自动';
+                clearInterval(detectionInterval);
+            }
             Utils.outPutLog(this.outputTextarea, `${(Config.autoEveryDay ? '已开启每日自动【每天10点后执行，监测频率30~60分钟/次】' : '已取消每日自动')}`);
-            setInterval(() => {
+            detectionInterval = setInterval(() => {
                 fetch(Config.JDTimeInfoURL)
                     .then(function (response) { return response.json() })
                     .then(function (res) {
@@ -60,9 +66,6 @@ export default class BrandCitySpring implements Activity {
                                 startTime = +time;
                                 a!.dispatchEvent(ent);
                             }
-                        }
-                        else {
-                            clearInterval(detectionInterval);
                         }
                     });
             }, 1800000 + Utils.random(0, 1800000));
