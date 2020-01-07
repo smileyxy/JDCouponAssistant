@@ -75,7 +75,8 @@ export default class BrandCitySpring implements Activity {
         var ent = document.createEvent("MouseEvents");
         ent.initEvent("click", true, true);
         d!.addEventListener('click', () => {
-            let startTime = 0;
+            let startTime = 0,
+                detectionInterval = 0;
             Config.autoEveryDay = !Config.autoEveryDay;
             d!.innerHTML = Config.autoEveryDay ? '取消每日自动' : '开启每日自动';
             Utils.outPutLog(this.outputTextarea, `${(Config.autoEveryDay ? '已开启每日自动【每天10点后执行，监测频率30~60分钟/次】' : '已取消每日自动')}`);
@@ -89,6 +90,9 @@ export default class BrandCitySpring implements Activity {
                                 startTime = +time;
                                 a!.dispatchEvent(ent);
                             }
+                        }
+                        else {
+                            clearInterval(detectionInterval);
                         }
                     });
             }, 1800000 + Utils.random(0, 1800000));
