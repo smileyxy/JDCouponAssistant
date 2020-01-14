@@ -20,6 +20,7 @@ gulp.task("default", () => {
         .pipe(buffer())
         .pipe(babel({//编译ES6
             presets: ['es2015']
+            ,compact: false
         }))
         .pipe(uglify({ mangle: { toplevel: true } }))
         .pipe(gulp.dest('dist'))

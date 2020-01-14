@@ -1,8 +1,13 @@
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
+
 import Coupon from "./interface/Coupon";
 import Activity from "./interface/Activity";
 
 import Utils from "./utils/utils";
 import Config from "./config/config";
+
+import { couponType, activityType } from './utils/enums';
 
 import BabelAwardCollection from "./coupons/newBabelAwardCollection";
 import WhiteCoupon from "./coupons/whtieCoupon";
@@ -13,29 +18,10 @@ import Mfreecoupon from "./coupons/mfreecoupon";
 import CoinPurchase from "./coupons/coinPurchase";
 import GcConvert from "./coupons/gcConvert";
 
-import MonsterNian from "./activitys/MonsterNian";
+import MonsterNian from "./activitys/monsterNian";
 import BrandCitySpring from "./activitys/brandCitySpring";
 import Palace from "./activitys/palace";
-
-enum couponType {
-    none,
-    receiveCoupons = "receiveCoupons",
-    newBabelAwardCollection = "newBabelAwardCollection",
-    whiteCoupon = "whiteCoupon",
-    purchase = "purchase",
-    receiveDayCoupon = "receiveDayCoupon",
-    secKillCoupon = "secKillCoupon",
-    mfreecoupon = "mfreecoupon",
-    coinPurchase = "coinPurchase",
-    GcConvert = "GcConvert",
-}
-
-enum activityType {
-    none,
-    monsterNian = "monsterNian",
-    brandCitySpring = "brandCitySpring",
-    palace = "palace",
-}
+import JdJoy from "./activitys/jdjoy";
 
 let coupon: Coupon,
     activity: Activity,
@@ -133,7 +119,7 @@ function buildOperate() {
         receiveTimerBtn.setAttribute("style", "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;");
         receiveAllBtn.innerHTML = "一键指定领取";
         receiveAllBtn.setAttribute("style", "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;");
-        outputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;display:none");
+        outputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;display:none;font-size: 13px;");
         outputTextArea.setAttribute("disabled", "disabled");
         operateAreaDiv.append(timerDiv);
         timerDiv.append(timerTittleDiv);
@@ -146,10 +132,10 @@ function buildOperate() {
         receiveAreaDiv.append(receiveAllBtn);
         receiveAreaDiv.append(receiveTimerBtn);
     } else {
-        outputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;");
+        outputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;font-size: 13px;");
         outputTextArea.setAttribute("disabled", "disabled");
     }
-    loginMsgDiv.innerHTML = "当前帐号：未登录";
+    loginMsgDiv.innerHTML = "当前登录京东帐号：未登录";
     operateAreaDiv.append(loginMsgDiv);
     container.append(operateAreaDiv);
     operateAreaDiv.append(outputTextArea);
@@ -186,7 +172,8 @@ function buildActivity() {
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>活动推荐</h3>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://bunearth.m.jd.com/babelDiy/Zeus/4PWgqmrFHunn8C38mJA712fufguU/index.html#/wxhome" target="_blank">全民炸年兽</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://bunearth.m.jd.com/babelDiy/Zeus/w6y8PYbzhgHJc8Lu1weihPReR2T/index.html#/home" target="_blank">十二生肖来送福</a></p>
-    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://palace.m.jd.com/" target="_blank">逛超市集瑞兽</a></p>`;
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://jdjoy.jd.com/pet/index/" target="_blank">宠汪汪</a></p>`;
+    //<p style="color:red;font-weight:bold;"> <a style="color:red" href = "https://palace.m.jd.com/" target = "_blank" > 逛超市集瑞兽 </a></p>
     container.append(activityArea);
 }
 
@@ -272,6 +259,9 @@ function getCouponType(): couponType | activityType {
     if (Config.locationHref.includes("palace")) {
         type = activityType.palace;
     }
+    if (Config.locationHref.includes("jdjoy")) {
+        type = activityType.jdjoy;
+    }
     return type;
 }
 
@@ -321,6 +311,9 @@ function getCouponDesc(type: couponType | activityType) {
         case activityType.palace:
             activity = new Palace(null, container, outputTextArea);
             break;
+        case activityType.jdjoy:
+            activity = new JdJoy(null, container, outputTextArea);
+            break;
         default:
             break;
     }
@@ -334,7 +327,9 @@ function getCouponDesc(type: couponType | activityType) {
     } else if (activity) {
         buildActivity();
         buildOperate();
-        buildTimeoutArea();
+        if (type != activityType.jdjoy) {
+            buildTimeoutArea();
+        }
         activity.get();
     } else {
         Utils.loadCss("https://meyerweb.com/eric/tools/css/reset/reset200802.css");
@@ -385,9 +380,10 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.3.7】：新增宠汪汪自动喂养功能', 'color:#009a61');
         console.log('%c【0.3.6】：合并原作者更新内容', 'color:#009a61');
         console.log('%c【0.3.5】：新增每日自动完成活动任务；修复部分Bug', 'color:#009a61');
-        console.log('%c【0.3.4】：合并原作者更新内容；修改部分提示信息；修复按钮释放时机错误；新增为作者战队助力', 'color:#009a61');
+        //console.log('%c【0.3.4】：合并原作者更新内容；修改部分提示信息；修复按钮释放时机错误；新增为作者战队助力', 'color:#009a61');
         //console.log('%c【0.3.3】：合并原作者更新内容；优化提示信息；优化页面逻辑；修复活动部分错误并修改运行逻辑', 'color:#009a61');
         //console.log('%c【0.3.2】：合并原作者更新内容', 'color:#009a61');
         //console.log('%c【0.3.1】：小白信用领券结果细化；优化页面操作逻辑；规范请求及返回信息显示顺序', 'color:#009a61');

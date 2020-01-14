@@ -1,6 +1,6 @@
 export default class Config {
     static title: string = "京东领券助手改版";
-    static version: string = "v0.3.6";
+    static version: string = "v0.3.7";
     static author: string = "krapnik";
     static edit: string = "smiley";
 
@@ -12,6 +12,7 @@ export default class Config {
     static intervalSpan: number = 500;
     static timeoutSpan: number = 1500;
 
+    static debug = false;
     static retryCount: number = 1;
     static residueCount: number = 1;
     static taskCount: number = 0;

@@ -1,3 +1,6 @@
+import Config from "../config/config";
+import { consoleEnum } from '../utils/enums';
+
 (window as any).jsonpBind = function (res: string) {
     Utils.jsonpBind(JSON.stringify(res));
 }
@@ -141,6 +144,23 @@ export default class Utils {
 
     static isNumber(obj: any) {  
         return typeof obj === 'number' && !isNaN(obj);  
+    }
+
+    static debugInfo(type: consoleEnum, message?: any, ...optionalParams: any[]) {
+        switch (type) {
+            case consoleEnum.log:
+                if (Config.debug) console.log(message, optionalParams);
+                break;
+            case consoleEnum.info:
+                if (Config.debug) console.info(message, optionalParams);
+                break;
+            case consoleEnum.warn:
+                if (Config.debug) console.warn(message, optionalParams);
+                break;
+            case consoleEnum.error:
+                if (Config.debug) console.error(message, optionalParams);
+                break;
+        }
     }
 
     // static HTMLfactory(type: string, attributes: any, parent: HTMLElement): HTMLElement {

@@ -124,7 +124,7 @@ export default class BrandCitySpring implements Activity {
                         return response.json()
                     }).then((res) => {
                         Utils.outPutLog(self.outputTextarea, `${new Date().toLocaleString()} 操作成功！任务序号：${sendTaskQty - sendNowQty + 1}/${sendTaskQty}`);
-                    }).finally(() => {
+                    }).then(() => {
                         sendNowQty--;
                     })
                 }
@@ -168,7 +168,7 @@ export default class BrandCitySpring implements Activity {
                         return response.json()
                     }).then((res) => {
                         Utils.outPutLog(self.outputTextarea, `${new Date().toLocaleString()} 操作成功！任务序号：${visitTaskQty - visitNowQty + 1}/${visitTaskQty}`);
-                    }).finally(() => {
+                    }).then(() => {
                         visitNowQty--;
                     })
                 }
@@ -212,7 +212,7 @@ export default class BrandCitySpring implements Activity {
                         return response.json()
                     }).then((res) => {
                         Utils.outPutLog(self.outputTextarea, `${new Date().toLocaleString()} 操作成功！任务序号：${gameTaskQty - gameNowQty + 1}/${gameTaskQty}`);
-                    }).finally(() => {
+                    }).then(() => {
                         gameNowQty--;
                     })
                 }
