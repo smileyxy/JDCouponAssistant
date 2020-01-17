@@ -380,9 +380,10 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.3.8】：新增宠汪汪自动任务功能（除每日签到及邀请用户）；新增宠汪汪自动活动功能（逛年货）', 'color:#009a61');
         console.log('%c【0.3.7】：新增宠汪汪自动喂养功能', 'color:#009a61');
         console.log('%c【0.3.6】：合并原作者更新内容', 'color:#009a61');
-        console.log('%c【0.3.5】：新增每日自动完成活动任务；修复部分Bug', 'color:#009a61');
+        //console.log('%c【0.3.5】：新增每日自动完成活动任务；修复部分Bug', 'color:#009a61');
         //console.log('%c【0.3.4】：合并原作者更新内容；修改部分提示信息；修复按钮释放时机错误；新增为作者战队助力', 'color:#009a61');
         //console.log('%c【0.3.3】：合并原作者更新内容；优化提示信息；优化页面逻辑；修复活动部分错误并修改运行逻辑', 'color:#009a61');
         //console.log('%c【0.3.2】：合并原作者更新内容', 'color:#009a61');
