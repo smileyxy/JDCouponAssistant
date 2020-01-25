@@ -348,9 +348,12 @@ export default class JdJoy implements Activity {
                     
                     this.task(typeSelectOptions.value);
                     taskInterval = setInterval(() => {
-                        if (+(currentJDDate.getHours().toString() + currentJDDate.getMinutes().toString()) >= taskTiming) {
-                            this.task(typeSelectOptions.value);
-                        }
+                        this.getJDTime().then((nowJDTime) => {
+                            let nowJDDate = new Date(+nowJDTime);
+                            if (+(nowJDDate.getHours().toString() + nowJDDate.getMinutes().toString()) >= taskTiming) {
+                                this.task(typeSelectOptions.value);
+                            }
+                        });
                     }, taskSpan);
                 }
                 else {
@@ -544,11 +547,10 @@ export default class JdJoy implements Activity {
     }
 
     async task(taskType: string): Promise<void> {
-        //任务
         const getPetTaskConfigUrl = `https://jdjoy.jd.com/pet/getPetTaskConfig?reqSource=h5`;
         await fetch(getPetTaskConfigUrl, { credentials: "include" })
             .then((res) => { return res.json() })
-            .then((petTaskConfigJson) => {
+            .then(async (petTaskConfigJson) => {
                 if (petTaskConfigJson.success) {
                     let taskTimeout = 0;
                     let threeMealsData: any,
@@ -610,7 +612,7 @@ export default class JdJoy implements Activity {
                     if (taskType == petTaskEnum.浏览频道 || taskType == petTaskEnum.全部) {
                         if (!!followChannelData && followChannelData.receiveStatus == petTaskReceiveStatusEnum.chanceLeft) {
                             const getFollowChannelsUrl = `https://jdjoy.jd.com/pet/getFollowChannels`;
-                            fetch(getFollowChannelsUrl, { credentials: "include" })
+                            await fetch(getFollowChannelsUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFollowChannelsJson) => {
                                     if (getFollowChannelsJson.success) {
@@ -729,7 +731,7 @@ export default class JdJoy implements Activity {
                     if (taskType == petTaskEnum.关注店铺 || taskType == petTaskEnum.全部) {
                         if (!!followShopData && followShopData.receiveStatus == petTaskReceiveStatusEnum.chanceLeft) {
                             const getFollowShopsUrl = `https://jdjoy.jd.com/pet/getFollowShops`;
-                            fetch(getFollowShopsUrl, { credentials: "include" })
+                            await fetch(getFollowShopsUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFollowShopsJson) => {
                                     if (getFollowShopsJson.success) {
@@ -926,6 +928,7 @@ export default class JdJoy implements Activity {
                 });
         }
     }
+
     getJDTime(): Promise<number> {
         //获取京东服务器时间
         return fetch(Config.JDTimeInfoURL)
