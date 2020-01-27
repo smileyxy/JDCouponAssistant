@@ -46,13 +46,14 @@ export enum petButtonEnum {
     taskStart = "自动任务",
     taskStop = "取消任务",
     actStart = "自动活动",
-    actStop = "取消活动"
+    actStop = "取消活动",
+    helpStart = "自动串门",
+    helpStop = "取消串门"
 }
 
 export enum petTaskEnum {
     "全部" = "All",
     "每日三餐" = "ThreeMeals",
-    "每日签到" = "SignEveryDay",
     //"邀请用户" = "InviteUser",
     "浏览频道" = "FollowChannel",
     "关注商品" = "FollowGood",
@@ -74,7 +75,22 @@ export enum petTaskErrorCodeEnum {
     followFail = "follow_fail"
 }
 
-export enum actEnum {
+export enum petActEnum {
     "全部" = "All",
     "逛年货" = "ScanDeskGood"
+}
+
+export enum petHelpEnum {
+    "全部" = "All",
+    "帮助喂养" = "HelpFeed",
+    "偷取狗粮" = "StealFood",
+    "获取金币" = "GainGold"
+}
+
+export enum petFriendsStatusEnum {
+    helpok = "help_ok",
+    notfeed = "not_feed",
+    timeerror = "time_error",
+    stealok = "steal_ok",
+    cointookok = "coin_took_ok"
 }

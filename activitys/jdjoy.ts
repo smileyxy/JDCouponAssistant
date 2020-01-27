@@ -9,10 +9,13 @@ import {
     petTaskEnum,
     petTaskReceiveStatusEnum,
     petTaskErrorCodeEnum,
-    actEnum
+    petActEnum,
+    petHelpEnum,
+    petFriendsStatusEnum
 } from '../utils/enums';
 
-let feedSpan = 0,
+let petPin = "",
+    feedSpan = 0,
     feedInterval = 0,
     lastFeedStamp = 0,
     nextFeedStamp = 0,
@@ -21,16 +24,17 @@ let feedSpan = 0,
     taskSpan = 0,
     taskInterval = 0,
     actSpan = 0,
-    actInterval = 0;
-let followShopArray: any[] = [],
-    followChannelArray: any[] = [],
-    followGoodArray: any[] = [],
-    scanMarketArray: any[] = [],
-    deskGoodArray: any[] = [];
+    actInterval = 0,
+    helpSpan = 0,
+    helpInterval = 0;
+let taskTimeoutArray: any[] = [],
+    actTimeoutArray: any[] = [],
+    helpTimeoutArray: any[] = [];
 const defaultFeedSpan: number = 10800000, //3小时
     defaultTaskTiming: string = '06:00',
     defaultTaskDetection: number = 3600000, //1小时
-    defaultActDetection: number = 28800000; //8小时
+    defaultActDetection: number = 28800000, //8小时
+    defaultHelpDetection: number = 14400000; //4小时
 
 export default class JdJoy implements Activity {
     url: string = "https://api.m.jd.com/client.action";
@@ -142,9 +146,13 @@ export default class JdJoy implements Activity {
                                     <p style="font-size: 12px;">根据所填项每天完成活动；检测频率：默认${defaultActDetection / 3600000}小时。</p>
                                 </details>
                                 <details>
-                                    <summary style="outline: 0;">自动任务</summary>
-                                    <p style="font-size: 12px;">根据所填项每天完成任务；任务定时：默认${defaultTaskTiming}后；检测频率：默认${defaultTaskDetection / 60000}分钟。</p>
+                                    <summary style="outline: 0;">自动串门</summary>
+                                    <p style="font-size: 12px;">根据所填项每天完成串门（帮助喂养、偷取狗粮、获取金币）；检测频率：默认${defaultHelpDetection / 3600000}小时。</p>
                                 </details>
+                                <details>
+                                    <summary style="outline: 0;">自动任务</summary>
+                                    <p style="font-size: 12px;">根据所填项每天完成任务（除每日签到及邀请用户）；任务定时：默认${defaultTaskTiming}后；检测频率：默认${defaultTaskDetection / 60000}分钟。</p>
+                                </details> 
                             </div>
                         </div>`;
         helpContent.innerHTML = helpInfo;
@@ -181,8 +189,8 @@ export default class JdJoy implements Activity {
                                     <td style="width: 80vw;text-align: -webkit-left;">
                                         <div style="width: 24vw;">
                                             <select id="actType" style="width: 23.5vw;">
-                                                 <option value="${actEnum.全部}" selected="selected">全部</option>
-                                                <option value="${actEnum.逛年货}">逛年货</option>
+                                                <option value="${petActEnum.全部}" selected="selected">全部</option>
+                                                <option value="${petActEnum.逛年货}">逛年货</option>
                                             </select>
                                         </div>
                                     </td>
@@ -193,13 +201,30 @@ export default class JdJoy implements Activity {
                                         <button class="actAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 12px;line-height: 0;">自动活动</button>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td style="width: 80vw;text-align: -webkit-left;">
+                                        <div style="width: 24vw;">
+                                            <select id="helpType" style="width: 23.5vw;">
+                                                <option value="${petHelpEnum.全部}" selected="selected">全部</option>
+                                                <option value="${petHelpEnum.帮助喂养}">帮助喂养</option>
+                                                <option value="${petHelpEnum.偷取狗粮}">偷取狗粮</option>
+                                                <option value="${petHelpEnum.获取金币}">偷取金币</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td style="width: 230vw;text-align: -webkit-left;">
+                                        <input id="helpDetection" style="width:37vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;" placeholder = "检测频率" />
+                                    </td>
+                                    <td style="width: 50vw;text-align: -webkit-left;">
+                                        <button class="helpAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 12px;line-height: 0;">自动串门</button>
+                                    </td>
+                                </tr>
                                 <tr> 
                                     <td style="width: 80vw;text-align: -webkit-left;">
                                         <div style="width: 24vw;">
                                             <select id="taskType" style="width: 23.5vw;">
                                                 <option value="${petTaskEnum.全部}" selected="selected">全部</option>
                                                 <option value="${petTaskEnum.每日三餐}">每日三餐</option>
-                                                <option value="${petTaskEnum.每日签到}" disabled="disabled">每日签到</option>
                                                 <option value="${petTaskEnum.浏览频道}">浏览频道</option>
                                                 <option value="${petTaskEnum.关注商品}">关注商品</option>
                                                 <option value="${petTaskEnum.关注店铺}">关注店铺</option>
@@ -213,13 +238,6 @@ export default class JdJoy implements Activity {
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
                                         <button class="taskAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 12px;line-height: 0;">自动任务</button>
-                                    </td>
-                                </tr>
-                                <tr> 
-                                    <td style="width: 80vw;text-align: -webkit-left;">
-                                    </td>
-                                    <td style="width: 100vw;text-align: -webkit-left;">
-                                        <button class="helpAuto" style="width: 38vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#c1c1c1;margin:5px auto;display:block;font-size: 12px;line-height: 0;">自动帮喂（开发中）</button>
                                     </td>
                                 </tr>
                             </table>
@@ -238,7 +256,6 @@ export default class JdJoy implements Activity {
         //自动喂养
         let feedAuto = document.querySelector('.feedAuto') as HTMLButtonElement,
             nextFeedTime = document.getElementById('nextFeedTime');
-
         feedAuto!.addEventListener('click', () => {
             //验证喂养克数
             let gramsSelect = document.getElementById('feedGrams') as HTMLSelectElement,
@@ -359,10 +376,7 @@ export default class JdJoy implements Activity {
                 else {
                     taskAuto.innerHTML = petButtonEnum.taskStart;
                     clearInterval(taskInterval);
-                    followShopArray.forEach((timeout) => { clearTimeout(timeout); });
-                    followChannelArray.forEach((timeout) => { clearTimeout(timeout); });
-                    followGoodArray.forEach((timeout) => { clearTimeout(timeout); });
-                    scanMarketArray.forEach((timeout) => { clearTimeout(timeout); });
+                    taskTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动任务！`);
                 }
             });
@@ -404,8 +418,50 @@ export default class JdJoy implements Activity {
                 else {
                     actAuto.innerHTML = petButtonEnum.actStart;
                     clearInterval(actInterval);
-                    deskGoodArray.forEach((timeout) => { clearTimeout(timeout); });
+                    actTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动活动！`);
+                }
+            });
+        });
+        //自动串门
+        let helpAuto = document.querySelector('.helpAuto') as HTMLButtonElement;
+        helpAuto!.addEventListener('click', () => {
+            //验证活动类型
+            let typeSelect = document.getElementById('helpType') as HTMLSelectElement,
+                typeSelectOptions = typeSelect.options[typeSelect.selectedIndex];
+            if (!typeSelectOptions || !typeSelectOptions.value) {
+                alert("请选择活动类型！");
+                return false;
+            }
+            //验证串门检测频率
+            const reg = /^[1-9]\d*$/;
+            let helpDetectionInput = document.getElementById('helpDetection') as HTMLInputElement;
+            if (!!helpDetectionInput.value && !reg.test(helpDetectionInput.value)) {
+                alert("请检查串门检测频率是否为正整数！");
+                return false;
+            }
+
+            helpSpan = ((+helpDetectionInput!.value * 3600000) || defaultHelpDetection);
+
+            typeSelect.disabled = !typeSelect.disabled;
+            helpDetectionInput.disabled = !helpDetectionInput.disabled;
+
+            this.getJDTime().then((currentJDTime) => {
+                let currentJDDate = new Date(+currentJDTime);
+                if (helpAuto.innerHTML == petButtonEnum.helpStart) {
+                    helpAuto.innerHTML = petButtonEnum.helpStop;
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动串门！`);
+
+                    this.help(typeSelectOptions.value);
+                    helpInterval = setInterval(() => {
+                        this.help(typeSelectOptions.value);
+                    }, helpSpan);
+                }
+                else {
+                    helpAuto.innerHTML = petButtonEnum.helpStart;
+                    clearInterval(helpInterval);
+                    helpTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动串门！`);
                 }
             });
         });
@@ -437,6 +493,7 @@ export default class JdJoy implements Activity {
             .then((res) => { return res.json() })
             .then((enterRoomJson) => {
                 if (enterRoomJson.success) {
+                    petPin = enterRoomJson.data.pin;
                     petLevel!.innerText = enterRoomJson.data.petLevel;
                     petCoin!.innerText = enterRoomJson.data.petCoin;
                     petFood!.innerText = enterRoomJson.data.petFood;
@@ -475,7 +532,7 @@ export default class JdJoy implements Activity {
             .catch((error) => {
                 isGetAllInfo = !isGetAllInfo;
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~好友信息异常，请手动刷新或联系作者！】`);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`);
             });
         //获取今日喂养信息
         const getTodayFeedInfoUrl = 'https://jdjoy.jd.com/pet/getTodayFeedInfo';
@@ -563,8 +620,6 @@ export default class JdJoy implements Activity {
                             case petTaskEnum.每日三餐:
                                 threeMealsData = petTaskConfigJson.datas[i];
                                 break;
-                            case petTaskEnum.每日签到:
-                                break;
                             case petTaskEnum.浏览频道:
                                 followChannelData = petTaskConfigJson.datas[i];
                                 break;
@@ -585,19 +640,19 @@ export default class JdJoy implements Activity {
                             let joinedCount = threeMealsData.joinedCount,
                                 taskChance = threeMealsData.taskChance;
                             const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=ThreeMeals`;
-                            fetch(getFoodUrl, { credentials: "include" })
+                            await fetch(getFoodUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
-                                .then((foodJson) => {
-                                    if (foodJson.success) {
-                                        if (foodJson.errorCode == petTaskErrorCodeEnum.received) {
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+foodJson.currentTime).toLocaleString()} 【${joinedCount + 1}/${taskChance}】每日三餐领取成功！`);
+                                .then((getFoodJson) => {
+                                    if (getFoodJson.success) {
+                                        if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 【${joinedCount + 1}/${taskChance}】每日三餐领取成功！`);
                                         }
                                         else {
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+foodJson.currentTime).toLocaleString()} ${threeMealsData.errorMessage || "每日三餐已领取或已领满"}`);
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} ${threeMealsData.errorMessage || "每日三餐已领取或已领满！"}`);
                                         }
                                     }
                                     else {
-                                        Utils.debugInfo(consoleEnum.log, foodJson);
+                                        Utils.debugInfo(consoleEnum.log, getFoodJson);
                                         Utils.outPutLog(this.outputTextarea, `【每日三餐请求失败，请手动刷新或联系作者！】`);
                                     }
                                 })
@@ -606,8 +661,6 @@ export default class JdJoy implements Activity {
                                     Utils.outPutLog(this.outputTextarea, `【哎呀~每日三餐异常，请刷新后重新尝试或联系作者！】`);
                                 });
                         }
-                    }
-                    if (taskType == petTaskEnum.每日签到 || taskType == petTaskEnum.全部) {
                     }
                     if (taskType == petTaskEnum.浏览频道 || taskType == petTaskEnum.全部) {
                         if (!!followChannelData && followChannelData.receiveStatus == petTaskReceiveStatusEnum.chanceLeft) {
@@ -621,7 +674,7 @@ export default class JdJoy implements Activity {
                                         for (let j = 0; j < getFollowChannelsJson.datas.length; j++) {
                                             let datas = getFollowChannelsJson.datas[j];
                                             if (!datas.status) {
-                                                followChannelArray.push(setTimeout(() => {
+                                                taskTimeoutArray.push(setTimeout(() => {
                                                     let postData = `{"channelId":"${datas.channelId}","taskType":"${petTaskEnum.浏览频道}"}`;
                                                     const scanUrl = `https://jdjoy.jd.com/pet/scan`;
                                                     fetch(scanUrl, {
@@ -644,10 +697,10 @@ export default class JdJoy implements Activity {
                                                                         break;
                                                                     case petTaskErrorCodeEnum.followRepeat:
                                                                         joinedCount++;
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此频道今日已浏览"}`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此频道今日已浏览！"}`);
                                                                         break;
                                                                     default:
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此频道或已过期"}`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此频道或已过期！"}`);
                                                                         break;
                                                                 }
                                                             }
@@ -683,7 +736,7 @@ export default class JdJoy implements Activity {
                             for (let j = 0; j < followGoodData.followGoodList.length; j++) {
                                 let followGoodListData = followGoodData.followGoodList[j];
                                 if (!followGoodListData.status) {
-                                    followGoodArray.push(setTimeout(() => {
+                                    taskTimeoutArray.push(setTimeout(() => {
                                         let postData = `sku=${followGoodListData.sku}`;
                                         const followGoodUrl = `https://jdjoy.jd.com/pet/followGood`;
                                         fetch(followGoodUrl, {
@@ -706,10 +759,10 @@ export default class JdJoy implements Activity {
                                                             break;
                                                         case petTaskErrorCodeEnum.followRepeat:
                                                             joinedCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} ${followGoodJson.errorMessage || "此商品今日已关注"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} ${followGoodJson.errorMessage || "此商品今日已关注！"}`);
                                                             break;
                                                         default:
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} ${followGoodJson.errorMessage || "无此商品或已过期"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} ${followGoodJson.errorMessage || "无此商品或已过期！"}`);
                                                             break;
                                                     }
                                                 }
@@ -740,7 +793,7 @@ export default class JdJoy implements Activity {
                                         for (let j = 0; j < getFollowShopsJson.datas.length; j++) {
                                             let datas = getFollowShopsJson.datas[j];
                                             if (!datas.status) {
-                                                followShopArray.push(setTimeout(() => {
+                                                taskTimeoutArray.push(setTimeout(() => {
                                                     let postData = `shopId=${datas.shopId}`;
                                                     const followShopUrl = `https://jdjoy.jd.com/pet/followShop`;
                                                     fetch(followShopUrl, {
@@ -763,10 +816,10 @@ export default class JdJoy implements Activity {
                                                                         break;
                                                                     case petTaskErrorCodeEnum.followRepeat:
                                                                         joinedCount++;
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} ${followShopJson.errorMessage || "此店铺今日已关注"}`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} ${followShopJson.errorMessage || "此店铺今日已关注！"}`);
                                                                         break;
                                                                     default:
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} ${followShopJson.errorMessage || "无此店铺或已过期"}`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} ${followShopJson.errorMessage || "无此店铺或已过期！"}`);
                                                                         break;
                                                                 }
                                                             }
@@ -802,7 +855,7 @@ export default class JdJoy implements Activity {
                             for (let j = 0; j < scanMarketData.scanMarketList.length; j++) {
                                 let scanMarketListData = scanMarketData.scanMarketList[j];
                                 if (!scanMarketListData.status) {
-                                    scanMarketArray.push(setTimeout(() => {
+                                    taskTimeoutArray.push(setTimeout(() => {
                                         let postData = `{"marketLink":"${scanMarketListData.marketLinkH5}","taskType":"${petTaskEnum.逛会场}","reqSource":"h5"}`;
                                         const scanUrl = `https://jdjoy.jd.com/pet/scan`;
                                         fetch(scanUrl, {
@@ -825,10 +878,10 @@ export default class JdJoy implements Activity {
                                                             break;
                                                         case petTaskErrorCodeEnum.followRepeat:
                                                             joinedCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此会场今日已逛"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此会场今日已逛！"}`);
                                                             break;
                                                         default:
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此会场或已过期"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此会场或已过期！"}`);
                                                             break;
                                                     }
                                                 }
@@ -862,7 +915,7 @@ export default class JdJoy implements Activity {
     async activity(actType: string): Promise<void> {
         //活动
         let actTimeout = 0;
-        if (actType == actEnum.逛年货 || actType == actEnum.全部) {
+        if (actType == petActEnum.逛年货 || actType == petActEnum.全部) {
             const getDeskGoodDetailsUrl = `https://jdjoy.jd.com/pet/getDeskGoodDetails`;
             await fetch(getDeskGoodDetailsUrl, { credentials: "include" })
                 .then((res) => { return res.json() })
@@ -873,8 +926,8 @@ export default class JdJoy implements Activity {
                         for (let j = 0; j < deskGoodDetailsJson.data.deskGoods.length; j++) {
                             let deskGoodsData = deskGoodDetailsJson.data.deskGoods[j];
                             if (!deskGoodsData.status && j < +taskChance) {
-                                deskGoodArray.push(setTimeout(() => {
-                                    let postData = `{"taskType":"${actEnum.逛年货}","sku":"${deskGoodsData.sku}"}`;
+                                actTimeoutArray.push(setTimeout(() => {
+                                    let postData = `{"taskType":"${petActEnum.逛年货}","sku":"${deskGoodsData.sku}"}`;
                                     const scanUrl = `https://jdjoy.jd.com/pet/scan`;
                                     fetch(scanUrl, {
                                         method: "POST",
@@ -925,6 +978,132 @@ export default class JdJoy implements Activity {
                 .catch((error) => {
                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
                     Utils.outPutLog(this.outputTextarea, `【哎呀~获取逛年货活动信息异常，请刷新后重新尝试或联系作者！】`);
+                });
+        }
+    }
+
+    async help(helpType: string): Promise<void> {
+        //串门
+        let currentPage = 1,
+            pages = -1,
+            helpTimeout = 0;
+        while (pages == -1 || currentPage <= pages) {
+            const getFriendsUrl = `https://jdjoy.jd.com/pet/getFriends?itemsPerPage=20&currentPage=${currentPage}`;
+            await fetch(getFriendsUrl, { credentials: "include" })
+                .then((res) => { return res.json() })
+                .then((getFriendsJson) => {
+                    if (getFriendsJson.success) {
+                        pages = getFriendsJson.page.pages;
+                        for (let i = 0; i < getFriendsJson.datas.length; i++) {
+                            let currentFriend = getFriendsJson.datas[i];
+                            if (currentFriend.friendPin != petPin) {
+                                helpTimeoutArray.push(setTimeout(async () => {
+                                    const enterFriendRoomUrl = `https://jdjoy.jd.com/pet/enterFriendRoom?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                    await fetch(enterFriendRoomUrl, { credentials: "include" })
+                                        .then((res) => { return res.json() })
+                                        .then(async (enterFriendRoomJson) => {
+                                            if (enterFriendRoomJson.success) {
+                                                if (helpType == petHelpEnum.帮助喂养 || helpType == petHelpEnum.全部) {
+                                                    if (enterFriendRoomJson.data.helpFeedStatus == petFriendsStatusEnum.notfeed) {
+                                                        const helpFeedUrl = `https://jdjoy.jd.com/pet/helpFeed?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                                        await fetch(helpFeedUrl, { credentials: "include" })
+                                                            .then((res) => { return res.json() })
+                                                            .then((helpFeedJson) => {
+                                                                if (helpFeedJson.success) {
+                                                                    if (helpFeedJson.errorCode == petFriendsStatusEnum.helpok) {
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 帮助【${currentFriend.friendName}】喂养成功！`);
+                                                                    }
+                                                                    else {
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】已帮喂或主人已喂！`);
+                                                                    }
+                                                                }
+                                                                else {
+                                                                    Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
+                                                                    Utils.outPutLog(this.outputTextarea, `【帮助${currentFriend.friendName}喂养失败，请手动刷新或联系作者！】`);
+                                                                }
+                                                            })
+                                                            .catch((error) => {
+                                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~帮助${currentFriend.friendName}喂养异常，请手动刷新或联系作者！】`);
+                                                            });
+                                                    }
+                                                }
+                                                if (helpType == petHelpEnum.偷取狗粮 || helpType == petHelpEnum.全部) {
+                                                    if (currentFriend.stealStatus) {
+                                                        const getRandomFoodUrl = `https://jdjoy.jd.com/pet/getRandomFood?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                                        await fetch(getRandomFoodUrl, { credentials: "include" })
+                                                            .then((res) => { return res.json() })
+                                                            .then((getRandomFoodJson) => {
+                                                                if (getRandomFoodJson.success) {
+                                                                    if (getRandomFoodJson.errorCode == petFriendsStatusEnum.stealok) {
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 偷取【${currentFriend.friendName}】狗粮成功！`);
+                                                                    }
+                                                                    else {
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的狗粮已偷取或无狗粮！`);
+                                                                    }
+                                                                }
+                                                                else {
+                                                                    Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
+                                                                    Utils.outPutLog(this.outputTextarea, `【偷取${currentFriend.friendName}狗粮失败，请手动刷新或联系作者！】`);
+                                                                }
+                                                            })
+                                                            .catch((error) => {
+                                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~偷取${currentFriend.friendName}狗粮异常，请手动刷新或联系作者！】`);
+                                                            });
+                                                    }
+                                                }
+                                                if (helpType == petHelpEnum.获取金币 || helpType == petHelpEnum.全部) {
+                                                    if (+enterFriendRoomJson.data.friendHomeCoin > 0) {
+                                                        const getFriendCoinUrl = `https://jdjoy.jd.com/pet/getFriendCoin?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                                        await fetch(getFriendCoinUrl, { credentials: "include" })
+                                                            .then((res) => { return res.json() })
+                                                            .then((getFriendCoinJson) => {
+                                                                if (getFriendCoinJson.success) {
+                                                                    if (getFriendCoinJson.errorCode == petFriendsStatusEnum.cointookok) {
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 获取【${currentFriend.friendName}】金币成功！`);
+                                                                    }
+                                                                    else {
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的金币已获取或无金币！`);
+                                                                    }
+                                                                }
+                                                                else {
+                                                                    Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
+                                                                    Utils.outPutLog(this.outputTextarea, `【获取${currentFriend.friendName}金币失败，请手动刷新或联系作者！】`);
+                                                                }
+                                                            })
+                                                            .catch((error) => {
+                                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}金币异常，请手动刷新或联系作者！】`);
+                                                            });
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
+                                                Utils.outPutLog(this.outputTextarea, `【没有获取到${currentFriend.friendName}的信息，请手动刷新或联系作者！】`);
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                            Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}的信息异常，请手动刷新或联系作者！】`);
+                                        });
+
+                                }, helpTimeout));
+                                helpTimeout += Utils.random(5000, 10000);
+                            }
+                        }
+
+                        currentPage++;
+                    }
+                    else {
+                        Utils.debugInfo(consoleEnum.log, getFriendsJson);
+                        Utils.outPutLog(this.outputTextarea, `【没有查找到你的好友信息，请手动刷新或联系作者！】`);
+                    }
+                })
+                .catch((error) => {
+                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`);
                 });
         }
     }
