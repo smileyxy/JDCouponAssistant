@@ -321,8 +321,6 @@ export default class JdJoy implements Activity {
                     feedAuto.innerHTML = petButtonEnum.feedStart;
                     clearInterval(feedInterval);
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动喂养！`);
-
-                    this.info(false);
                 }
             });
         });
@@ -1004,17 +1002,21 @@ export default class JdJoy implements Activity {
                                         .then(async (enterFriendRoomJson) => {
                                             if (enterFriendRoomJson.success) {
                                                 if (helpType == petHelpEnum.帮助喂养 || helpType == petHelpEnum.全部) {
-                                                    if (enterFriendRoomJson.data.helpFeedStatus == petFriendsStatusEnum.notfeed) {
+                                                    if (currentFriend.status == petFriendsStatusEnum.notfeed) {
                                                         const helpFeedUrl = `https://jdjoy.jd.com/pet/helpFeed?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
                                                         await fetch(helpFeedUrl, { credentials: "include" })
                                                             .then((res) => { return res.json() })
                                                             .then((helpFeedJson) => {
                                                                 if (helpFeedJson.success) {
-                                                                    if (helpFeedJson.errorCode == petFriendsStatusEnum.helpok) {
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 帮助【${currentFriend.friendName}】喂养成功！`);
-                                                                    }
-                                                                    else {
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】已帮喂或主人已喂！`);
+                                                                    switch (helpFeedJson.errorCode) {
+                                                                        case petFriendsStatusEnum.helpok:
+                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 帮助【${currentFriend.friendName}】喂养成功！`);
+                                                                            break;
+                                                                        case petFriendsStatusEnum.chanceFull:
+                                                                            break;
+                                                                        default:
+                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】已帮喂或主人已喂！`);
+                                                                            break;
                                                                     }
                                                                 }
                                                                 else {
@@ -1029,17 +1031,21 @@ export default class JdJoy implements Activity {
                                                     }
                                                 }
                                                 if (helpType == petHelpEnum.偷取狗粮 || helpType == petHelpEnum.全部) {
-                                                    if (currentFriend.stealStatus) {
+                                                    if (+enterFriendRoomJson.data.stealFood > 0) {
                                                         const getRandomFoodUrl = `https://jdjoy.jd.com/pet/getRandomFood?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
                                                         await fetch(getRandomFoodUrl, { credentials: "include" })
                                                             .then((res) => { return res.json() })
                                                             .then((getRandomFoodJson) => {
                                                                 if (getRandomFoodJson.success) {
-                                                                    if (getRandomFoodJson.errorCode == petFriendsStatusEnum.stealok) {
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 偷取【${currentFriend.friendName}】狗粮成功！`);
-                                                                    }
-                                                                    else {
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的狗粮已偷取或无狗粮！`);
+                                                                    switch (getRandomFoodJson.errorCode) {
+                                                                        case petFriendsStatusEnum.stealok:
+                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 偷取【${currentFriend.friendName}】狗粮成功！`);
+                                                                            break;
+                                                                        case petFriendsStatusEnum.chanceFull:
+                                                                            break;
+                                                                        default:
+                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的狗粮已偷取或无狗粮！`);
+                                                                            break;
                                                                     }
                                                                 }
                                                                 else {

@@ -92,5 +92,7 @@ export enum petFriendsStatusEnum {
     notfeed = "not_feed",
     timeerror = "time_error",
     stealok = "steal_ok",
-    cointookok = "coin_took_ok"
+    stealexist = "steal_exist",
+    cointookok = "coin_took_ok",
+    chanceFull = "chance_full"
 }
