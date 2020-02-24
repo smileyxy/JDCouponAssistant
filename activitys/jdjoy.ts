@@ -190,7 +190,9 @@ export default class JdJoy implements Activity {
                                         <div style="width: 24vw;">
                                             <select id="actType" style="width: 23.5vw;">
                                                 <option value="${petActEnum.全部}" selected="selected">全部</option>
-                                                <option value="${petActEnum.逛年货}">逛年货</option>
+                                                <option value="${petActEnum.逛店拿积分}">逛店拿积分</option>
+                                                <option value="${petActEnum.戳泡泡}">戳泡泡</option>
+                                                <option value="${petActEnum.聚宝盆}">聚宝盆</option>
                                             </select>
                                         </div>
                                     </td>
@@ -412,6 +414,77 @@ export default class JdJoy implements Activity {
                     actInterval = setInterval(() => {
                         this.activity(typeSelectOptions.value);
                     }, actSpan);
+                    ////戳泡泡
+                    //if (typeSelectOptions.value == petActEnum.戳泡泡 || typeSelectOptions.value == petActEnum.全部) {
+                    //    const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
+                    //    setInterval(() => {
+                    //        fetch(enterRoomUrl, { credentials: "include" })
+                    //            .then((res) => { return res.json() })
+                    //            .then((enterRoomJson) => {
+                    //                if (enterRoomJson.success) {
+                    //                    if (enterRoomJson.data.bubbleOpen) {
+                    //                        let postData = `{"couponStock":2,"coinStock":5,"foodStock":6}`;
+                    //                        const getBubbleRewardUrl = `https://jdjoy.jd.com/pet/getBubbleReward`;
+                    //                        fetch(getBubbleRewardUrl, {
+                    //                            method: "POST",
+                    //                            mode: "cors",
+                    //                            credentials: "include",
+                    //                            headers: {
+                    //                                "Content-Type": "application/json"
+                    //                            },
+                    //                            body: postData
+                    //                        })
+                    //                            .then((res) => { return res.json() })
+                    //                            .then((getBubbleRewardJson) => {
+                    //                                Utils.debugInfo(consoleEnum.log, getBubbleRewardJson);
+                    //                            })
+                    //                            .catch((error) => {
+                    //                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                    //                                Utils.outPutLog(this.outputTextarea, `【哎呀~戳泡泡异常，请刷新后重新尝试或联系作者！】`);
+                    //                            });
+                    //                    }
+                    //                }
+                    //                else {
+                    //                    Utils.debugInfo(consoleEnum.log, enterRoomJson);
+                    //                    Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`);
+                    //                }
+                    //            })
+                    //            .catch((error) => {
+                    //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                    //                Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`);
+                    //            });
+                    //    }, 1800000);
+                    //}
+                    ////聚宝盆
+                    //if (typeSelectOptions.value == petActEnum.聚宝盆 || typeSelectOptions.value == petActEnum.全部) {
+                    //    const investTreasureUrl = 'https://jdjoy.jd.com/pet/investTreasure';
+                    //    let investTreasureInterval = setInterval(() => {
+                    //        this.getJDTime().then((currentJDTime) => {
+                    //            //let start = Utils.formateTime("23:59:59:400");
+                    //            let time = Utils.formatDate(currentJDTime.toString());
+                    //            if (+time >= 5959400 && +time <= 10000000) {
+                    //                fetch(investTreasureUrl, { credentials: "include" })
+                    //                    .then((res) => { return res.json() })
+                    //                    .then((investTreasureJson) => {
+                    //                        if (investTreasureJson.success) {
+                    //                            Utils.debugInfo(consoleEnum.log, investTreasureJson);
+                    //                            Utils.outPutLog(this.outputTextarea, `${new Date(+investTreasureJson.currentTime).toLocaleString()} 已尝试偷鸡聚宝盆！`);
+                    //                        }
+                    //                        else {
+                    //                            Utils.debugInfo(consoleEnum.log, investTreasureJson);
+                    //                            Utils.outPutLog(this.outputTextarea, `【聚宝盆请求失败，请手动刷新或联系作者！】`);
+                    //                        }
+
+                    //                        clearInterval(investTreasureInterval);
+                    //                    })
+                    //                    .catch((error) => {
+                    //                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                    //                        Utils.outPutLog(this.outputTextarea, `【哎呀~聚宝盆异常，请手动刷新或联系作者！】`);
+                    //                    });
+                    //            }
+                    //        });
+                    //    }, 200);
+                    //}
                 }
                 else {
                     actAuto.innerHTML = petButtonEnum.actStart;
@@ -913,7 +986,7 @@ export default class JdJoy implements Activity {
     async activity(actType: string): Promise<void> {
         //活动
         let actTimeout = 0;
-        if (actType == petActEnum.逛年货 || actType == petActEnum.全部) {
+        if (actType == petActEnum.逛店拿积分 || actType == petActEnum.全部) {
             const getDeskGoodDetailsUrl = `https://jdjoy.jd.com/pet/getDeskGoodDetails`;
             await fetch(getDeskGoodDetailsUrl, { credentials: "include" })
                 .then((res) => { return res.json() })
@@ -921,50 +994,52 @@ export default class JdJoy implements Activity {
                     if (deskGoodDetailsJson.success) {
                         let followCount = deskGoodDetailsJson.data.followCount,
                             taskChance = deskGoodDetailsJson.data.taskChance;
-                        for (let j = 0; j < deskGoodDetailsJson.data.deskGoods.length; j++) {
-                            let deskGoodsData = deskGoodDetailsJson.data.deskGoods[j];
-                            if (!deskGoodsData.status && j < +taskChance) {
-                                actTimeoutArray.push(setTimeout(() => {
-                                    let postData = `{"taskType":"${petActEnum.逛年货}","sku":"${deskGoodsData.sku}"}`;
-                                    const scanUrl = `https://jdjoy.jd.com/pet/scan`;
-                                    fetch(scanUrl, {
-                                        method: "POST",
-                                        mode: "cors",
-                                        credentials: "include",
-                                        headers: {
-                                            "Content-Type": "application/json"
-                                        },
-                                        body: postData
-                                    })
-                                        .then((res) => { return res.json() })
-                                        .then((scanJson) => {
-                                            if (scanJson.success) {
-                                                switch (scanJson.errorCode) {
-                                                    case petTaskErrorCodeEnum.success:
-                                                    case petTaskErrorCodeEnum.followSuccess:
-                                                        followCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${followCount}/${taskChance}】逛年货成功！`);
-                                                        break;
-                                                    case petTaskErrorCodeEnum.followRepeat:
-                                                        followCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此年货今日已逛"}`);
-                                                        break;
-                                                    default:
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此年货或已过期"}`);
-                                                        break;
-                                                }
-                                            }
-                                            else {
-                                                Utils.debugInfo(consoleEnum.log, scanJson);
-                                                Utils.outPutLog(this.outputTextarea, `【逛年货请求失败，请手动刷新或联系作者！】`);
-                                            }
+                        if (followCount < taskChance) {
+                            for (let j = 0; j < deskGoodDetailsJson.data.deskGoods.length; j++) {
+                                let deskGoodsData = deskGoodDetailsJson.data.deskGoods[j];
+                                if (!deskGoodsData.status && j < +taskChance - +taskChance) {
+                                    actTimeoutArray.push(setTimeout(() => {
+                                        let postData = `{"taskType":"${petActEnum.逛店拿积分}","sku":"${deskGoodsData.sku}"}`;
+                                        const scanUrl = `https://jdjoy.jd.com/pet/scan`;
+                                        fetch(scanUrl, {
+                                            method: "POST",
+                                            mode: "cors",
+                                            credentials: "include",
+                                            headers: {
+                                                "Content-Type": "application/json"
+                                            },
+                                            body: postData
                                         })
-                                        .catch((error) => {
-                                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                            Utils.outPutLog(this.outputTextarea, `【哎呀~逛年货异常，请刷新后重新尝试或联系作者！】`);
-                                        });
-                                }, actTimeout));
-                                actTimeout += Utils.random(5000, 10000);
+                                            .then((res) => { return res.json() })
+                                            .then((scanJson) => {
+                                                if (scanJson.success) {
+                                                    switch (scanJson.errorCode) {
+                                                        case petTaskErrorCodeEnum.success:
+                                                        case petTaskErrorCodeEnum.followSuccess:
+                                                            followCount++;
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${followCount}/${taskChance}】逛年货成功！`);
+                                                            break;
+                                                        case petTaskErrorCodeEnum.followRepeat:
+                                                            followCount++;
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此年货今日已逛"}`);
+                                                            break;
+                                                        default:
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此年货或已过期"}`);
+                                                            break;
+                                                    }
+                                                }
+                                                else {
+                                                    Utils.debugInfo(consoleEnum.log, scanJson);
+                                                    Utils.outPutLog(this.outputTextarea, `【逛年货请求失败，请手动刷新或联系作者！】`);
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                Utils.outPutLog(this.outputTextarea, `【哎呀~逛年货异常，请刷新后重新尝试或联系作者！】`);
+                                            });
+                                    }, actTimeout));
+                                    actTimeout += Utils.random(5000, 10000);
+                                }
                             }
                         }
                     }

@@ -77,7 +77,9 @@ export enum petTaskErrorCodeEnum {
 
 export enum petActEnum {
     "全部" = "All",
-    "逛年货" = "ScanDeskGood"
+    "逛店拿积分" = "ScanDeskGood",
+    "戳泡泡" = "Paopao",
+    "聚宝盆" = "TreasureBox"
 }
 
 export enum petHelpEnum {
