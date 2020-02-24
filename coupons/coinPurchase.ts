@@ -1,5 +1,5 @@
 import Coupon from "../interface/Coupon";
-import Utils from "../utils/utils";
+import Utils, { _$ } from "../utils/utils";
 type couponDetails = {
     pid: string
     title: string
@@ -65,10 +65,10 @@ export default class CoinPurchase implements Coupon {
             content.appendChild(itemDiv);
         }
         this.container.appendChild(content);
-        document.querySelector('.receive')!.addEventListener('click', () => { this.send() });
+        _$('.receive')!.addEventListener('click', () => { this.send() });
     }
     send(): void {
-        this.outputTextarea.style.display = "block";
+        
         for (let i = 0; i < this.couponList.length; i++) {
             let item = this.couponList[i], url = this.url.replace("{pid}", item.pid);
             Utils.createJsonp(url, true);

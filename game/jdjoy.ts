@@ -1,8 +1,8 @@
 import Activity from "../interface/Activity";
-import Utils from "../utils/utils";
+import Utils, { _$ } from "../utils/utils";
 import Config from "../config/config";
+import { consoleEnum } from '../enum/commonType';
 import {
-    consoleEnum,
     feedGramsEnum,
     feedEnum,
     petButtonEnum,
@@ -12,7 +12,7 @@ import {
     petActEnum,
     petHelpEnum,
     petFriendsStatusEnum
-} from '../utils/enums';
+} from '../enum/gameType';
 
 let petPin = "",
     feedSpan = 0,
@@ -251,12 +251,12 @@ export default class JdJoy implements Activity {
 
     list(): void {
         //手动刷新
-        const refresh = document.querySelector('.refresh');
+        const refresh = _$('.refresh');
         refresh!.addEventListener('click', () => {
             this.info();
         });
         //自动喂养
-        let feedAuto = document.querySelector('.feedAuto') as HTMLButtonElement,
+        let feedAuto = _$('.feedAuto') as HTMLButtonElement,
             nextFeedTime = document.getElementById('nextFeedTime');
         feedAuto!.addEventListener('click', () => {
             //验证喂养克数
@@ -283,7 +283,7 @@ export default class JdJoy implements Activity {
                 let currentJDDate = new Date(+currentJDTime);
                 if (feedAuto.innerHTML == petButtonEnum.feedStart) {
                     feedAuto.innerHTML = petButtonEnum.feedStop;
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动喂养！`);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动喂养！`, false);
 
                     let timeDiff = feedSpan - +currentJDTime + lastFeedStamp + Utils.random(60000, 300000);
                     if (timeDiff > 0) {
@@ -322,12 +322,12 @@ export default class JdJoy implements Activity {
                     nextFeedStamp = 0;
                     feedAuto.innerHTML = petButtonEnum.feedStart;
                     clearInterval(feedInterval);
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动喂养！`);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动喂养！`, false);
                 }
             });
         });
         //自动任务
-        let taskAuto = document.querySelector('.taskAuto') as HTMLButtonElement;
+        let taskAuto = _$('.taskAuto') as HTMLButtonElement;
         taskAuto!.addEventListener('click', () => {
             //验证任务类型
             let typeSelect = document.getElementById('taskType') as HTMLSelectElement,
@@ -361,7 +361,7 @@ export default class JdJoy implements Activity {
                 let currentJDDate = new Date(+currentJDTime);
                 if (taskAuto.innerHTML == petButtonEnum.taskStart) {
                     taskAuto.innerHTML = petButtonEnum.taskStop;
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动任务！`);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动任务！`, false);
                     
                     this.task(typeSelectOptions.value);
                     taskInterval = setInterval(() => {
@@ -377,12 +377,12 @@ export default class JdJoy implements Activity {
                     taskAuto.innerHTML = petButtonEnum.taskStart;
                     clearInterval(taskInterval);
                     taskTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动任务！`);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动任务！`, false);
                 }
             });
         });
         //自动活动
-        let actAuto = document.querySelector('.actAuto') as HTMLButtonElement;
+        let actAuto = _$('.actAuto') as HTMLButtonElement;
         actAuto!.addEventListener('click', () => {
             //验证活动类型
             let typeSelect = document.getElementById('actType') as HTMLSelectElement,
@@ -408,7 +408,7 @@ export default class JdJoy implements Activity {
                 let currentJDDate = new Date(+currentJDTime);
                 if (actAuto.innerHTML == petButtonEnum.actStart) {
                     actAuto.innerHTML = petButtonEnum.actStop;
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动活动！`);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动活动！`, false);
 
                     this.activity(typeSelectOptions.value);
                     actInterval = setInterval(() => {
@@ -440,18 +440,18 @@ export default class JdJoy implements Activity {
                     //                            })
                     //                            .catch((error) => {
                     //                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    //                                Utils.outPutLog(this.outputTextarea, `【哎呀~戳泡泡异常，请刷新后重新尝试或联系作者！】`);
+                    //                                Utils.outPutLog(this.outputTextarea, `【哎呀~戳泡泡异常，请刷新后重新尝试或联系作者！】`, false);
                     //                            });
                     //                    }
                     //                }
                     //                else {
                     //                    Utils.debugInfo(consoleEnum.log, enterRoomJson);
-                    //                    Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`);
+                    //                    Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
                     //                }
                     //            })
                     //            .catch((error) => {
                     //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    //                Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`);
+                    //                Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
                     //            });
                     //    }, 1800000);
                     //}
@@ -468,18 +468,18 @@ export default class JdJoy implements Activity {
                     //                    .then((investTreasureJson) => {
                     //                        if (investTreasureJson.success) {
                     //                            Utils.debugInfo(consoleEnum.log, investTreasureJson);
-                    //                            Utils.outPutLog(this.outputTextarea, `${new Date(+investTreasureJson.currentTime).toLocaleString()} 已尝试偷鸡聚宝盆！`);
+                    //                            Utils.outPutLog(this.outputTextarea, `${new Date(+investTreasureJson.currentTime).toLocaleString()} 已尝试偷鸡聚宝盆！`, false);
                     //                        }
                     //                        else {
                     //                            Utils.debugInfo(consoleEnum.log, investTreasureJson);
-                    //                            Utils.outPutLog(this.outputTextarea, `【聚宝盆请求失败，请手动刷新或联系作者！】`);
+                    //                            Utils.outPutLog(this.outputTextarea, `【聚宝盆请求失败，请手动刷新或联系作者！】`, false);
                     //                        }
 
                     //                        clearInterval(investTreasureInterval);
                     //                    })
                     //                    .catch((error) => {
                     //                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    //                        Utils.outPutLog(this.outputTextarea, `【哎呀~聚宝盆异常，请手动刷新或联系作者！】`);
+                    //                        Utils.outPutLog(this.outputTextarea, `【哎呀~聚宝盆异常，请手动刷新或联系作者！】`, false);
                     //                    });
                     //            }
                     //        });
@@ -490,12 +490,12 @@ export default class JdJoy implements Activity {
                     actAuto.innerHTML = petButtonEnum.actStart;
                     clearInterval(actInterval);
                     actTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动活动！`);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动活动！`, false);
                 }
             });
         });
         //自动串门
-        let helpAuto = document.querySelector('.helpAuto') as HTMLButtonElement;
+        let helpAuto = _$('.helpAuto') as HTMLButtonElement;
         helpAuto!.addEventListener('click', () => {
             //验证活动类型
             let typeSelect = document.getElementById('helpType') as HTMLSelectElement,
@@ -521,7 +521,7 @@ export default class JdJoy implements Activity {
                 let currentJDDate = new Date(+currentJDTime);
                 if (helpAuto.innerHTML == petButtonEnum.helpStart) {
                     helpAuto.innerHTML = petButtonEnum.helpStop;
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动串门！`);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动串门！`, false);
 
                     this.help(typeSelectOptions.value);
                     helpInterval = setInterval(() => {
@@ -532,7 +532,7 @@ export default class JdJoy implements Activity {
                     helpAuto.innerHTML = petButtonEnum.helpStart;
                     clearInterval(helpInterval);
                     helpTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动串门！`);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动串门！`, false);
                 }
             });
         });
@@ -578,13 +578,13 @@ export default class JdJoy implements Activity {
                 else {
                     isGetAllInfo = !isGetAllInfo;
                     Utils.debugInfo(consoleEnum.log, enterRoomJson);
-                    Utils.outPutLog(this.outputTextarea, `【狗窝信息请求失败，请手动刷新或联系作者！】`);
+                    Utils.outPutLog(this.outputTextarea, `【狗窝信息请求失败，请手动刷新或联系作者！】`, false);
                 }
             })
             .catch((error) => {
                 isGetAllInfo = !isGetAllInfo;
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~狗窝信息异常，请手动刷新或联系作者！】`);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~狗窝信息异常，请手动刷新或联系作者！】`, false);
             });
         //获取好友信息
         const getFriendsUrl = 'https://jdjoy.jd.com/pet/getFriends?itemsPerPage=20&currentPage=1';
@@ -597,13 +597,13 @@ export default class JdJoy implements Activity {
                 else {
                     isGetAllInfo = !isGetAllInfo;
                     Utils.debugInfo(consoleEnum.log, friendsJson);
-                    Utils.outPutLog(this.outputTextarea, `【没有查找到你的好友信息，请手动刷新或联系作者！】`);
+                    Utils.outPutLog(this.outputTextarea, `【没有查找到你的好友信息，请手动刷新或联系作者！】`, false);
                 }
             })
             .catch((error) => {
                 isGetAllInfo = !isGetAllInfo;
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`, false);
             });
         //获取今日喂养信息
         const getTodayFeedInfoUrl = 'https://jdjoy.jd.com/pet/getTodayFeedInfo';
@@ -616,13 +616,13 @@ export default class JdJoy implements Activity {
                 else {
                     isGetAllInfo = !isGetAllInfo;
                     Utils.debugInfo(consoleEnum.log, todayFeedInfoJson);
-                    Utils.outPutLog(this.outputTextarea, `【没有查找到你的喂养信息，请手动刷新或联系作者！】`);
+                    Utils.outPutLog(this.outputTextarea, `【没有查找到你的喂养信息，请手动刷新或联系作者！】`, false);
                 }
             })
             .catch((error) => {
                 isGetAllInfo = !isGetAllInfo;
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~喂养信息异常，请手动刷新或联系作者！】`);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~喂养信息异常，请手动刷新或联系作者！】`, false);
             });
 
         if (isGetAllInfo && tipsShow) {
@@ -630,7 +630,7 @@ export default class JdJoy implements Activity {
             document.getElementById('functionButton')!.style.display = '';
             document.getElementById('usingHelp')!.style.display = '';
             this.getJDTime().then((currentJDTime) => {
-                Utils.outPutLog(this.outputTextarea, `${new Date(+currentJDTime).toLocaleString()} 宠物信息获取成功！`);
+                Utils.outPutLog(this.outputTextarea, `${new Date(+currentJDTime).toLocaleString()} 宠物信息获取成功！`, false);
             });
         }
     }
@@ -645,30 +645,30 @@ export default class JdJoy implements Activity {
                     switch (feedJson.errorCode) {
                         case feedEnum.feedOk:
                         case feedEnum.levelUpgrade:
-                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 喂养成功！`);
+                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 喂养成功！`, false);
                             break;
                         case feedEnum.timeError:
-                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 已经喂养过狗子了！`);
+                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 已经喂养过狗子了！`, false);
                             Utils.debugInfo(consoleEnum.log, feedJson);
                             break;
                         case feedEnum.foodInsufficient:
-                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 狗子的粮食吃空了！`);
+                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 狗子的粮食吃空了！`, false);
                             Utils.debugInfo(consoleEnum.log, feedJson);
                             break;
                         default:
                             Utils.debugInfo(consoleEnum.log, feedJson);
-                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 喂养失败！`);
+                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 喂养失败！`, false);
                             break;
                     }
                 }
                 else {
                     Utils.debugInfo(consoleEnum.log, feedJson);
-                    Utils.outPutLog(this.outputTextarea, `【喂养请求失败，请手动刷新或联系作者！】`);
+                    Utils.outPutLog(this.outputTextarea, `【喂养请求失败，请手动刷新或联系作者！】`, false);
                 }
             })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~喂养发生异常，请刷新后重新尝试或联系作者！】`);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~喂养发生异常，请刷新后重新尝试或联系作者！】`, false);
             });
 
         this.info(false);
@@ -716,20 +716,20 @@ export default class JdJoy implements Activity {
                                 .then((getFoodJson) => {
                                     if (getFoodJson.success) {
                                         if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 【${joinedCount + 1}/${taskChance}】每日三餐领取成功！`);
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 【${joinedCount + 1}/${taskChance}】每日三餐领取成功！`, false);
                                         }
                                         else {
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} ${threeMealsData.errorMessage || "每日三餐已领取或已领满！"}`);
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} ${threeMealsData.errorMessage || "每日三餐已领取或已领满！"}`, false);
                                         }
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, getFoodJson);
-                                        Utils.outPutLog(this.outputTextarea, `【每日三餐请求失败，请手动刷新或联系作者！】`);
+                                        Utils.outPutLog(this.outputTextarea, `【每日三餐请求失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~每日三餐异常，请刷新后重新尝试或联系作者！】`);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~每日三餐异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }
                     }
@@ -764,25 +764,25 @@ export default class JdJoy implements Activity {
                                                                     case petTaskErrorCodeEnum.success:
                                                                     case petTaskErrorCodeEnum.followSuccess:
                                                                         joinedCount++;
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${joinedCount}/${taskChance}】浏览频道成功！`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${joinedCount}/${taskChance}】浏览频道成功！`, false);
                                                                         break;
                                                                     case petTaskErrorCodeEnum.followRepeat:
                                                                         joinedCount++;
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此频道今日已浏览！"}`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此频道今日已浏览！"}`, false);
                                                                         break;
                                                                     default:
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此频道或已过期！"}`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此频道或已过期！"}`, false);
                                                                         break;
                                                                 }
                                                             }
                                                             else {
                                                                 Utils.debugInfo(consoleEnum.log, scanJson);
-                                                                Utils.outPutLog(this.outputTextarea, `【浏览频道请求失败，请手动刷新或联系作者！】`);
+                                                                Utils.outPutLog(this.outputTextarea, `【浏览频道请求失败，请手动刷新或联系作者！】`, false);
                                                             }
                                                         })
                                                         .catch((error) => {
                                                             Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                            Utils.outPutLog(this.outputTextarea, `【哎呀~浏览频道异常，请刷新后重新尝试或联系作者！】`);
+                                                            Utils.outPutLog(this.outputTextarea, `【哎呀~浏览频道异常，请刷新后重新尝试或联系作者！】`, false);
                                                         });
                                                 }, taskTimeout));
                                                 taskTimeout += Utils.random(5000, 10000);
@@ -791,12 +791,12 @@ export default class JdJoy implements Activity {
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, getFollowChannelsJson);
-                                        Utils.outPutLog(this.outputTextarea, `【获取浏览频道请求失败，请手动刷新或联系作者！】`);
+                                        Utils.outPutLog(this.outputTextarea, `【获取浏览频道请求失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取浏览频道异常，请刷新后重新尝试或联系作者！】`);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取浏览频道异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }
                     }
@@ -826,25 +826,25 @@ export default class JdJoy implements Activity {
                                                         case petTaskErrorCodeEnum.success:
                                                         case petTaskErrorCodeEnum.followSuccess:
                                                             joinedCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} 【${joinedCount}/${taskChance}】关注商品成功！`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} 【${joinedCount}/${taskChance}】关注商品成功！`, false);
                                                             break;
                                                         case petTaskErrorCodeEnum.followRepeat:
                                                             joinedCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} ${followGoodJson.errorMessage || "此商品今日已关注！"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} ${followGoodJson.errorMessage || "此商品今日已关注！"}`, false);
                                                             break;
                                                         default:
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} ${followGoodJson.errorMessage || "无此商品或已过期！"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+followGoodJson.currentTime).toLocaleString()} ${followGoodJson.errorMessage || "无此商品或已过期！"}`, false);
                                                             break;
                                                     }
                                                 }
                                                 else {
                                                     Utils.debugInfo(consoleEnum.log, followGoodJson);
-                                                    Utils.outPutLog(this.outputTextarea, `【关注商品请求失败，请手动刷新或联系作者！】`);
+                                                    Utils.outPutLog(this.outputTextarea, `【关注商品请求失败，请手动刷新或联系作者！】`, false);
                                                 }
                                             })
                                             .catch((error) => {
                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                Utils.outPutLog(this.outputTextarea, `【哎呀~关注商品异常，请刷新后重新尝试或联系作者！】`);
+                                                Utils.outPutLog(this.outputTextarea, `【哎呀~关注商品异常，请刷新后重新尝试或联系作者！】`, false);
                                             });
                                     }, taskTimeout));
                                     taskTimeout += Utils.random(5000, 10000);
@@ -883,25 +883,25 @@ export default class JdJoy implements Activity {
                                                                     case petTaskErrorCodeEnum.success:
                                                                     case petTaskErrorCodeEnum.followSuccess:
                                                                         joinedCount++;
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} 【${joinedCount}/${taskChance}】关注店铺成功！`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} 【${joinedCount}/${taskChance}】关注店铺成功！`, false);
                                                                         break;
                                                                     case petTaskErrorCodeEnum.followRepeat:
                                                                         joinedCount++;
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} ${followShopJson.errorMessage || "此店铺今日已关注！"}`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} ${followShopJson.errorMessage || "此店铺今日已关注！"}`, false);
                                                                         break;
                                                                     default:
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} ${followShopJson.errorMessage || "无此店铺或已过期！"}`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+followShopJson.currentTime).toLocaleString()} ${followShopJson.errorMessage || "无此店铺或已过期！"}`, false);
                                                                         break;
                                                                 }
                                                             }
                                                             else {
                                                                 Utils.debugInfo(consoleEnum.log, followShopJson);
-                                                                Utils.outPutLog(this.outputTextarea, `【关注店铺请求失败，请手动刷新或联系作者！】`);
+                                                                Utils.outPutLog(this.outputTextarea, `【关注店铺请求失败，请手动刷新或联系作者！】`, false);
                                                             }
                                                         })
                                                         .catch((error) => {
                                                             Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                            Utils.outPutLog(this.outputTextarea, `【哎呀~关注店铺异常，请刷新后重新尝试或联系作者！】`);
+                                                            Utils.outPutLog(this.outputTextarea, `【哎呀~关注店铺异常，请刷新后重新尝试或联系作者！】`, false);
                                                         });
                                                 }, taskTimeout));
                                                 taskTimeout += Utils.random(5000, 10000);
@@ -910,12 +910,12 @@ export default class JdJoy implements Activity {
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, getFollowShopsJson);
-                                        Utils.outPutLog(this.outputTextarea, `【获取关注店铺请求失败，请手动刷新或联系作者！】`);
+                                        Utils.outPutLog(this.outputTextarea, `【获取关注店铺请求失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取关注店铺异常，请刷新后重新尝试或联系作者！】`);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取关注店铺异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }
                     }
@@ -945,25 +945,25 @@ export default class JdJoy implements Activity {
                                                         case petTaskErrorCodeEnum.success:
                                                         case petTaskErrorCodeEnum.followSuccess:
                                                             joinedCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${joinedCount}/${taskChance}】逛会场成功！`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${joinedCount}/${taskChance}】逛会场成功！`, false);
                                                             break;
                                                         case petTaskErrorCodeEnum.followRepeat:
                                                             joinedCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此会场今日已逛！"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此会场今日已逛！"}`, false);
                                                             break;
                                                         default:
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此会场或已过期！"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此会场或已过期！"}`, false);
                                                             break;
                                                     }
                                                 }
                                                 else {
                                                     Utils.debugInfo(consoleEnum.log, scanJson);
-                                                    Utils.outPutLog(this.outputTextarea, `【逛会场请求失败，请手动刷新或联系作者！】`);
+                                                    Utils.outPutLog(this.outputTextarea, `【逛会场请求失败，请手动刷新或联系作者！】`, false);
                                                 }
                                             })
                                             .catch((error) => {
                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                Utils.outPutLog(this.outputTextarea, `【哎呀~逛会场异常，请刷新后重新尝试或联系作者！】`);
+                                                Utils.outPutLog(this.outputTextarea, `【哎呀~逛会场异常，请刷新后重新尝试或联系作者！】`, false);
                                             });
                                     }, taskTimeout));
                                     taskTimeout += Utils.random(5000, 10000);
@@ -974,12 +974,12 @@ export default class JdJoy implements Activity {
                 }
                 else {
                     Utils.debugInfo(consoleEnum.log, petTaskConfigJson);
-                    Utils.outPutLog(this.outputTextarea, `【任务信息请求失败，请手动刷新或联系作者！】`);
+                    Utils.outPutLog(this.outputTextarea, `【任务信息请求失败，请手动刷新或联系作者！】`, false);
                 }
             })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~获取任务信息异常，请刷新后重新尝试或联系作者！】`);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取任务信息异常，请刷新后重新尝试或联系作者！】`, false);
             });
     }
 
@@ -1017,25 +1017,25 @@ export default class JdJoy implements Activity {
                                                         case petTaskErrorCodeEnum.success:
                                                         case petTaskErrorCodeEnum.followSuccess:
                                                             followCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${followCount}/${taskChance}】逛年货成功！`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${followCount}/${taskChance}】逛年货成功！`, false);
                                                             break;
                                                         case petTaskErrorCodeEnum.followRepeat:
                                                             followCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此年货今日已逛"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此年货今日已逛"}`, false);
                                                             break;
                                                         default:
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此年货或已过期"}`);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此年货或已过期"}`, false);
                                                             break;
                                                     }
                                                 }
                                                 else {
                                                     Utils.debugInfo(consoleEnum.log, scanJson);
-                                                    Utils.outPutLog(this.outputTextarea, `【逛年货请求失败，请手动刷新或联系作者！】`);
+                                                    Utils.outPutLog(this.outputTextarea, `【逛年货请求失败，请手动刷新或联系作者！】`, false);
                                                 }
                                             })
                                             .catch((error) => {
                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                Utils.outPutLog(this.outputTextarea, `【哎呀~逛年货异常，请刷新后重新尝试或联系作者！】`);
+                                                Utils.outPutLog(this.outputTextarea, `【哎呀~逛年货异常，请刷新后重新尝试或联系作者！】`, false);
                                             });
                                     }, actTimeout));
                                     actTimeout += Utils.random(5000, 10000);
@@ -1045,12 +1045,12 @@ export default class JdJoy implements Activity {
                     }
                     else {
                         Utils.debugInfo(consoleEnum.log, deskGoodDetailsJson);
-                        Utils.outPutLog(this.outputTextarea, `【逛年货活动信息请求失败，请手动刷新或联系作者！】`);
+                        Utils.outPutLog(this.outputTextarea, `【逛年货活动信息请求失败，请手动刷新或联系作者！】`, false);
                     }
                 })
                 .catch((error) => {
                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取逛年货活动信息异常，请刷新后重新尝试或联系作者！】`);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取逛年货活动信息异常，请刷新后重新尝试或联系作者！】`, false);
                 });
         }
     }
@@ -1085,23 +1085,23 @@ export default class JdJoy implements Activity {
                                                                 if (helpFeedJson.success) {
                                                                     switch (helpFeedJson.errorCode) {
                                                                         case petFriendsStatusEnum.helpok:
-                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 帮助【${currentFriend.friendName}】喂养成功！`);
+                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 帮助【${currentFriend.friendName}】喂养成功！`, false);
                                                                             break;
                                                                         case petFriendsStatusEnum.chanceFull:
                                                                             break;
                                                                         default:
-                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】已帮喂或主人已喂！`);
+                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】已帮喂或主人已喂！`, false);
                                                                             break;
                                                                     }
                                                                 }
                                                                 else {
                                                                     Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
-                                                                    Utils.outPutLog(this.outputTextarea, `【帮助${currentFriend.friendName}喂养失败，请手动刷新或联系作者！】`);
+                                                                    Utils.outPutLog(this.outputTextarea, `【帮助${currentFriend.friendName}喂养失败，请手动刷新或联系作者！】`, false);
                                                                 }
                                                             })
                                                             .catch((error) => {
                                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~帮助${currentFriend.friendName}喂养异常，请手动刷新或联系作者！】`);
+                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~帮助${currentFriend.friendName}喂养异常，请手动刷新或联系作者！】`, false);
                                                             });
                                                     }
                                                 }
@@ -1114,23 +1114,23 @@ export default class JdJoy implements Activity {
                                                                 if (getRandomFoodJson.success) {
                                                                     switch (getRandomFoodJson.errorCode) {
                                                                         case petFriendsStatusEnum.stealok:
-                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 偷取【${currentFriend.friendName}】狗粮成功！`);
+                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 偷取【${currentFriend.friendName}】狗粮成功！`, false);
                                                                             break;
                                                                         case petFriendsStatusEnum.chanceFull:
                                                                             break;
                                                                         default:
-                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的狗粮已偷取或无狗粮！`);
+                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的狗粮已偷取或无狗粮！`, false);
                                                                             break;
                                                                     }
                                                                 }
                                                                 else {
                                                                     Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
-                                                                    Utils.outPutLog(this.outputTextarea, `【偷取${currentFriend.friendName}狗粮失败，请手动刷新或联系作者！】`);
+                                                                    Utils.outPutLog(this.outputTextarea, `【偷取${currentFriend.friendName}狗粮失败，请手动刷新或联系作者！】`, false);
                                                                 }
                                                             })
                                                             .catch((error) => {
                                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~偷取${currentFriend.friendName}狗粮异常，请手动刷新或联系作者！】`);
+                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~偷取${currentFriend.friendName}狗粮异常，请手动刷新或联系作者！】`, false);
                                                             });
                                                     }
                                                 }
@@ -1142,32 +1142,32 @@ export default class JdJoy implements Activity {
                                                             .then((getFriendCoinJson) => {
                                                                 if (getFriendCoinJson.success) {
                                                                     if (getFriendCoinJson.errorCode == petFriendsStatusEnum.cointookok) {
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 获取【${currentFriend.friendName}】金币成功！`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 获取【${currentFriend.friendName}】金币成功！`, false);
                                                                     }
                                                                     else {
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的金币已获取或无金币！`);
+                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的金币已获取或无金币！`, false);
                                                                     }
                                                                 }
                                                                 else {
                                                                     Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
-                                                                    Utils.outPutLog(this.outputTextarea, `【获取${currentFriend.friendName}金币失败，请手动刷新或联系作者！】`);
+                                                                    Utils.outPutLog(this.outputTextarea, `【获取${currentFriend.friendName}金币失败，请手动刷新或联系作者！】`, false);
                                                                 }
                                                             })
                                                             .catch((error) => {
                                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}金币异常，请手动刷新或联系作者！】`);
+                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}金币异常，请手动刷新或联系作者！】`, false);
                                                             });
                                                     }
                                                 }
                                             }
                                             else {
                                                 Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
-                                                Utils.outPutLog(this.outputTextarea, `【没有获取到${currentFriend.friendName}的信息，请手动刷新或联系作者！】`);
+                                                Utils.outPutLog(this.outputTextarea, `【没有获取到${currentFriend.friendName}的信息，请手动刷新或联系作者！】`, false);
                                             }
                                         })
                                         .catch((error) => {
                                             Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                            Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}的信息异常，请手动刷新或联系作者！】`);
+                                            Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}的信息异常，请手动刷新或联系作者！】`, false);
                                         });
 
                                 }, helpTimeout));
@@ -1179,12 +1179,12 @@ export default class JdJoy implements Activity {
                     }
                     else {
                         Utils.debugInfo(consoleEnum.log, getFriendsJson);
-                        Utils.outPutLog(this.outputTextarea, `【没有查找到你的好友信息，请手动刷新或联系作者！】`);
+                        Utils.outPutLog(this.outputTextarea, `【没有查找到你的好友信息，请手动刷新或联系作者！】`, false);
                     }
                 })
                 .catch((error) => {
                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`, false);
                 });
         }
     }

@@ -1,31 +1,10 @@
-export enum couponType {
+export enum gameType {
     none,
-    receiveCoupons = "receiveCoupons",
-    newBabelAwardCollection = "newBabelAwardCollection",
-    whiteCoupon = "whiteCoupon",
-    purchase = "purchase",
-    receiveDayCoupon = "receiveDayCoupon",
-    secKillCoupon = "secKillCoupon",
-    mfreecoupon = "mfreecoupon",
-    coinPurchase = "coinPurchase",
-    GcConvert = "GcConvert",
+    cloudpig = "cloudpig",
+    moneytree = "moneytree",
+    jdjoy = "jdjoy"
 }
-
-export enum activityType {
-    none,
-    monsterNian = "monsterNian",
-    brandCitySpring = "brandCitySpring",
-    palace = "palace",
-    jdjoy = "JDJoy"
-}
-
-export enum consoleEnum {
-    log = "log",
-    info = "info",
-    warn = "warn",
-    error = "error"
-}
-
+//宠汪汪
 export enum feedGramsEnum {
     ten = 10,
     twenty = 20,
@@ -58,7 +37,7 @@ export enum petTaskEnum {
     "浏览频道" = "FollowChannel",
     "关注商品" = "FollowGood",
     "关注店铺" = "FollowShop",
-    "逛会场" = "ScanMarket"  
+    "逛会场" = "ScanMarket"
 }
 
 export enum petTaskReceiveStatusEnum {

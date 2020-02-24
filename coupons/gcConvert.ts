@@ -77,7 +77,7 @@ export default class GcConvert implements Coupon {
                 const target = evt.target as HTMLElement;
                 if (target.getAttribute('data-item')||(target.parentNode == itemDiv && target.tagName != "BUTTON")) {
                     if (!item.flag) {
-                        itemDiv.style.border = "1px solid red";
+                        itemDiv.style.border = "3px solid red";
                     } else {
                         itemDiv.style.border = "1px solid gray";
                     }
@@ -92,7 +92,7 @@ export default class GcConvert implements Coupon {
         
     }
     send(): void {
-        this.outputTextarea.style.display = "block";
+        
         for (let i = 0; i < this.couponList.length; i++) {
             let item = this.couponList[i], url = this.url.replace("{pid}", item.pid);
             if(item.flag){
@@ -101,7 +101,7 @@ export default class GcConvert implements Coupon {
         }
     }
     singleSend(i: number): void {
-        this.outputTextarea.style.display = "block";
+        
         let item = this.couponList[i], url = this.url.replace("{pid}", item.pid);
         Utils.createJsonp(url, true);
     }
