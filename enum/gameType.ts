@@ -58,7 +58,7 @@ export enum petActEnum {
     "全部" = "All",
     "逛店拿积分" = "ScanDeskGood",
     "戳泡泡" = "Paopao",
-    "聚宝盆" = "TreasureBox"
+    "聚宝盆终极大奖" = "TreasureBox"
 }
 
 export enum petHelpEnum {

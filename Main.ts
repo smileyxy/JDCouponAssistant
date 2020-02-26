@@ -215,7 +215,8 @@ function buildGame() {
     const activityArea: HTMLDivElement = document.createElement("div");
     activityArea.setAttribute("style", "border: 1px solid #000;margin:10px");
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>游戏推荐</h3>
-    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://jdjoy.jd.com/pet/index/" target="_blank">宠汪汪</a></p>`;
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://jdjoy.jd.com/pet/index" target="_blank">宠汪汪</a></p>
+    <p style="color:red;font-weight:bold;" > <a style="color:red" href ="https://u1.jr.jd.com/uc-fe-wxgrowing/cloudpig/index" target="_blank">养猪猪</a></p>`;
     container.append(activityArea);
 }
 
@@ -247,8 +248,8 @@ function buildUAarea() {
 function buildSensorArea() {
     let sensorArea: HTMLDivElement = document.createElement("div");
     sensorArea.innerHTML = `<div style="border: 1px solid #000;margin:10px;font-weight:bold"><h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>高级操作区</h3><p>ck格式：备注----ck</p>
-    <button style="width: 120px;height:6.8vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block" onclick="Utils.copyText(document.cookie)">复制Cookie</button>
-    <button  id="import" style="width: 120px;height:6.8vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">配置多帐号</button></div>`;
+    <button style="width: 120px;height:6.8vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size:16px" onclick="Utils.copyText(document.cookie)">复制Cookie</button>
+    <button  id="import" style="width: 120px;height:6.8vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size:16px">配置多帐号</button></div>`;
     container.append(sensorArea);
     _$("#import").addEventListener('click', () => {
         Utils.importFile("text/plain").then(async (ck) => {
@@ -506,12 +507,13 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.4.2】：新增宠汪汪聚宝盆终极大奖功能；戳泡泡功能性测试', 'color:#009a61');
         console.log('%c【0.4.1】：合并原作者更新内容', 'color:#009a61');
         console.log('%c【0.4.0】：新增宠汪汪自动串门功能；修复部分BUG', 'color:#009a61');
-        console.log('%c【0.3.9】：修复宠汪汪自动任务定时以及执行顺序异常', 'color:#009a61');
+        //console.log('%c【0.3.9】：修复宠汪汪自动任务定时以及执行顺序异常', 'color:#009a61');
         //console.log('%c【0.3.8】：新增宠汪汪自动任务功能（除每日签到及邀请用户）；新增宠汪汪自动活动功能（逛年货）', 'color:#009a61');
         //console.log('%c【0.3.7】：新增宠汪汪自动喂养功能', 'color:#009a61');
-        ////console.log('%c【0.3.6】：合并原作者更新内容', 'color:#009a61');
+        //console.log('%c【0.3.6】：合并原作者更新内容', 'color:#009a61');
         //console.log('%c【0.3.5】：新增每日自动完成活动任务；修复部分Bug', 'color:#009a61');
         //console.log('%c【0.3.4】：合并原作者更新内容；修改部分提示信息；修复按钮释放时机错误；新增为作者战队助力', 'color:#009a61');
         //console.log('%c【0.3.3】：合并原作者更新内容；优化提示信息；优化页面逻辑；修复活动部分错误并修改运行逻辑', 'color:#009a61');
