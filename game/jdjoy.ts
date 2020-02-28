@@ -982,10 +982,10 @@ export default class JdJoy implements Activity {
                 const investTreasureUrl = 'https://jdjoy.jd.com/pet/investTreasure';
                 investTreasureInterval = setInterval(() => {
                     let localeDate = +Utils.formatDate3(new Date().getTime().toString())
-                    if (localeDate >= 5958000 && localeDate <= 10000000) {
+                    if (localeDate >= 5955000 && localeDate <= 10000000) {
                         this.getJDTime().then((currentJDTime) => {
                             let serverDate = +Utils.formatDate3(currentJDTime.toString());
-                            if (serverDate >= 5959400 && serverDate <= 10000000) {
+                            if (serverDate >= 5959200 && serverDate <= 10000000) {
                                 fetch(investTreasureUrl, { credentials: "include" })
                                     .then((res) => { return res.json() })
                                     .then((investTreasureJson) => {
@@ -1011,6 +1011,15 @@ export default class JdJoy implements Activity {
             }
         }
         if (actType == petActEnum.戳泡泡 || actType == petActEnum.全部) {
+            const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
+            fetch(visitPetIndex, { credentials: "include" })
+                .then((visitPetIndexJson) => {
+                    Utils.debugInfo(consoleEnum.log, `【测试】尝试访问宠汪汪主页触发戳泡泡活动`);
+                })
+                .catch((error) => {
+                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                    //Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
+                });
             const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
             fetch(enterRoomUrl, { credentials: "include" })
                 .then((res) => { return res.json() })
