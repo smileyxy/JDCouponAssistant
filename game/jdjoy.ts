@@ -113,8 +113,8 @@ export default class JdJoy implements Activity {
                                     <td style="width: 150vw;text-align: -webkit-left;">好友数量：<span id="friendCount" style="color: #FF69B4;">-</span></td> 
                                 </tr>
                                 <tr> 
-                                    <td style="width: 150vw;text-align: -webkit-left;">当前等级喂养总数：<span id="feedTotal" style="color: #FF69B4;">-</span></td>
-                                    <td style="width: 150vw;text-align: -webkit-left;">今日喂养数：<span id="feedCount" style="color: #FF69B4;">-</span></td> 
+                                    <td style="width: 150vw;text-align: -webkit-left;">当前等级已喂养：<span id="feedTotal" style="color: #FF69B4;">-</span></td>
+                                    <td style="width: 150vw;text-align: -webkit-left;">今日喂养：<span id="feedCount" style="color: #FF69B4;">-</span></td> 
                                 </tr>
                             </table>
                             <div style="width: 70vw;text-align: -webkit-left;font-size: 12px;padding-left: 18%;margin-left: 1.5px;">
