@@ -505,6 +505,9 @@ export default class JdJoy implements Activity {
                     if (nextFeedStamp > 0) {
                         nextFeedTime!.innerText = new Date(nextFeedStamp).toLocaleString();
                     }
+                    if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
+                        this.bulbble(enterRoomJson);
+                    }
                 }
                 else {
                     isGetAllInfo = !isGetAllInfo;
@@ -1021,26 +1024,7 @@ export default class JdJoy implements Activity {
                         .then((enterRoomJson) => {
                             if (enterRoomJson.success) {
                                 if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
-                                    Utils.debugInfo(consoleEnum.log, `获得戳泡泡资格：${enterRoomJson}`);
-                                    let postData = `{"couponStock":${enterRoomJson.data.bubbleReward.couponStock},"coinStock":${enterRoomJson.data.bubbleReward.coinStock},"foodStock":${enterRoomJson.data.bubbleReward.foodStock}}`;
-                                    const getBubbleRewardUrl = `https://jdjoy.jd.com/pet/getBubbleReward`;
-                                    fetch(getBubbleRewardUrl, {
-                                        method: "POST",
-                                        mode: "cors",
-                                        credentials: "include",
-                                        headers: {
-                                            "Content-Type": "application/json"
-                                        },
-                                        body: postData
-                                    })
-                                        .then((res) => { return res.json() })
-                                        .then((getBubbleRewardJson) => {
-                                            Utils.debugInfo(consoleEnum.log, `戳泡泡结果：${getBubbleRewardJson}`);
-                                        })
-                                        .catch((error) => {
-                                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                            Utils.outPutLog(this.outputTextarea, `【哎呀~戳泡泡异常，请刷新后重新尝试或联系作者！】`, false);
-                                        });
+                                    this.bulbble(enterRoomJson);
                                 }
                             }
                             else {
@@ -1191,6 +1175,29 @@ export default class JdJoy implements Activity {
                     Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`, false);
                 });
         }
+    }
+    //戳泡泡
+    bulbble(enterRoomJson: any): void {
+        Utils.debugInfo(consoleEnum.log, `获得戳泡泡资格：${enterRoomJson}`);
+        let postData = `{"couponStock":${enterRoomJson.data.bubbleReward.couponStock},"coinStock":${enterRoomJson.data.bubbleReward.coinStock},"foodStock":${enterRoomJson.data.bubbleReward.foodStock}}`;
+        const getBubbleRewardUrl = `https://jdjoy.jd.com/pet/getBubbleReward`;
+        fetch(getBubbleRewardUrl, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: postData
+        })
+            .then((res) => { return res.json() })
+            .then((getBubbleRewardJson) => {
+                Utils.debugInfo(consoleEnum.log, `戳泡泡结果：${getBubbleRewardJson}`);
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~戳泡泡异常，请刷新后重新尝试或联系作者！】`, false);
+            });
     }
 
     getJDTime(): Promise<number> {
