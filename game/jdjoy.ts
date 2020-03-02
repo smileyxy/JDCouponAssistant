@@ -276,7 +276,7 @@ export default class JdJoy implements Activity {
             }
 
             feedSpan = ((+feedSpanInput!.value * 3600000) || defaultFeedSpan);
-            
+
             gramsSelect.disabled = !gramsSelect.disabled;
             feedSpanInput.disabled = !feedSpanInput.disabled;
 
@@ -363,7 +363,7 @@ export default class JdJoy implements Activity {
                 if (taskAuto.innerHTML == petButtonEnum.taskStart) {
                     taskAuto.innerHTML = petButtonEnum.taskStop;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动任务！`, false);
-                    
+
                     this.task(typeSelectOptions.value);
                     taskInterval = setInterval(() => {
                         this.getJDTime().then((nowJDTime) => {
@@ -421,6 +421,7 @@ export default class JdJoy implements Activity {
                     clearInterval(actInterval);
                     clearInterval(investTreasureInterval);
                     actTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    investTreasureInterval = 0;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动活动！`, false);
                 }
             });
@@ -984,8 +985,8 @@ export default class JdJoy implements Activity {
             if (!investTreasureInterval || investTreasureInterval == 0) {
                 const investTreasureUrl = 'https://jdjoy.jd.com/pet/investTreasure';
                 investTreasureInterval = setInterval(() => {
-                    let localeDate = +Utils.formatDate3(new Date().getTime().toString())
-                    if (localeDate >= 5955000 && localeDate <= 10000000) {
+                    let localeDate = +Utils.formatDate3(new Date().getTime().toString());
+                    if (localeDate >= 5930000 && localeDate <= 10000000) {
                         this.getJDTime().then((currentJDTime) => {
                             let serverDate = +Utils.formatDate3(currentJDTime.toString());
                             if (serverDate >= 5959200 && serverDate <= 10000000) {
@@ -1002,6 +1003,7 @@ export default class JdJoy implements Activity {
                                         }
 
                                         clearInterval(investTreasureInterval);
+                                        investTreasureInterval = 0;
                                     })
                                     .catch((error) => {
                                         Utils.debugInfo(consoleEnum.error, 'request failed', error);
@@ -1014,32 +1016,51 @@ export default class JdJoy implements Activity {
             }
         }
         if (actType == petActEnum.戳泡泡 || actType == petActEnum.全部) {
-            const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
-            fetch(visitPetIndex, { credentials: "include" })
-                .then((visitPetIndexJson) => {
-                    Utils.debugInfo(consoleEnum.log, `【测试】尝试访问宠汪汪主页触发戳泡泡活动`);
-                    const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
-                    fetch(enterRoomUrl, { credentials: "include" })
-                        .then((res) => { return res.json() })
-                        .then((enterRoomJson) => {
-                            if (enterRoomJson.success) {
-                                if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
-                                    this.bulbble(enterRoomJson);
-                                }
-                            }
-                            else {
-                                Utils.debugInfo(consoleEnum.log, enterRoomJson);
-                                Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
-                            }
-                        })
-                        .catch((error) => {
-                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                            Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
-                        });
+            //const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
+            //fetch(visitPetIndex, { credentials: "include" })
+            //    .then((visitPetIndexJson) => {
+            //        Utils.debugInfo(consoleEnum.log, `【测试】尝试访问宠汪汪主页触发戳泡泡活动`);
+            //        const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
+            //        fetch(enterRoomUrl, { credentials: "include" })
+            //            .then((res) => { return res.json() })
+            //            .then((enterRoomJson) => {
+            //                if (enterRoomJson.success) {
+            //                    if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
+            //                        this.bulbble(enterRoomJson);
+            //                    }
+            //                }
+            //                else {
+            //                    Utils.debugInfo(consoleEnum.log, enterRoomJson);
+            //                    Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
+            //                }
+            //            })
+            //            .catch((error) => {
+            //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+            //                Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
+            //            });
+            //    })
+            //    .catch((error) => {
+            //        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+            //        //Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
+            //    });
+            Utils.debugInfo(consoleEnum.log, `【测试】尝试访问宠汪汪主页触发戳泡泡活动`);
+            const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
+            fetch(enterRoomUrl, { credentials: "include" })
+                .then((res) => { return res.json() })
+                .then((enterRoomJson) => {
+                    if (enterRoomJson.success) {
+                        if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
+                            this.bulbble(enterRoomJson);
+                        }
+                    }
+                    else {
+                        Utils.debugInfo(consoleEnum.log, enterRoomJson);
+                        Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
+                    }
                 })
                 .catch((error) => {
                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    //Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
                 });
         }
     }
@@ -1178,8 +1199,9 @@ export default class JdJoy implements Activity {
     }
     //戳泡泡
     bulbble(enterRoomJson: any): void {
-        Utils.debugInfo(consoleEnum.log, `获得戳泡泡资格：${enterRoomJson}`);
-        let postData = `{"couponStock":${enterRoomJson.data.bubbleReward.couponStock},"coinStock":${enterRoomJson.data.bubbleReward.coinStock},"foodStock":${enterRoomJson.data.bubbleReward.foodStock}}`;
+        Utils.debugInfo(consoleEnum.log, `获得戳泡泡资格：${JSON.stringify(enterRoomJson)}`);
+        let bubbleRewardData = Utils.deleteEmptyProperty(enterRoomJson.data.bubbleReward);
+        let postData = JSON.stringify(bubbleRewardData);
         const getBubbleRewardUrl = `https://jdjoy.jd.com/pet/getBubbleReward`;
         fetch(getBubbleRewardUrl, {
             method: "POST",
@@ -1192,7 +1214,7 @@ export default class JdJoy implements Activity {
         })
             .then((res) => { return res.json() })
             .then((getBubbleRewardJson) => {
-                Utils.debugInfo(consoleEnum.log, `戳泡泡结果：${getBubbleRewardJson}`);
+                Utils.debugInfo(consoleEnum.log, `戳泡泡结果：${JSON.stringify(getBubbleRewardJson)}`);
             })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);

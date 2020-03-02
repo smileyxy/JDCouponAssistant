@@ -261,6 +261,35 @@ export default class Utils {
         }
     }
 
+    static deleteEmptyProperty(obj: any) {
+        var object = obj;
+
+        for (var i in object) {
+            var value = object[i];
+            if (typeof value === 'object') {
+                if (Array.isArray(value)) {
+                    if (value.length == 0) {
+                        delete object[i];
+                        continue;
+                    }
+                }
+                else {
+                    if (value === '' || value === null || value === undefined) {
+                        delete object[i];
+                    }
+                }
+
+                this.deleteEmptyProperty(value);
+            } else {
+                if (value === '' || value === null || value === undefined) {
+                    delete object[i];
+                }
+            }
+        }
+
+        return object;
+    }
+
     // static HTMLfactory(type: string, attributes: any, parent: HTMLElement): HTMLElement {
     //     let ele: any = document.createElement(type);
     //     for (let k in attributes) {
