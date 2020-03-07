@@ -507,9 +507,10 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.4.3】：新增看激励视频任务；移除宠汪汪聚宝盆终极大奖活动；修改戳泡泡功能性测试', 'color:#009a61');
         console.log('%c【0.4.2】：新增宠汪汪聚宝盆终极大奖功能；戳泡泡功能性测试', 'color:#009a61');
         console.log('%c【0.4.1】：合并原作者更新内容', 'color:#009a61');
-        console.log('%c【0.4.0】：新增宠汪汪自动串门功能；修复部分BUG', 'color:#009a61');
+        //console.log('%c【0.4.0】：新增宠汪汪自动串门功能；修复部分BUG', 'color:#009a61');
         //console.log('%c【0.3.9】：修复宠汪汪自动任务定时以及执行顺序异常', 'color:#009a61');
         //console.log('%c【0.3.8】：新增宠汪汪自动任务功能（除每日签到及邀请用户）；新增宠汪汪自动活动功能（逛年货）', 'color:#009a61');
         //console.log('%c【0.3.7】：新增宠汪汪自动喂养功能', 'color:#009a61');

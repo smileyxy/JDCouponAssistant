@@ -37,7 +37,8 @@ export enum petTaskEnum {
     "浏览频道" = "FollowChannel",
     "关注商品" = "FollowGood",
     "关注店铺" = "FollowShop",
-    "逛会场" = "ScanMarket"
+    "逛会场" = "ScanMarket",
+    "看激励视频" = "ViewVideo"
 }
 
 export enum petTaskReceiveStatusEnum {
@@ -51,14 +52,15 @@ export enum petTaskErrorCodeEnum {
     received = "received",
     followSuccess = "follow_success",
     followRepeat = "follow_repeat",
-    followFail = "follow_fail"
+    followFail = "follow_fail",
+    followFull = "follow_full"
 }
 
 export enum petActEnum {
     "全部" = "All",
     "逛店拿积分" = "ScanDeskGood",
-    "戳泡泡" = "Paopao",
-    "聚宝盆终极大奖" = "TreasureBox"
+    "戳泡泡" = "Paopao"
+    //"聚宝盆终极大奖" = "TreasureBox"
 }
 
 export enum petHelpEnum {

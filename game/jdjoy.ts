@@ -38,7 +38,7 @@ const defaultFeedSpan: number = 10800000, //3小时
     defaultHelpDetection: number = 14400000; //4小时
 
 export default class JdJoy implements Activity {
-    url: string = "https://api.m.jd.com/client.action";
+    //url: string = "https://api.m.jd.com/client.action";
     params: any;
     data: any;
     container: HTMLDivElement;
@@ -193,7 +193,6 @@ export default class JdJoy implements Activity {
                                                 <option value="${petActEnum.全部}" selected="selected">全部</option>
                                                 <option value="${petActEnum.逛店拿积分}">逛店拿积分</option>
                                                 <option value="${petActEnum.戳泡泡}">戳泡泡</option>
-                                                <option value="${petActEnum.聚宝盆终极大奖}">聚宝盆终极大奖</option>
                                             </select>
                                         </div>
                                     </td>
@@ -232,6 +231,7 @@ export default class JdJoy implements Activity {
                                                 <option value="${petTaskEnum.关注商品}">关注商品</option>
                                                 <option value="${petTaskEnum.关注店铺}">关注店铺</option>
                                                 <option value="${petTaskEnum.逛会场}">逛会场</option>
+                                                <option value="${petTaskEnum.看激励视频}">看激励视频</option>
                                             </select>
                                         </div>
                                     </td>
@@ -609,33 +609,35 @@ export default class JdJoy implements Activity {
     }
     //任务
     async task(taskType: string): Promise<void> {
-        const getPetTaskConfigUrl = `https://jdjoy.jd.com/pet/getPetTaskConfig?reqSource=h5`;
-        await fetch(getPetTaskConfigUrl, { credentials: "include" })
+        let taskTimeout = 0;
+        //h5
+        const getHPetTaskConfigUrl = `https://jdjoy.jd.com/pet/getPetTaskConfig?reqSource=h5`;
+        await fetch(getHPetTaskConfigUrl, { credentials: "include" })
             .then((res) => { return res.json() })
-            .then(async (petTaskConfigJson) => {
-                if (petTaskConfigJson.success) {
-                    let taskTimeout = 0;
+            .then(async (hPetTaskConfigJson) => {
+                if (hPetTaskConfigJson.success) {
+                    //let taskTimeout = 0;
                     let threeMealsData: any,
                         followChannelData: any,
                         followGoodData: any,
                         followShopData: any,
                         scanMarketData: any;
-                    for (let i = 0; i < petTaskConfigJson.datas.length; i++) {
-                        switch (petTaskConfigJson.datas[i].taskType) {
+                    for (let i = 0; i < hPetTaskConfigJson.datas.length; i++) {
+                        switch (hPetTaskConfigJson.datas[i].taskType) {
                             case petTaskEnum.每日三餐:
-                                threeMealsData = petTaskConfigJson.datas[i];
+                                threeMealsData = hPetTaskConfigJson.datas[i];
                                 break;
                             case petTaskEnum.浏览频道:
-                                followChannelData = petTaskConfigJson.datas[i];
+                                followChannelData = hPetTaskConfigJson.datas[i];
                                 break;
                             case petTaskEnum.关注商品:
-                                followGoodData = petTaskConfigJson.datas[i];
+                                followGoodData = hPetTaskConfigJson.datas[i];
                                 break;
                             case petTaskEnum.关注店铺:
-                                followShopData = petTaskConfigJson.datas[i];
+                                followShopData = hPetTaskConfigJson.datas[i];
                                 break;
                             case petTaskEnum.逛会场:
-                                scanMarketData = petTaskConfigJson.datas[i];
+                                scanMarketData = hPetTaskConfigJson.datas[i];
                                 break;
                         }
                     }
@@ -686,7 +688,7 @@ export default class JdJoy implements Activity {
                                                         method: "POST",
                                                         mode: "cors",
                                                         credentials: "include",
-                                                        headers: {
+                                                         headers: {
                                                             "Content-Type": "application/json"
                                                         },
                                                         body: postData
@@ -901,15 +903,60 @@ export default class JdJoy implements Activity {
                             }
                         }
                     }
+                    if (taskType == petTaskEnum.看激励视频 || taskType == petTaskEnum.全部) {
+                        let joinedCount = 0,
+                            taskChance = 10;
+                        for (let j = 0; j < taskChance; j++) {
+                            taskTimeoutArray.push(setTimeout(() => {
+                                let postData = `{"taskType":"${petTaskEnum.看激励视频}","reqSource":"h5"}`;
+                                const scanUrl = `https://jdjoy.jd.com/pet/scan`;
+                                fetch(scanUrl, {
+                                    method: "POST",
+                                    mode: "cors",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: postData
+                                })
+                                    .then((res) => { return res.json() })
+                                    .then((scanJson) => {
+                                        if (scanJson.success) {
+                                            switch (scanJson.errorCode) {
+                                                case petTaskErrorCodeEnum.success:
+                                                case petTaskErrorCodeEnum.followSuccess:
+                                                    joinedCount++;
+                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${joinedCount}】看激励视频成功！`, false);
+                                                    break;
+                                                case petTaskErrorCodeEnum.followFull:
+                                                    return;
+                                                default:
+                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此视频或已完成！"}`, false);
+                                                    break;
+                                            }
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, scanJson);
+                                            Utils.outPutLog(this.outputTextarea, `【看激励视频请求失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `【哎呀~看激励视频异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            }, taskTimeout));
+                            taskTimeout += Utils.random(10000, 15000);
+                        }
+                    }
                 }
                 else {
-                    Utils.debugInfo(consoleEnum.log, petTaskConfigJson);
-                    Utils.outPutLog(this.outputTextarea, `【任务信息请求失败，请手动刷新或联系作者！】`, false);
+                    Utils.debugInfo(consoleEnum.log, hPetTaskConfigJson);
+                    Utils.outPutLog(this.outputTextarea, `【h5任务信息请求失败，请手动刷新或联系作者！】`, false);
                 }
             })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~获取任务信息异常，请刷新后重新尝试或联系作者！】`, false);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取h5任务信息异常，请刷新后重新尝试或联系作者！】`, false);
             });
     }
     //活动
@@ -981,88 +1028,69 @@ export default class JdJoy implements Activity {
                     Utils.outPutLog(this.outputTextarea, `【哎呀~获取逛年货活动信息异常，请刷新后重新尝试或联系作者！】`, false);
                 });
         }
-        if (actType == petActEnum.聚宝盆终极大奖 || actType == petActEnum.全部) {
-            if (!investTreasureInterval || investTreasureInterval == 0) {
-                const investTreasureUrl = 'https://jdjoy.jd.com/pet/investTreasure';
-                investTreasureInterval = setInterval(() => {
-                    let localeDate = +Utils.formatDate3(new Date().getTime().toString());
-                    if (localeDate >= 5930000 && localeDate <= 10000000) {
-                        this.getJDTime().then((currentJDTime) => {
-                            let serverDate = +Utils.formatDate3(currentJDTime.toString());
-                            if (serverDate >= 5959200 && serverDate <= 10000000) {
-                                fetch(investTreasureUrl, { credentials: "include" })
-                                    .then((res) => { return res.json() })
-                                    .then((investTreasureJson) => {
-                                        if (investTreasureJson.success) {
-                                            Utils.debugInfo(consoleEnum.log, investTreasureJson);
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+investTreasureJson.currentTime).toLocaleString()} 已尝试聚宝盆终极大奖！`, false);
-                                        }
-                                        else {
-                                            Utils.debugInfo(consoleEnum.log, investTreasureJson);
-                                            Utils.outPutLog(this.outputTextarea, `【聚宝盆终极大奖请求失败，请手动刷新或联系作者！】`, false);
-                                        }
-
-                                        clearInterval(investTreasureInterval);
-                                        investTreasureInterval = 0;
-                                    })
-                                    .catch((error) => {
-                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                        Utils.outPutLog(this.outputTextarea, `【哎呀~聚宝盆终极大奖异常，请手动刷新或联系作者！】`, false);
-                                    });
-                            }
-                        });
-                    }
-                }, 200);
-            }
-        }
         if (actType == petActEnum.戳泡泡 || actType == petActEnum.全部) {
-            //const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
-            //fetch(visitPetIndex, { credentials: "include" })
-            //    .then((visitPetIndexJson) => {
-            //        Utils.debugInfo(consoleEnum.log, `【测试】尝试访问宠汪汪主页触发戳泡泡活动`);
-            //        const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
-            //        fetch(enterRoomUrl, { credentials: "include" })
-            //            .then((res) => { return res.json() })
-            //            .then((enterRoomJson) => {
-            //                if (enterRoomJson.success) {
-            //                    if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
-            //                        this.bulbble(enterRoomJson);
-            //                    }
-            //                }
-            //                else {
-            //                    Utils.debugInfo(consoleEnum.log, enterRoomJson);
-            //                    Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
-            //                }
-            //            })
-            //            .catch((error) => {
-            //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-            //                Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
-            //            });
-            //    })
-            //    .catch((error) => {
-            //        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-            //        //Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
-            //    });
-            Utils.debugInfo(consoleEnum.log, `【测试】尝试访问宠汪汪主页触发戳泡泡活动`);
-            const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
-            fetch(enterRoomUrl, { credentials: "include" })
-                .then((res) => { return res.json() })
-                .then((enterRoomJson) => {
-                    if (enterRoomJson.success) {
-                        if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
-                            this.bulbble(enterRoomJson);
-                        }
-                    }
-                    else {
-                        Utils.debugInfo(consoleEnum.log, enterRoomJson);
-                        Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
-                    }
+            const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
+            fetch(visitPetIndex, { credentials: "include" })
+                .then((visitPetIndexJson) => {
+                    Utils.debugInfo(consoleEnum.log, `【测试】尝试访问宠汪汪主页触发戳泡泡活动`);
+                    const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
+                    fetch(enterRoomUrl, { credentials: "include" })
+                        .then((res) => { return res.json() })
+                        .then((enterRoomJson) => {
+                            if (enterRoomJson.success) {
+                                if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
+                                    this.bulbble(enterRoomJson);
+                                }
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, enterRoomJson);
+                                Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
+                            }
+                        })
+                        .catch((error) => {
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
+                        });
                 })
                 .catch((error) => {
                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
+                    //Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
                 });
         }
+        //if (actType == petActEnum.聚宝盆终极大奖 || actType == petActEnum.全部) {
+        //    if (!investTreasureInterval || investTreasureInterval == 0) {
+        //        const investTreasureUrl = 'https://jdjoy.jd.com/pet/investTreasure';
+        //        investTreasureInterval = setInterval(() => {
+        //            let localeDate = +Utils.formatDate3(new Date().getTime().toString());
+        //            if (localeDate >= 5930000 && localeDate <= 10000000) {
+        //                this.getJDTime().then((currentJDTime) => {
+        //                    let serverDate = +Utils.formatDate3(currentJDTime.toString());
+        //                    if (serverDate >= 5959200 && serverDate <= 10000000) {
+        //                        fetch(investTreasureUrl, { credentials: "include" })
+        //                            .then((res) => { return res.json() })
+        //                            .then((investTreasureJson) => {
+        //                                if (investTreasureJson.success) {
+        //                                    Utils.debugInfo(consoleEnum.log, investTreasureJson);
+        //                                    Utils.outPutLog(this.outputTextarea, `${new Date(+investTreasureJson.currentTime).toLocaleString()} 已尝试聚宝盆终极大奖！`, false);
+        //                                }
+        //                                else {
+        //                                    Utils.debugInfo(consoleEnum.log, investTreasureJson);
+        //                                    Utils.outPutLog(this.outputTextarea, `【聚宝盆终极大奖请求失败，请手动刷新或联系作者！】`, false);
+        //                                }
+
+        //                                clearInterval(investTreasureInterval);
+        //                                investTreasureInterval = 0;
+        //                            })
+        //                            .catch((error) => {
+        //                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+        //                                Utils.outPutLog(this.outputTextarea, `【哎呀~聚宝盆终极大奖异常，请手动刷新或联系作者！】`, false);
+        //                            });
+        //                    }
+        //                });
+        //            }
+        //        }, 200);
+        //    }
+        //}
     }
     //串门
     async help(helpType: string): Promise<void> {
