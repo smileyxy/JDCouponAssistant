@@ -279,6 +279,7 @@ export default class JdJoy implements Activity {
                 }
                 else {
                     autoBean.innerHTML = petButtonEnum.autoBeanStart;
+                    clearInterval(beanInterval);
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动换豆！`, false);
                 }
             });
