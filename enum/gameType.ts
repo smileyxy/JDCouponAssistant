@@ -20,6 +20,8 @@ export enum feedEnum {
 }
 
 export enum petButtonEnum {
+    autoBeanStart = "自动换豆",
+    autoBeanStop = "取消换豆",
     feedStart = "自动喂养",
     feedStop = "取消喂养",
     taskStart = "自动任务",

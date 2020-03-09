@@ -15,6 +15,7 @@ import {
 } from '../enum/gameType';
 
 let petPin = "",
+    beanInterval = 0,
     feedSpan = 0,
     feedInterval = 0,
     lastFeedStamp = 0,
@@ -31,7 +32,8 @@ let petPin = "",
 let taskTimeoutArray: any[] = [],
     actTimeoutArray: any[] = [],
     helpTimeoutArray: any[] = [];
-const defaultFeedSpan: number = 10800000, //3小时
+const defaultBeanDetection: number = 3600000, //1小时
+    defaultFeedSpan: number = 10800000, //3小时
     defaultTaskTiming: string = '06:00',
     defaultTaskDetection: number = 3600000, //1小时
     defaultActDetection: number = 3600000, //1小时
@@ -123,8 +125,9 @@ export default class JdJoy implements Activity {
                             <div style="width: 70vw;text-align: -webkit-left;font-size: 12px;padding-left: 18%;margin-left: 1.5px;">
                                 下次喂养时间：<span id="nextFeedTime" style="color: #FF69B4;">-</span>
                             </div>
-                            <div style="margin-top: 10px;">
+                            <div style="margin-top: 10px;display: flex;">
                                 <button class="refresh" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">手动刷新</button>
+                                <button class="autoBean" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">自动换豆</button>
                             </div>
                         </div>`;
         petContent.innerHTML = petInfo;
@@ -139,8 +142,12 @@ export default class JdJoy implements Activity {
                             </div>
                             <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px auto 10px;">
                                 <details>
+                                    <summary style="outline: 0;">自动换豆</summary>
+                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 3600000}小时。</p>
+                                </details>
+                                <details>
                                     <summary style="outline: 0;">自动喂养</summary>
-                                    <p style="font-size: 12px;">根据所填项每天进行喂食；喂养间隔：默认${defaultFeedSpan / 3600000}小时。</p>
+                                    <p style="font-size: 12px;">根据所填项每天进行喂食；喂养间隔：默认${defaultFeedSpan / 3600000}小时，正在进食时自动计算时间差。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动活动</summary>
@@ -255,6 +262,26 @@ export default class JdJoy implements Activity {
         const refresh = _$('.refresh');
         refresh!.addEventListener('click', () => {
             this.info();
+        });
+        //自动换豆
+        const autoBean = _$('.autoBean');
+        autoBean!.addEventListener('click', () => {
+            this.getJDTime().then((currentJDTime) => {
+                let currentJDDate = new Date(+currentJDTime);
+                if (autoBean.innerHTML == petButtonEnum.autoBeanStart) {
+                    autoBean.innerHTML = petButtonEnum.autoBeanStop;
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动换豆！`, false);
+
+                    this.exchange();
+                    beanInterval = setInterval(() => {
+                        this.exchange();
+                    }, defaultBeanDetection);
+                }
+                else {
+                    autoBean.innerHTML = petButtonEnum.autoBeanStart;
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动换豆！`, false);
+                }
+            });
         });
         //自动喂养
         let feedAuto = _$('.feedAuto') as HTMLButtonElement,
@@ -568,6 +595,65 @@ export default class JdJoy implements Activity {
                 Utils.outPutLog(this.outputTextarea, `${new Date(+currentJDTime).toLocaleString()} 宠物信息获取成功！`, false);
             });
         }
+    }
+    //兑换
+    async exchange(): Promise<void> {
+        Utils.debugInfo(consoleEnum.log, `【测试】开始尝试自动兑换京豆`);
+        const levelSpan = 5,
+            getExchangeRewardsUrl = 'https://jdjoy.jd.com/pet/getExchangeRewards';
+        await fetch(getExchangeRewardsUrl, { credentials: "include" })
+            .then((res) => { return res.json() })
+            .then(async (getExchangeRewardsJson) => {
+                if (getExchangeRewardsJson.success) {
+                    let exchangeReward: any;
+                    getExchangeRewardsJson.datas.forEach((dataItem: any) => {
+                        if (dataItem.petLevel >= (dataItem.rewardLevel * levelSpan - levelSpan + 1) && dataItem.petLevel <= (dataItem.rewardLevel * levelSpan)) {
+                            exchangeReward = dataItem.rewardDetailVOS.find((rewardItem: any) => {
+                                return rewardItem.rewardType == 3 && rewardItem.rewardName.indexOf('京豆') >= 0 && rewardItem.leftStock > 0
+                            });
+                        }
+                    });
+
+                    if (!!exchangeReward) {
+                        let postData = `{"id":"${exchangeReward.id}"}`;
+                        const petExchangeUrl = `https://jdjoy.jd.com/pet/exchange`;
+                        await fetch(petExchangeUrl, {
+                            method: "POST",
+                            mode: "cors",
+                            credentials: "include",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: postData
+                        })
+                            .then((res) => { return res.json() })
+                            .then((petExchangeJson) => {
+                                if (petExchangeJson.success) {
+                                    Utils.debugInfo(consoleEnum.log, petExchangeJson);
+                                    Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} 京豆兑换成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, petExchangeJson);
+                                    Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, getExchangeRewardsJson);
+                    Utils.outPutLog(this.outputTextarea, `【获取积分兑换信息失败，请手动刷新或联系作者！】`, false);
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取积分兑换信息异常，请手动刷新或联系作者！】`, false);
+            });
+
+        this.info(false);
     }
     //喂养
     async feed(grams: string | number): Promise<void> {
