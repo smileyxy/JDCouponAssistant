@@ -192,7 +192,7 @@ function buildTitle() {
                         </div>
                         <button style="font-size:18px;font-weight:bold;color:#000;position:relative;width: 200px;height:6.8vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block">
                             把按钮拖动到书签栏
-                            <a style="font-size:0px;width:200px;height:30px;display:inline-block;position:absolute;left:0;top:0;" href="javascript: (function(a, b, c, d) { if(!a[c]){ d = b.createElement('script'), d.id = 'krapnik', d.setAttribute('charset', 'utf-8'), d.src = 'https://gitee.com/SmileyFace/codes/2dqko35bml7xhcsjf1wv646/raw?blob_name=gistfile1.txt', b.body.appendChild(d) } } )(window, document, 'krapnik');">
+                            <a style="font-size:0px;width:200px;height:30px;display:inline-block;position:absolute;left:0;top:0;" href="javascript: (function(a, b, c, d) { if(!a[c]){ d = b.createElement('script'), d.id = 'krapnik', d.setAttribute('charset', 'utf-8'), d.src = 'https://pastebin.com/raw/rcpymHqy', b.body.appendChild(d) } } )(window, document, 'krapnik');">
                                 京东领券助手
                             </a>
                         </button>`;
