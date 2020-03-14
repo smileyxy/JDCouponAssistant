@@ -143,7 +143,7 @@ export default class JdJoy implements Activity {
                             <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px auto 10px;">
                                 <details>
                                     <summary style="outline: 0;">自动换豆</summary>
-                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection}分钟。</p>
+                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 60000}分钟。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动喂养</summary>
