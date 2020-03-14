@@ -32,7 +32,7 @@ let petPin = "",
 let taskTimeoutArray: any[] = [],
     actTimeoutArray: any[] = [],
     helpTimeoutArray: any[] = [];
-const defaultBeanDetection: number = 3600000, //1小时
+const defaultBeanDetection: number = 600000, //10分钟
     defaultFeedSpan: number = 10800000, //3小时
     defaultTaskTiming: string = '06:00',
     defaultTaskDetection: number = 3600000, //1小时
@@ -143,7 +143,7 @@ export default class JdJoy implements Activity {
                             <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px auto 10px;">
                                 <details>
                                     <summary style="outline: 0;">自动换豆</summary>
-                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 3600000}小时。</p>
+                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection}分钟。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动喂养</summary>
@@ -1315,26 +1315,29 @@ export default class JdJoy implements Activity {
     //戳泡泡
     bulbble(enterRoomJson: any): void {
         Utils.debugInfo(consoleEnum.log, `获得戳泡泡资格：${JSON.stringify(enterRoomJson)}`);
+        let bubbleFloatTime = +enterRoomJson.data.bubbleFloatTime * 1000;
         let bubbleRewardData = Utils.deleteEmptyProperty(enterRoomJson.data.bubbleReward);
         let postData = JSON.stringify(bubbleRewardData);
         const getBubbleRewardUrl = `https://jdjoy.jd.com/pet/getBubbleReward`;
-        fetch(getBubbleRewardUrl, {
-            method: "POST",
-            mode: "cors",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: postData
-        })
-            .then((res) => { return res.json() })
-            .then((getBubbleRewardJson) => {
-                Utils.debugInfo(consoleEnum.log, `戳泡泡结果：${JSON.stringify(getBubbleRewardJson)}`);
+        setTimeout(() => {
+            fetch(getBubbleRewardUrl, {
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: postData
             })
-            .catch((error) => {
-                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~戳泡泡异常，请刷新后重新尝试或联系作者！】`, false);
-            });
+                .then((res) => { return res.json() })
+                .then((getBubbleRewardJson) => {
+                    Utils.debugInfo(consoleEnum.log, `戳泡泡结果：${JSON.stringify(getBubbleRewardJson)}`);
+                })
+                .catch((error) => {
+                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~戳泡泡异常，请刷新后重新尝试或联系作者！】`, false);
+                });
+        }, 14000 + bubbleFloatTime);
     }
 
     getJDTime(): Promise<number> {
