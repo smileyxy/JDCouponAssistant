@@ -32,7 +32,7 @@ let petPin = "",
 let taskTimeoutArray: any[] = [],
     actTimeoutArray: any[] = [],
     helpTimeoutArray: any[] = [];
-const defaultBeanDetection: number = 600000, //10分钟
+const defaultBeanDetection: number = 3600000, //1小时
     defaultFeedSpan: number = 10800000, //3小时
     defaultTaskTiming: string = '06:00',
     defaultTaskDetection: number = 3600000, //1小时
@@ -143,7 +143,7 @@ export default class JdJoy implements Activity {
                             <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px auto 10px;">
                                 <details>
                                     <summary style="outline: 0;">自动换豆</summary>
-                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 60000}分钟。</p>
+                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 3600000}小时。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动喂养</summary>
@@ -599,16 +599,17 @@ export default class JdJoy implements Activity {
     }
     //兑换
     async exchange(): Promise<void> {
-        Utils.debugInfo(consoleEnum.log, `【测试】开始尝试自动兑换京豆`);
         const levelSpan = 5,
             getExchangeRewardsUrl = 'https://jdjoy.jd.com/pet/getExchangeRewards';
         await fetch(getExchangeRewardsUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then(async (getExchangeRewardsJson) => {
                 if (getExchangeRewardsJson.success) {
-                    let exchangeReward: any;
+                    let exchangeReward: any,
+                        totalScore: number = 0;
                     getExchangeRewardsJson.datas.forEach((dataItem: any) => {
                         if (dataItem.petLevel >= (dataItem.rewardLevel * levelSpan - levelSpan + 1) && dataItem.petLevel <= (dataItem.rewardLevel * levelSpan)) {
+                            totalScore = dataItem.score;
                             exchangeReward = dataItem.rewardDetailVOS.find((rewardItem: any) => {
                                 return rewardItem.rewardType == 3 && rewardItem.rewardName.indexOf('京豆') >= 0 && rewardItem.leftStock > 0
                             });
@@ -616,32 +617,37 @@ export default class JdJoy implements Activity {
                     });
 
                     if (!!exchangeReward) {
-                        let postData = `{"id":"${exchangeReward.id}"}`;
-                        const petExchangeUrl = `https://jdjoy.jd.com/pet/exchange`;
-                        await fetch(petExchangeUrl, {
-                            method: "POST",
-                            mode: "cors",
-                            credentials: "include",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: postData
-                        })
-                            .then((res) => { return res.json() })
-                            .then((petExchangeJson) => {
-                                if (petExchangeJson.success) {
-                                    Utils.debugInfo(consoleEnum.log, petExchangeJson);
-                                    Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} 京豆兑换成功！`, false);
-                                }
-                                else {
-                                    Utils.debugInfo(consoleEnum.log, petExchangeJson);
-                                    Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
-                                }
+                        let exchangeQuantity = Math.floor(totalScore / exchangeReward.petScore);
+
+                        for (let i = 0; i < exchangeQuantity; i++) {
+                            let postData = `{"id":"${exchangeReward.id}"}`;
+                            const petExchangeUrl = `https://jdjoy.jd.com/pet/exchange`;
+                            await fetch(petExchangeUrl, {
+                                method: "POST",
+                                mode: "cors",
+                                credentials: "include",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: postData
                             })
-                            .catch((error) => {
-                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
-                            });
+                                .then((res) => { return res.json() })
+                                .then((petExchangeJson) => {
+                                    if (petExchangeJson.success) {
+                                        Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} 京豆兑换成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, petExchangeJson);
+                                        Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+
+                        this.info(false);
                     }
                 }
                 else {
@@ -653,8 +659,6 @@ export default class JdJoy implements Activity {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
                 Utils.outPutLog(this.outputTextarea, `【哎呀~获取积分兑换信息异常，请手动刷新或联系作者！】`, false);
             });
-
-        this.info(false);
     }
     //喂养
     async feed(grams: string | number): Promise<void> {
@@ -1080,24 +1084,24 @@ export default class JdJoy implements Activity {
                                                         case petTaskErrorCodeEnum.success:
                                                         case petTaskErrorCodeEnum.followSuccess:
                                                             followCount++;
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${followCount}/${taskChance}】逛年货成功！`, false);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} 【${followCount}/${taskChance}】逛店拿积分成功！`, false);
                                                             break;
                                                         case petTaskErrorCodeEnum.followRepeat:
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此年货今日已逛"}`, false);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "此店今日已逛"}`, false);
                                                             break;
                                                         default:
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此年货或已过期"}`, false);
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+scanJson.currentTime).toLocaleString()} ${scanJson.errorMessage || "无此店或已过期"}`, false);
                                                             break;
                                                     }
                                                 }
                                                 else {
                                                     Utils.debugInfo(consoleEnum.log, scanJson);
-                                                    Utils.outPutLog(this.outputTextarea, `【逛年货请求失败，请手动刷新或联系作者！】`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `【逛店拿积分请求失败，请手动刷新或联系作者！】`, false);
                                                 }
                                             })
                                             .catch((error) => {
                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                Utils.outPutLog(this.outputTextarea, `【哎呀~逛年货异常，请刷新后重新尝试或联系作者！】`, false);
+                                                Utils.outPutLog(this.outputTextarea, `【哎呀~逛店拿积分异常，请刷新后重新尝试或联系作者！】`, false);
                                             });
                                     }, actTimeout));
                                     actTimeout += Utils.random(5000, 10000);
@@ -1107,19 +1111,18 @@ export default class JdJoy implements Activity {
                     }
                     else {
                         Utils.debugInfo(consoleEnum.log, deskGoodDetailsJson);
-                        Utils.outPutLog(this.outputTextarea, `【逛年货活动信息请求失败，请手动刷新或联系作者！】`, false);
+                        Utils.outPutLog(this.outputTextarea, `【逛店拿积分信息请求失败，请手动刷新或联系作者！】`, false);
                     }
                 })
                 .catch((error) => {
                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取逛年货活动信息异常，请刷新后重新尝试或联系作者！】`, false);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取逛店拿积分信息异常，请刷新后重新尝试或联系作者！】`, false);
                 });
         }
         if (actType == petActEnum.戳泡泡 || actType == petActEnum.全部) {
             const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
             fetch(visitPetIndex, { credentials: "include" })
                 .then((visitPetIndexJson) => {
-                    Utils.debugInfo(consoleEnum.log, `【测试】尝试访问宠汪汪主页触发戳泡泡活动`);
                     const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
                     fetch(enterRoomUrl, { credentials: "include" })
                         .then((res) => { return res.json() })
@@ -1141,7 +1144,7 @@ export default class JdJoy implements Activity {
                 })
                 .catch((error) => {
                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    //Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
                 });
         }
         //if (actType == petActEnum.聚宝盆终极大奖 || actType == petActEnum.全部) {
@@ -1314,7 +1317,6 @@ export default class JdJoy implements Activity {
     }
     //戳泡泡
     bulbble(enterRoomJson: any): void {
-        Utils.debugInfo(consoleEnum.log, `获得戳泡泡资格：${JSON.stringify(enterRoomJson)}`);
         let bubbleFloatTime = +enterRoomJson.data.bubbleFloatTime * 1000;
         let bubbleRewardData = Utils.deleteEmptyProperty(enterRoomJson.data.bubbleReward);
         let postData = JSON.stringify(bubbleRewardData);
@@ -1331,7 +1333,18 @@ export default class JdJoy implements Activity {
             })
                 .then((res) => { return res.json() })
                 .then((getBubbleRewardJson) => {
-                    Utils.debugInfo(consoleEnum.log, `戳泡泡结果：${JSON.stringify(getBubbleRewardJson)}`);
+                    if (getBubbleRewardJson.success) {
+                        if (!!getBubbleRewardJson.data) {
+                            Utils.outPutLog(this.outputTextarea, `${new Date(+getBubbleRewardJson.currentTime).toLocaleString()} 【戳泡泡】积分：${getBubbleRewardJson.data.coin} 狗粮：${getBubbleRewardJson.data.food} 优惠券：${getBubbleRewardJson.data.couponName + getBubbleRewardJson.data.couponPrice}`, false);
+                        }
+                        else {
+                            Utils.outPutLog(this.outputTextarea, `本次戳泡泡已完成或无奖励！`, false);
+                        }
+                    }
+                    else {
+                        Utils.debugInfo(consoleEnum.log, enterRoomJson);
+                        Utils.outPutLog(this.outputTextarea, `【戳泡泡请求失败，请手动刷新或联系作者！】`, false);
+                    }
                 })
                 .catch((error) => {
                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
