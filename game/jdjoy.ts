@@ -309,6 +309,7 @@ export default class JdJoy implements Activity {
             feedSpanInput.disabled = !feedSpanInput.disabled;
 
             this.getJDTime().then((currentJDTime) => {
+                let feedTimeout = 0;
                 let currentJDDate = new Date(+currentJDTime);
                 if (feedAuto.innerHTML == petButtonEnum.feedStart) {
                     feedAuto.innerHTML = petButtonEnum.feedStop;
@@ -319,7 +320,7 @@ export default class JdJoy implements Activity {
                         nextFeedStamp = +currentJDTime + timeDiff;
                         nextFeedTime!.innerText = new Date(nextFeedStamp).toLocaleString();
 
-                        setTimeout(() => {
+                        feedTimeout = setTimeout(() => {
                             this.getJDTime().then((feedTime) => {
                                 nextFeedInterval = feedSpan + Utils.random(60000, 300000);
                                 nextFeedStamp = +feedTime + nextFeedInterval;
@@ -350,6 +351,7 @@ export default class JdJoy implements Activity {
                 else {
                     nextFeedStamp = 0;
                     feedAuto.innerHTML = petButtonEnum.feedStart;
+                    clearTimeout(feedTimeout);
                     clearInterval(feedInterval);
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动喂养！`, false);
                 }
@@ -434,18 +436,24 @@ export default class JdJoy implements Activity {
             actDetectionInput.disabled = !actDetectionInput.disabled;
 
             this.getJDTime().then((currentJDTime) => {
+                let actTimeout = 0;
                 let currentJDDate = new Date(+currentJDTime);
                 if (actAuto.innerHTML == petButtonEnum.actStart) {
                     actAuto.innerHTML = petButtonEnum.actStop;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动活动！`, false);
 
-                    this.activity(typeSelectOptions.value);
-                    actInterval = setInterval(() => {
+                    let firstSpan = actSpan - currentJDDate.getMinutes() * 60000 + Utils.random(60000, 180000);
+
+                    actTimeout = setTimeout(() => {
                         this.activity(typeSelectOptions.value);
-                    }, actSpan);
+                        actInterval = setInterval(() => {
+                            this.activity(typeSelectOptions.value);
+                        }, actSpan);
+                    }, firstSpan);
                 }
                 else {
                     actAuto.innerHTML = petButtonEnum.actStart;
+                    clearTimeout(actTimeout);
                     clearInterval(actInterval);
                     clearInterval(investTreasureInterval);
                     actTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
@@ -534,9 +542,9 @@ export default class JdJoy implements Activity {
                     if (nextFeedStamp > 0) {
                         nextFeedTime!.innerText = new Date(nextFeedStamp).toLocaleString();
                     }
-                    if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
-                        this.bulbble(enterRoomJson);
-                    }
+                    //if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
+                    //    this.bulbble(enterRoomJson);
+                    //}
                 }
                 else {
                     isGetAllInfo = !isGetAllInfo;
