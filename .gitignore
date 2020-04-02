@@ -3,3 +3,4 @@ node_modules/
 dist/bundle.js
 .vs/
 v16/
+config/secretConfig.ts

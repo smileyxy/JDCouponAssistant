@@ -35,7 +35,7 @@ export enum petButtonEnum {
 export enum petTaskEnum {
     "全部" = "All",
     "每日三餐" = "ThreeMeals",
-    //"邀请用户" = "InviteUser",
+    "邀请用户" = "InviteUser",
     "浏览频道" = "FollowChannel",
     "关注商品" = "FollowGood",
     "关注店铺" = "FollowShop",
@@ -46,7 +46,9 @@ export enum petTaskEnum {
 export enum petTaskReceiveStatusEnum {
     unReceive = "unreceive",
     chanceLeft = "chance_left",
-    chanceFull = "chance_full"
+    chanceFull = "chance_full",
+    canHelp = "can_help",
+    cannotHelp = "cannot_help"
 }
 
 export enum petTaskErrorCodeEnum {
@@ -80,4 +82,10 @@ export enum petFriendsStatusEnum {
     stealexist = "steal_exist",
     cointookok = "coin_took_ok",
     chanceFull = "chance_full"
+}
+
+export enum petHelpConfirmEnum {
+    "待确认",
+    "已确认",
+    "已取消"
 }

@@ -4,7 +4,8 @@ const gulp = require('gulp'),
     tsify = require("tsify"),
     uglify = require('gulp-uglify'),
     babel = require("gulp-babel"),
-    buffer = require('vinyl-buffer');
+    buffer = require('vinyl-buffer'),
+    obfuscate = require('gulp-javascript-obfuscator');
 
 gulp.task("default", () => {
     return browserify({
@@ -22,6 +23,8 @@ gulp.task("default", () => {
             presets: ['es2015']
             ,compact: false
         }))
-        .pipe(uglify({ mangle: { toplevel: true } }))
+        //.pipe(uglify({ mangle: { toplevel: true } }))
+        .pipe(uglify())
+        .pipe(obfuscate())
         .pipe(gulp.dest('dist'))
 });

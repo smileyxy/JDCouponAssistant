@@ -1,5 +1,7 @@
 import Config from "../config/config";
+import SecretConfig from "../config/secretConfig";
 import { consoleEnum } from '../enum/commonType';
+import * as CryptoJS from 'crypto-js';
 
 (window as any).jsonpBind = function (res: string) {
     Utils.jsonpBind(JSON.stringify(res));
@@ -288,6 +290,50 @@ export default class Utils {
         }
 
         return object;
+    }
+    //aes加密
+    static aesEncrypt(data: any, key?: any, iv?: any) {
+        var key = key ? CryptoJS.enc.Utf8.parse(key) : SecretConfig.aesKey;
+        var iv = iv ? CryptoJS.enc.Utf8.parse(iv) : SecretConfig.aesIV;
+        var srcs = CryptoJS.enc.Utf8.parse(data);
+        var encrypted = CryptoJS.AES.encrypt(srcs, key,
+            {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+        return encrypted.toString();
+    }
+    //aes解密
+    static aesDecrypt(data: any, key?: any, iv?: any) {
+        var key = key ? CryptoJS.enc.Utf8.parse(key) : SecretConfig.aesKey;
+        var iv = iv ? CryptoJS.enc.Utf8.parse(iv) : SecretConfig.aesIV;
+        var decrypted = CryptoJS.AES.decrypt(data, key,
+            {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+        return CryptoJS.enc.Utf8.stringify(decrypted);
+    }
+    //MD5加密
+    static md5Encrypt(data: any) {
+        return CryptoJS.MD5(data).toString();
+    };
+    //获取Bmob请求Headers
+    static getHeaders(requestUrl: string, currentTime: any): Headers {
+        let Bmob_Noncestr_Key = this.md5Encrypt(SecretConfig.Bmob_Noncestr_Key + currentTime.toString()).substring(8, 24),
+            Bmob_Safe_Sign = this.md5Encrypt(requestUrl + currentTime + SecretConfig.Bmob_Safe_Token + Bmob_Noncestr_Key),
+            Bmob_Headers = new Headers();
+
+        Bmob_Headers.append("X-Bmob-Noncestr-Key", Bmob_Noncestr_Key);
+        Bmob_Headers.append("X-Bmob-Safe-Sign", Bmob_Safe_Sign);
+        Bmob_Headers.append("X-Bmob-Safe-Timestamp", currentTime);
+        Bmob_Headers.append("X-Bmob-SDK-Type", " API");
+        Bmob_Headers.append("X-Bmob-Secret-Key", SecretConfig.Bmob_Secret_Key);
+        Bmob_Headers.append("Content-Type", "application/json");
+
+        return Bmob_Headers;
     }
 
     // static HTMLfactory(type: string, attributes: any, parent: HTMLElement): HTMLElement {

@@ -1,6 +1,7 @@
 import Activity from "../interface/Activity";
 import Utils, { _$ } from "../utils/utils";
 import Config from "../config/config";
+import SecretConfig from "../config/secretConfig";
 import { consoleEnum } from '../enum/commonType';
 import {
     feedGramsEnum,
@@ -11,7 +12,8 @@ import {
     petTaskErrorCodeEnum,
     petActEnum,
     petHelpEnum,
-    petFriendsStatusEnum
+    petFriendsStatusEnum,
+    petHelpConfirmEnum
 } from '../enum/gameType';
 
 let petPin = "",
@@ -28,7 +30,8 @@ let petPin = "",
     actInterval = 0,
     helpSpan = 0,
     helpInterval = 0,
-    investTreasureInterval = 0;
+    investTreasureInterval = 0,
+    helpConfirmStatus = petHelpConfirmEnum.待确认;
 let taskTimeoutArray: any[] = [],
     actTimeoutArray: any[] = [],
     helpTimeoutArray: any[] = [];
@@ -125,6 +128,9 @@ export default class JdJoy implements Activity {
                             <div style="width: 70vw;text-align: -webkit-left;font-size: 12px;padding-left: 18%;margin-left: 1.5px;">
                                 下次喂养时间：<span id="nextFeedTime" style="color: #FF69B4;">-</span>
                             </div>
+                            <div style="width: 70vw;text-align: -webkit-left;font-size: 12px;padding-left: 18%;margin-left: 1.5px;">
+                                当前助力状态：<span id="nextFeedTime" style="color: #FF69B4;">-</span>
+                            </div>
                             <div style="margin-top: 10px;display: flex;">
                                 <button class="refresh" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">手动刷新</button>
                                 <button class="autoBean" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">自动换豆</button>
@@ -151,7 +157,7 @@ export default class JdJoy implements Activity {
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动活动</summary>
-                                    <p style="font-size: 12px;">根据所填项每天完成活动；检测频率：默认${defaultActDetection / 3600000}小时。</p>
+                                    <p style="font-size: 12px;">根据所填项每天完成活动；检测频率：默认${defaultActDetection / 3600000}小时，整点触发。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动串门</summary>
@@ -239,6 +245,7 @@ export default class JdJoy implements Activity {
                                                 <option value="${petTaskEnum.关注店铺}">关注店铺</option>
                                                 <option value="${petTaskEnum.逛会场}">逛会场</option>
                                                 <option value="${petTaskEnum.看激励视频}">看激励视频</option>
+                                                <option value="${petTaskEnum.邀请用户}">邀请用户</option>
                                             </select>
                                         </div>
                                     </td>
@@ -405,6 +412,7 @@ export default class JdJoy implements Activity {
                     }, taskSpan);
                 }
                 else {
+                    helpConfirmStatus = petHelpConfirmEnum.待确认;
                     taskAuto.innerHTML = petButtonEnum.taskStart;
                     clearInterval(taskInterval);
                     taskTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
@@ -491,9 +499,9 @@ export default class JdJoy implements Activity {
                     helpAuto.innerHTML = petButtonEnum.helpStop;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动串门！`, false);
 
-                    this.help(typeSelectOptions.value);
+                    this.dropAround(typeSelectOptions.value);
                     helpInterval = setInterval(() => {
-                        this.help(typeSelectOptions.value);
+                        this.dropAround(typeSelectOptions.value);
                     }, helpSpan);
                 }
                 else {
@@ -549,13 +557,13 @@ export default class JdJoy implements Activity {
                 else {
                     isGetAllInfo = !isGetAllInfo;
                     Utils.debugInfo(consoleEnum.log, enterRoomJson);
-                    Utils.outPutLog(this.outputTextarea, `【狗窝信息请求失败，请手动刷新或联系作者！】`, false);
+                    Utils.outPutLog(this.outputTextarea, `【首页信息请求失败，请手动刷新或联系作者！】`, false);
                 }
             })
             .catch((error) => {
                 isGetAllInfo = !isGetAllInfo;
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~狗窝信息异常，请手动刷新或联系作者！】`, false);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~首页信息异常，请手动刷新或联系作者！】`, false);
             });
         //获取好友信息
         const getFriendsUrl = 'https://jdjoy.jd.com/pet/getFriends?itemsPerPage=20&currentPage=1';
@@ -715,12 +723,12 @@ export default class JdJoy implements Activity {
             .then((res) => { return res.json() })
             .then(async (hPetTaskConfigJson) => {
                 if (hPetTaskConfigJson.success) {
-                    //let taskTimeout = 0;
                     let threeMealsData: any,
                         followChannelData: any,
                         followGoodData: any,
                         followShopData: any,
-                        scanMarketData: any;
+                        scanMarketData: any,
+                        inviteUserData: any;
                     for (let i = 0; i < hPetTaskConfigJson.datas.length; i++) {
                         switch (hPetTaskConfigJson.datas[i].taskType) {
                             case petTaskEnum.每日三餐:
@@ -787,7 +795,7 @@ export default class JdJoy implements Activity {
                                                         method: "POST",
                                                         mode: "cors",
                                                         credentials: "include",
-                                                         headers: {
+                                                        headers: {
                                                             "Content-Type": "application/json"
                                                         },
                                                         body: postData
@@ -884,7 +892,7 @@ export default class JdJoy implements Activity {
                                 }
                             }
                         }
-                    }
+                    } 
                     if (taskType == petTaskEnum.关注店铺 || taskType == petTaskEnum.全部) {
                         if (!!followShopData && followShopData.receiveStatus == petTaskReceiveStatusEnum.chanceLeft) {
                             const getFollowShopsUrl = `https://jdjoy.jd.com/pet/getFollowShops`;
@@ -1047,6 +1055,91 @@ export default class JdJoy implements Activity {
                             taskTimeout += Utils.random(10000, 15000);
                         }
                     }
+                    if (taskType == petTaskEnum.邀请用户 || taskType == petTaskEnum.全部) {
+                        let getData = `?where=${encodeURIComponent(`{ "pin": "${petPin}" }`)}`;
+                        await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime) })
+                            .then((res) => { return res.json() })
+                            .then((getCurrentUserJson) => {
+                                if (!!getCurrentUserJson.results) {
+                                    if (getCurrentUserJson.results.length > 0) {
+                                        let currentUserData = getCurrentUserJson.results[0];
+                                        if (currentUserData.isBlock) {
+                                            Utils.outPutLog(this.outputTextarea, `【哎呀~做坏事被列入黑名单了，永久失去互助资格！】`, false);
+                                            return;
+                                        }
+                                        else if (currentUserData.helpStatus) {
+                                            //助力
+                                            this.helpFriend(inviteUserData, hPetTaskConfigJson.currentTime);
+                                        }
+                                        else {
+                                            //更新
+                                            if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("是否再次开启【邀请用户】功能？")) {
+                                                helpConfirmStatus = petHelpConfirmEnum.已确认;
+                                                let putData = `{ "helpStatus": true }`;
+                                                fetch(`${Config.BmobHost + Config.BmobUserInfoUrl}/${currentUserData.objectId}`, {
+                                                    method: "PUT",
+                                                    headers: Utils.getHeaders(`${Config.BmobUserInfoUrl}/${currentUserData.objectId}`, hPetTaskConfigJson.currentTime),
+                                                    body: putData
+                                                }).then((res) => { return res.json() })
+                                                    .then((updateCurrentUserJson) => {
+                                                        if (!!updateCurrentUserJson.updatedAt) {
+                                                            //助力
+                                                            this.helpFriend(inviteUserData, hPetTaskConfigJson.currentTime);
+                                                        }
+                                                        else {
+                                                            Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
+                                                            Utils.outPutLog(this.outputTextarea, `【再次开启互助功能失败，请手动刷新或联系作者！】`, false);
+                                                        }
+                                                    }).catch((error) => {
+                                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                        Utils.outPutLog(this.outputTextarea, `【哎呀~再次开启互助功能异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    });
+                                            }
+                                            else {
+                                                helpConfirmStatus = petHelpConfirmEnum.已取消;
+                                                Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        //新增
+                                        if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("确定后将记录您的PIN码并开启【邀请用户】功能，取消则不记录您的PIN码并暂停【邀请用户】功能。")) {
+                                            helpConfirmStatus = petHelpConfirmEnum.已确认;
+                                            let postData = `{ "pin": "${petPin}", "helpStatus": true }`;
+                                            fetch(Config.BmobHost + Config.BmobUserInfoUrl, {
+                                                method: "POST",
+                                                headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime),
+                                                body: postData
+                                            }).then((res) => { return res.json() })
+                                                .then((addCurrentUserJson) => {
+                                                    if (!!addCurrentUserJson.objectId) {
+                                                        //助力
+                                                        this.helpFriend(inviteUserData, hPetTaskConfigJson.currentTime);
+                                                    }
+                                                    else {
+                                                        Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
+                                                        Utils.outPutLog(this.outputTextarea, `【记录用户请求失败，请手动刷新或联系作者！】`, false);
+                                                    }
+                                                }).catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~记录用户异常，请刷新后重新尝试或联系作者！】`, false);
+                                                });
+                                        }
+                                        else {
+                                            helpConfirmStatus = petHelpConfirmEnum.已取消;
+                                            Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
+                                        }
+                                    }
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, getCurrentUserJson);
+                                    Utils.outPutLog(this.outputTextarea, `【获取当前用户信息记录请求失败，请手动刷新或联系作者！】`, false);
+                                }
+                            }).catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取当前用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }
                 }
                 else {
                     Utils.debugInfo(consoleEnum.log, hPetTaskConfigJson);
@@ -1191,7 +1284,7 @@ export default class JdJoy implements Activity {
         //}
     }
     //串门
-    async help(helpType: string): Promise<void> {
+    async dropAround(helpType: string): Promise<void> {
         let currentPage = 1,
             pages = -1,
             helpTimeout = 0;
@@ -1360,15 +1453,95 @@ export default class JdJoy implements Activity {
                 });
         }, 14000 + bubbleFloatTime);
     }
+    //互助
+    async helpFriend(inviteUserData: any, currentTime: any): Promise<void> {
+        let getData = `?where=${encodeURIComponent(`{ "pin": { "$ne": "${petPin}" }}`)}`;
+        await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, currentTime) })
+            .then((res) => { return res.json() })
+            .then((getOtherUserJson) => {
+                if (!!getOtherUserJson.results && getOtherUserJson.results.length > 0) {
+                    getOtherUserJson.results.forEach(async (item: any) => {
+                        if (item.helpStatus && !item.isBlock) {
+                            const enterRoomUrl = `https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=${item.pin}&inviteSource=task_invite&shareSource=h5`;
+                            await fetch(enterRoomUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then(async (enterRoomJson) => {
+                                    if (enterRoomJson.success) {
+                                        if (enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.canHelp) {
+                                            const helpFriendUrl = `https://jdjoy.jd.com/pet/helpFriend?friendPin=${item.pin}`;
+                                            await fetch(helpFriendUrl, { credentials: "include" })
+                                                .then((res) => { return res.json() })
+                                                .then(async (helpFriendJson) => {
+                                                    if (helpFriendJson.success) {
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+currentTime).toLocaleString()} 帮助【${enterRoomJson.data.needHelpUserNickName}】助力成功！`, false);
+                                                    }
+                                                    else {
+                                                        Utils.debugInfo(consoleEnum.log, helpFriendJson);
+                                                        Utils.outPutLog(this.outputTextarea, `【助力请求失败，请手动刷新或联系作者！】`, false);
+                                                    }
+                                                    //记录明细
+                                                    let postData = `{ "pin": { "__type": "Pointer", "className": "UserInfo", "objectId": "${item.objectId}" }, "help_pin": "${item.pin}", "help_status": "${helpFriendJson.errorCode}", "remark": "${helpFriendJson.errorMessage ?? ""}", "ip_address": "${await (await this.getIpAddress()).toString()}" }`;
+                                                    fetch(Config.BmobHost + Config.BmobHelpFriendInfoUrl, {
+                                                        method: "POST",
+                                                        headers: Utils.getHeaders(Config.BmobHelpFriendInfoUrl, currentTime),
+                                                        body: postData
+                                                    }).then((res) => { return res.json() })
+                                                        .then((addHelpInfoJson) => {
+                                                            if (!!addHelpInfoJson.objectId) {
 
+                                                            }
+                                                            else {
+                                                                //Utils.debugInfo(consoleEnum.log, addHelpInfoJson);
+                                                                //Utils.outPutLog(this.outputTextarea, `【记录助力结果请求失败，请手动刷新或联系作者！】`, false);
+                                                            }
+                                                        }).catch((error) => {
+                                                            //Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                            //Utils.outPutLog(this.outputTextarea, `【哎呀~记录助力结果异常，请刷新后重新尝试或联系作者！】`, false);
+                                                        });
+                                                }).catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~助力异常，请刷新后重新尝试或联系作者！】`, false);
+                                                });
+                                        }
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, enterRoomJson);
+                                        Utils.outPutLog(this.outputTextarea, `【获取好友首页信息请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                }).catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取好友首页信息异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    });
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, getOtherUserJson);
+                    Utils.outPutLog(this.outputTextarea, !getOtherUserJson.results ? `【获取其他用户信息记录请求失败，请手动刷新或联系作者！】` : `【暂时没有可以帮您助力的用户】`, false);
+                }
+            }).catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取其他用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+    }
+    //获取京东服务器时间
     getJDTime(): Promise<number> {
-        //获取京东服务器时间
         return fetch(Config.JDTimeInfoURL)
             .then(function (response) { return response.json() })
             .then(function (res) { return res.time; })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
                 return new Date().getTime();
+            });
+    }
+    //获取ip地址
+    getIpAddress(): Promise<string> {
+        return fetch(Config.WhoisURL)
+            .then(function (res) { return res.json() })
+            .then(function (json) { return json.ip; })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                return "";
             });
     }
 }
