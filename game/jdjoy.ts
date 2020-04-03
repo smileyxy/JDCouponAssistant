@@ -165,7 +165,7 @@ export default class JdJoy implements Activity {
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动任务</summary>
-                                    <p style="font-size: 12px;">根据所填项每天完成任务（除每日签到及邀请用户）；任务定时：默认${defaultTaskTiming}后；检测频率：默认${defaultTaskDetection / 60000}分钟。</p>
+                                    <p style="font-size: 12px;">根据所填项每天完成任务（除每日签到）；任务定时：默认${defaultTaskTiming}后；检测频率：默认${defaultTaskDetection / 60000}分钟。</p>
                                 </details> 
                             </div>
                         </div>`;
@@ -746,6 +746,9 @@ export default class JdJoy implements Activity {
                             case petTaskEnum.逛会场:
                                 scanMarketData = hPetTaskConfigJson.datas[i];
                                 break;
+                            case petTaskEnum.邀请用户:
+                                inviteUserData = hPetTaskConfigJson.datas[i];
+                                break;
                         }
                     }
 
@@ -1056,6 +1059,30 @@ export default class JdJoy implements Activity {
                         }
                     }
                     if (taskType == petTaskEnum.邀请用户 || taskType == petTaskEnum.全部) {
+                        if (!!inviteUserData && inviteUserData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
+                            //领取狗粮
+                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=InviteUser`;
+                            await fetch(getFoodUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then((getFoodJson) => {
+                                    if (getFoodJson.success) {
+                                        if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 成功领取${getFoodJson.data}g助力狗粮！`, false);
+                                        }
+                                        else {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 没有可以领取的助力狗粮了！`, false);
+                                        }
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, getFoodJson);
+                                        Utils.outPutLog(this.outputTextarea, `【领取助力狗粮请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                }).catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~领取助力狗粮异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+
                         let getData = `?where=${encodeURIComponent(`{ "pin": "${petPin}" }`)}`;
                         await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime) })
                             .then((res) => { return res.json() })
