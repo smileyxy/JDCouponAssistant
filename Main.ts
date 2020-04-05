@@ -305,7 +305,7 @@ function buildUAarea() {
 
 function buildSensorArea() {
     let sensorArea: HTMLDivElement = document.createElement("div");
-    sensorArea.innerHTML = `<div style="border: 1px solid #000;margin: 10px 0;font-weight:bold"><h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;padding: 0 31.5vw 5px;'>扩展功能区</h3>
+    sensorArea.innerHTML = `<div style="border: 1px solid #000;margin: 10px 0;font-weight:bold;line-height: 1.6;"><h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>扩展功能区</h3>
     <p style="color:red;font-weight:bold;">使用本栏目功能前请查看教程</p>
     <div><button style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;" onclick="Utils.copyText(Config.NetdiskURL)">下载教程</button>
     <button class="toggle" style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;">展开栏目</button></div>
