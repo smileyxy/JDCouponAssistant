@@ -327,7 +327,7 @@ export default class JdJoy implements Game {
                     if (timeDiff > 0) {
                         nextFeedStamp = +currentJDTime + timeDiff;
                         nextFeedTime!.innerText = new Date(nextFeedStamp).toLocaleString();
-                        this.feed(gramsSelectOptions.value);
+
                         feedTimeout = setTimeout(() => {
                             this.getJDTime().then((feedTime) => {
                                 nextFeedInterval = feedSpan + Utils.random(60000, 300000);
