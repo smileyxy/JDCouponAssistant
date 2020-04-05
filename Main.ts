@@ -22,10 +22,10 @@ import ReceiveCoupon from "./coupons/receiveCoupon";
 import GetCouponCenter from "./coupons/getCouponCenter";
 import Exchange from "./coupons/exchange";
 
-import MonsterNian from "./activitys/monsterNian";
-import BrandCitySpring from "./activitys/brandCitySpring";
-import Palace from "./activitys/palace";
-import ReceiveBless from "./activitys/receiveBless";
+// import MonsterNian from "./activitys/MonsterNian";
+// import BrandCitySpring from "./activitys/brandCitySpring";
+// import Palace from "./activitys/palace";
+// import ReceiveBless from "./activitys/receiveBless";
 
 import Cloudpig from "./game/cloudpig";
 import JdJoy from "./game/jdjoy";
@@ -36,11 +36,16 @@ import { goodsType } from "./enum/goodsType";
 import { gameType } from "./enum/gameType";
 import CookieManager from "./cookie/CookieManager";
 import { CookieHandler } from "./cookie/CookieHandler";
+import BTGoose from "./game/btgoose";
+import MoneyTree from "./game/moneyTree";
+import { consoleEnum } from './enum/commonType';
 
 let coupon: Coupon,
     goods: Goods,
     game: Game,
-    activity: Activity;
+    activity: Activity,
+    gameMap: { [type: string]: Game } = {},
+    isJDcontext = true;
 
 const container: HTMLDivElement = document.createElement("div"),
     title: HTMLDivElement = document.createElement("div"),
@@ -50,7 +55,18 @@ const container: HTMLDivElement = document.createElement("div"),
     receiveCountInput: HTMLInputElement = document.createElement("input"),
     spanTextInput: HTMLInputElement = document.createElement("input"),
     receiveTimerBtn: HTMLButtonElement = document.createElement("button"),
+    operateAreaDiv: HTMLDivElement = document.createElement("div"),
     outputTextArea: HTMLTextAreaElement = document.createElement("textarea"),
+    outputTextAreaDiv: HTMLDivElement = document.createElement("div"),
+    //宠汪汪TextArea
+    jdjoyOutputTextArea: HTMLTextAreaElement = document.createElement("textarea"),
+    jdjoyOutputTextAreaDiv: HTMLDivElement = document.createElement("div"),
+    //养猪猪TextArea
+    cloudpigOutputTextArea: HTMLTextAreaElement = document.createElement("textarea"),
+    cloudpigOutputTextAreaDiv: HTMLDivElement = document.createElement("div"),
+    //提鹅TextArea
+    btgooseOutputTextArea: HTMLTextAreaElement = document.createElement("textarea"),
+    btgooseOutputTextAreaDiv: HTMLDivElement = document.createElement("div"),
     loginMsgDiv: HTMLDivElement = document.createElement("div");
 
 let getLoginMsg = function (res: any) {
@@ -62,110 +78,152 @@ let getLoginMsg = function (res: any) {
 
 
 function buildOperate() {
-    const operateAreaDiv: HTMLDivElement = document.createElement("div");
+    operateAreaDiv.setAttribute("style", "border: 1px solid #000;margin: 10px 0;line-height: 1.6;");
+    operateAreaDiv.innerHTML = "<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>操作区</h3>";
     if (coupon) {
-        const receiveDiv: HTMLDivElement = document.createElement("div"),
-            receiveAreaDiv: HTMLDivElement = document.createElement("div"),
-            receiveTipsDiv: HTMLDivElement = document.createElement("div"),
-            receiveAllBtn: HTMLButtonElement = document.createElement("button"),
-            timerResetBtn: HTMLButtonElement = document.createElement("button"),
-            //spanResetBtn: HTMLButtonElement = document.createElement("button"),
-            timerDiv: HTMLDivElement = document.createElement("div");
-        operateAreaDiv.setAttribute("style", "border: 1px solid #000;");
-        operateAreaDiv.innerHTML = "<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;padding: 0 37.5vw 5px;'>操作区</h3>";
-        timerTextInput.type = "text";
-        timerTextInput.placeholder = "请输入获取时间的刷新频率【毫秒】";
-        timerTextInput.setAttribute("style", "width:80vw;height: 25px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;");
-        timerResetBtn.innerHTML = "重置刷新频率";
-        timerResetBtn.setAttribute("style", "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;");
-        timerResetBtn.addEventListener("click", () => {
-            const span = Math.trunc(+timerTextInput.value);
-            if (!span) {
-                alert("请检查输入的刷新频率是否有误！(只能为大于0的数字)");
-                return false;
-            }
-            Config.intervalSpan = span;
-            window.clearInterval(Config.intervalId);
-            Config.intervalId = window.setInterval(getTime, Config.intervalSpan);
-        });
-        receiveTipsDiv.innerHTML = `<h3>定时时间使用年月日+24小时制</h3><p style="color:red">零点领券设置参考<br>刷新频率:500 | 定时时间：2020-01-01 23:59:59:490<br>tips:部分券其实是提前发放的</p>`;
-        receiveTextInput.type = "text";
-        receiveTextInput.placeholder = "定时领券时间【格式:2020-01-01 09:59:59:950】";
-        receiveTextInput.setAttribute("style", "width:80vw;height: 25px;border: solid 1px #000;border-radius: 5px;margin: 10px;");
-        receiveCountInput.type = "text";
-        receiveCountInput.placeholder = "领券提交次数【默认：1次】";
-        receiveCountInput.setAttribute("style", "width:80vw;height: 25px;border: solid 1px #000;border-radius: 5px;margin: 10px;");
-        spanTextInput.type = "text";
-        spanTextInput.placeholder = "请输入重复领券的提交频率【默认：500毫秒】";
-        spanTextInput.setAttribute("style", "width:80vw;height: 25px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;");
-        receiveTimerBtn.innerHTML = "定时指定领取";
-        receiveTimerBtn.addEventListener("click", () => {
-            const span = Math.trunc(+spanTextInput.value);
-            if (!span) {
-                alert("请检查输入的提交频率是否有误！(只能为大于0的数字)");
-                return false;
-            }
-            const reg = /^[1-9]\d*$/;
-            const time = Utils.formateTime(receiveTextInput.value);
-            switch (true) {
-                case !time || time < 0:
-                    alert("请检查定时领券时间的格式是否有误！");
-                    return false;
-                case !receiveCountInput.value || !reg.test(receiveCountInput.value):
-                    alert("请检查重试次数是否为正整数！");
-                    return false;
-                default:
-                    Config.postSpan = span;
-                    Config.postCount = parseInt(receiveCountInput.value) > 0 ? parseInt(receiveCountInput.value) : 1;
-                    Config.timingFlag = !Config.timingFlag;
-                    Config.startTime = time;
-                    outputTextArea.style.display = "block";
-                    timerTextInput.disabled = Config.timingFlag;
-                    receiveTextInput.disabled = Config.timingFlag;
-                    receiveCountInput.disabled = Config.timingFlag;
-                    spanTextInput.disabled = Config.timingFlag;
-                    if (Config.timingFlag) {
-                        receiveTimerBtn.innerHTML = "取消定时领取";
-                        Utils.outPutLog(outputTextArea, `已开启定时领取！定时领取时间：${receiveTextInput.value}`);
-                    } else {
-                        receiveTimerBtn.innerHTML = "定时指定领取";
-                        Utils.outPutLog(outputTextArea, `已关闭定时领取`);
-                    }
-                    break;
-            }
-        });
-        receiveAllBtn.addEventListener("click", () => {
-            if (coupon) {
-                coupon.send(outputTextArea);
-            }
-        });
-        receiveTimerBtn.setAttribute("style", "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;");
-        receiveAllBtn.innerHTML = "一键指定领取";
-        receiveAllBtn.setAttribute("style", "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;");
-        outputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;display:none;font-size: 13px;");
-        outputTextArea.setAttribute("disabled", "disabled");
-        operateAreaDiv.append(timerDiv);
-        timerDiv.append(timerTittleDiv);
-        timerDiv.append(timerTextInput);
-        timerDiv.append(timerResetBtn);
-        timerDiv.append(spanTextInput);
-        //timerDiv.append(spanResetBtn);
-        operateAreaDiv.append(receiveDiv);
-        receiveDiv.append(receiveTipsDiv);
-        receiveDiv.append(receiveTextInput);
-        receiveDiv.append(receiveCountInput);
-        receiveDiv.append(spanTextInput);
-        receiveDiv.append(receiveAreaDiv);
-        receiveAreaDiv.append(receiveAllBtn);
-        receiveAreaDiv.append(receiveTimerBtn);
-    } else {
-        outputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;font-size: 13px;");
-        outputTextArea.setAttribute("disabled", "disabled");
+        buildTimerControl();
     }
     loginMsgDiv.innerHTML = "当前京东帐号：<a href='https://plogin.m.jd.com/login/login' target='_blank'>点击登录</a>";
     operateAreaDiv.append(loginMsgDiv);
     container.append(operateAreaDiv);
-    operateAreaDiv.append(outputTextArea);
+    buildOutput();
+}
+
+function buildOutput() {
+    //outputTextAreaDiv.style.display = "none";
+    outputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;");
+    outputTextArea.setAttribute("disabled", "disabled");
+    let clearOutLogBtn: HTMLButtonElement = document.createElement("button");
+    clearOutLogBtn.innerHTML = "清空日志";
+    clearOutLogBtn.setAttribute("style", "width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;");
+    clearOutLogBtn.addEventListener("click", () => {
+        outputTextArea.value = "";
+    })
+    outputTextAreaDiv.append(outputTextArea);
+    outputTextAreaDiv.append(clearOutLogBtn);
+    operateAreaDiv.append(outputTextAreaDiv);
+    //初始化宠汪汪TextArea
+    jdjoyOutputTextAreaDiv.style.display = "none";
+    jdjoyOutputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;");
+    jdjoyOutputTextArea.setAttribute("disabled", "disabled");
+    let jdjoyClearOutLogBtn: HTMLButtonElement = document.createElement("button");
+    jdjoyClearOutLogBtn.innerHTML = "清空宠汪汪日志";
+    jdjoyClearOutLogBtn.setAttribute("style", "width: 35vw;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;");
+    jdjoyClearOutLogBtn.addEventListener("click", () => {
+        jdjoyOutputTextArea.value = "";
+    })
+    jdjoyOutputTextAreaDiv.append(jdjoyOutputTextArea);
+    jdjoyOutputTextAreaDiv.append(jdjoyClearOutLogBtn);
+    operateAreaDiv.append(jdjoyOutputTextAreaDiv);
+    //初始化养猪猪TextArea
+    cloudpigOutputTextAreaDiv.style.display = "none";
+    cloudpigOutputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;");
+    cloudpigOutputTextArea.setAttribute("disabled", "disabled");
+    let cloudpigClearOutLogBtn: HTMLButtonElement = document.createElement("button");
+    cloudpigClearOutLogBtn.innerHTML = "清空养猪猪日志";
+    cloudpigClearOutLogBtn.setAttribute("style", "width: 35vw;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;");
+    cloudpigClearOutLogBtn.addEventListener("click", () => {
+        cloudpigOutputTextArea.value = "";
+    })
+    cloudpigOutputTextAreaDiv.append(cloudpigOutputTextArea);
+    cloudpigOutputTextAreaDiv.append(cloudpigClearOutLogBtn);
+    operateAreaDiv.append(cloudpigOutputTextAreaDiv);
+    //初始化提鹅TextArea
+    btgooseOutputTextAreaDiv.style.display = "none";
+    btgooseOutputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;");
+    btgooseOutputTextArea.setAttribute("disabled", "disabled");
+    let btgooseClearOutLogBtn: HTMLButtonElement = document.createElement("button");
+    btgooseClearOutLogBtn.innerHTML = "清空提鹅日志";
+    btgooseClearOutLogBtn.setAttribute("style", "width: 35vw;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;");
+    btgooseClearOutLogBtn.addEventListener("click", () => {
+        btgooseOutputTextArea.value = "";
+    })
+    btgooseOutputTextAreaDiv.append(btgooseOutputTextArea);
+    btgooseOutputTextAreaDiv.append(btgooseClearOutLogBtn);
+    operateAreaDiv.append(btgooseOutputTextAreaDiv);
+
+}
+
+function buildTimerControl() {
+    const receiveDiv: HTMLDivElement = document.createElement("div"),
+        receiveAreaDiv: HTMLDivElement = document.createElement("div"),
+        receiveTipsDiv: HTMLDivElement = document.createElement("div"),
+        receiveAllBtn: HTMLButtonElement = document.createElement("button"),
+        timerTextInput: HTMLInputElement = document.createElement("input"),
+        timerResetBtn: HTMLButtonElement = document.createElement("button"),
+        spanTextInput: HTMLInputElement = document.createElement("input"),
+        spanResetBtn: HTMLButtonElement = document.createElement("button"),
+        timerDiv: HTMLDivElement = document.createElement("div");
+    timerTextInput.type = "text";
+    timerTextInput.placeholder = "请输入获取时间的刷新频率【毫秒】";
+    timerTextInput.setAttribute("style", "width:80vw;height: 25px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;");
+    timerResetBtn.innerHTML = "重置刷新频率";
+    timerResetBtn.setAttribute("style", "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;");
+    timerResetBtn.addEventListener("click", () => {
+        const span = Math.trunc(+timerTextInput.value);
+        if (!span) {
+            alert("请检查输入的刷新频率是否有误！(只能为大于0的数字)");
+            return false;
+        }
+        Config.intervalSpan = span;
+        window.clearInterval(Config.intervalId);
+        Config.intervalId = window.setInterval(getTime, Config.intervalSpan);
+    });
+    receiveTipsDiv.innerHTML = `<h3>定时时间使用年月日+24小时制</h3><p style="color:red">零点领券设置参考<br>刷新频率:500 | 定时时间：2020-01-01 23:59:59:490<br>tips:部分券其实是提前发放的</p>`;
+    receiveTextInput.type = "text";
+    receiveTextInput.placeholder = "定时领券时间【格式:2020-01-01 09:59:59:950】";
+    receiveTextInput.setAttribute("style", "width:80vw;height: 25px;border: solid 1px #000;border-radius: 5px;margin: 10px;");
+    receiveCountInput.type = "text";
+    receiveCountInput.placeholder = "领券提交次数【默认：1次】";
+    receiveCountInput.setAttribute("style", "width:80vw;height: 25px;border: solid 1px #000;border-radius: 5px;margin: 10px;");
+    spanTextInput.type = "text";
+    spanTextInput.placeholder = "请输入重复领券的提交频率【默认：500毫秒】";
+    spanTextInput.setAttribute("style", "width:80vw;height: 25px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;");
+    receiveTimerBtn.innerHTML = "定时指定领取";
+    receiveTimerBtn.addEventListener("click", () => {
+        Config.postSpan = parseInt(spanTextInput.value) > 0 ? parseInt(spanTextInput.value) : 500;
+        Config.postCount = parseInt(receiveCountInput.value) > 0 ? parseInt(receiveCountInput.value) : 1;
+        const time = Utils.formateTime(receiveTextInput.value);
+        if (!time || time < 0) {
+            alert("请检查定时领券时间的格式是否有误！");
+            return false;
+        } else {
+            Config.timingFlag = !Config.timingFlag;
+            Config.startTime = time;
+            receiveTextInput.disabled = Config.timingFlag;
+            receiveCountInput.disabled = Config.timingFlag;
+            if (Config.timingFlag) {
+                receiveTimerBtn.innerHTML = "取消定时领取";
+                Utils.outPutLog(outputTextArea, `已开启定时领取！定时领取时间：${receiveTextInput.value}`);
+            } else {
+                receiveTimerBtn.innerHTML = "定时指定领取";
+                Utils.outPutLog(outputTextArea, `已关闭定时领取`);
+            }
+        }
+
+    });
+    receiveAllBtn.addEventListener("click", () => {
+        if (coupon) {
+            coupon.send(outputTextArea);
+        }
+    });
+    receiveTimerBtn.setAttribute("style", "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;");
+    receiveAllBtn.innerHTML = "一键指定领取";
+    receiveAllBtn.setAttribute("style", "width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;");
+    operateAreaDiv.append(timerDiv);
+    timerDiv.append(timerTittleDiv);
+    timerDiv.append(timerTextInput);
+    timerDiv.append(timerResetBtn);
+    timerDiv.append(spanTextInput);
+    timerDiv.append(spanResetBtn);
+    operateAreaDiv.append(receiveDiv);
+    receiveDiv.append(receiveTipsDiv);
+    receiveDiv.append(receiveTextInput);
+    receiveDiv.append(receiveCountInput);
+    receiveDiv.append(spanTextInput);
+    receiveDiv.append(receiveAreaDiv);
+    receiveAreaDiv.append(receiveAllBtn);
+    receiveAreaDiv.append(receiveTimerBtn);
 }
 
 function buildTips() {
@@ -182,7 +240,7 @@ function buildTitle() {
     document.body.style.backgroundColor = "#ffffff";
     document.body.style.textAlign = "center";
     document.body.style.maxWidth = "100vw";
-    container.setAttribute("style", "border: 1px solid #000;padding: 5px;margin: 5px;");
+    container.setAttribute("style", "border: 1px solid #000;margin: 10px 0;padding: 5px;margin: 5px;");
     title.innerHTML = `<h1 style="font-weight:700">${Config.title} ${Config.version}</h1>
                         <h3>author:${Config.author}</h3>
                         <h3>edit:${Config.edit}</h3>
@@ -213,7 +271,7 @@ function buildActivity() {
 
 function buildGame() {
     const activityArea: HTMLDivElement = document.createElement("div");
-    activityArea.setAttribute("style", "border: 1px solid #000;margin:10px");
+    activityArea.setAttribute("style", "border: 1px solid #000;margin:10px 0");
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>游戏推荐</h3>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://jdjoy.jd.com/pet/index" target="_blank">宠汪汪</a></p>
     <p style="color:red;font-weight:bold;" > <a style="color:red" href ="https://u1.jr.jd.com/uc-fe-wxgrowing/cloudpig/index" target="_blank">养猪猪</a></p>`;
@@ -222,7 +280,7 @@ function buildGame() {
 
 function buildRecommend() {
     const recommandArea: HTMLDivElement = document.createElement("div");
-    recommandArea.setAttribute("style", "border: 1px solid #000;margin:10px");
+    recommandArea.setAttribute("style", "border: 1px solid #000;margin: 10px 0;");
     recommandArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>好券推荐</h3>
     <p style="color:red;font-weight:bold;">
     <a style="color:red" href="https://m.jr.jd.com/member/9GcConvert/?channel=01-shouye-191214" target="_blank">9金币抢兑</a>
@@ -233,7 +291,7 @@ function buildRecommend() {
 
 function buildPromotion() {
     const promotionArea: HTMLDivElement = document.createElement("div");
-    promotionArea.setAttribute("style", "border: 1px solid #000;margin:10px");
+    promotionArea.setAttribute("style", "border: 1px solid #000;margin: 10px 0;");
     promotionArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>推广区</h3>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="http://krapnik.cn/project/jd/dayTask.html" target="_blank">每日京东红包汇总</a></p>`;
     container.append(promotionArea);
@@ -241,16 +299,69 @@ function buildPromotion() {
 
 function buildUAarea() {
     let UATipsDiv: HTMLDivElement = document.createElement("div");
-    UATipsDiv.innerHTML = `<div style="border: 1px solid #000;margin:10px;font-weight:bold"><h2>该活动需要设置user-Agent为京东APP</h2><p><a style="color:red" href="https://gitee.com/krapnik/res/raw/master/tutorial.mp4" target="_blank">点击下载教程视频</a></p><p>部分浏览器插件会覆盖UA设置，请自行排查并关闭</p><p>【比如：京价保】</p><button style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block" onclick=Utils.copyText(Config.JDAppUA)>点击一键复制User-Agent</button></div>`;
+    UATipsDiv.innerHTML = `<div style="border: 1px solid #000;margin: 10px 0;font-weight:bold"><h2>该活动需要设置user-Agent为京东APP</h2><p><a style="color:red" href="https://gitee.com/krapnik/res/raw/master/tutorial.mp4" target="_blank">点击下载教程视频</a></p><p>部分浏览器插件会覆盖UA设置，请自行排查并关闭</p><p>【比如：京价保】</p><button style="width: 200px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block" onclick=Utils.copyText(Config.JDAppUA)>点击一键复制User-Agent</button></div>`;
     container.append(UATipsDiv);
 }
 
 function buildSensorArea() {
     let sensorArea: HTMLDivElement = document.createElement("div");
-    sensorArea.innerHTML = `<div style="border: 1px solid #000;margin:10px;font-weight:bold"><h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>高级操作区</h3><p>ck格式：备注----ck</p>
-    <button style="width: 120px;height:6.8vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size:16px" onclick="Utils.copyText(document.cookie)">复制Cookie</button>
-    <button  id="import" style="width: 120px;height:6.8vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size:16px">配置多帐号</button></div>`;
+    sensorArea.innerHTML = `<div style="border: 1px solid #000;margin: 10px 0;font-weight:bold"><h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;padding: 0 31.5vw 5px;'>扩展功能区</h3>
+    <p style="color:red;font-weight:bold;">使用本栏目功能前请查看教程</p>
+    <div><button style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;" onclick="Utils.copyText(Config.NetdiskURL)">下载教程</button>
+    <button class="toggle" style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;">展开栏目</button></div>
+    <div class="sensorAreaTabDiv" style="display:none;border-top: 1px solid #000;"><ul class="list" style="display:flex;justify-content: space-around;list-style:none;margin: 10px;"><li class="account" style="padding: 4px;border: 2px solid rgb(255, 105, 180);border-radius: 10px;">帐号管理</li><li class="activity" style="padding: 4px;">日常辅助</li></ul>
+    <hr style="margin: 10px;">
+    <div class="extensionDiv"></div></div>`;
     container.append(sensorArea);
+    let account: HTMLDivElement = document.createElement("div");
+    account.innerHTML = `<p>导入ck格式：备注----ck</p><p style="color:red;">暂时只对扩展功能区有效</p>
+    <button style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;" onclick="Utils.copyText(document.cookie)">复制Cookie</button>
+    <button id="import" style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;">导入多帐号</button></div>`;
+
+    let activity: HTMLDivElement = document.createElement("div");
+    activity.innerHTML = `<ul class="activity-list" style="display:flex;justify-content: space-around;list-style:none;margin-bottom: 10px;">
+    <li class="jdjoy" style="padding: 4px;">宠汪汪</li>
+    <li class="pig" style="padding: 4px;">养猪猪</li>
+    <li class="goose" style="padding: 4px;">提鹅</li>
+    <li class="moneyTree" style="padding: 4px;">金果树</li>
+    <li class="signInCenter" style="padding: 4px;">签到中心</li>
+    </ul>
+    <hr style="margin: 10px;"><div class="activityExtensionDiv"></div>`;
+    let extensionDiv = _$(".extensionDiv") as HTMLDivElement, sensorAreaTabDiv = _$(".sensorAreaTabDiv") as HTMLDivElement;
+    extensionDiv.append(account);
+    extensionDiv.append(activity);
+    activity.style.display = "none";
+    _$(".list").addEventListener("click", (e: MouseEvent) => {
+        let target = <HTMLElement>e.target!;
+        let nodes = _$(".list").childNodes;
+        if (target.getElementsByTagName("li").length == 0) {
+            nodes.forEach((node) => {
+                (<HTMLLIElement>node).style.border = "";
+                (<HTMLLIElement>node).style.borderRadius = "";
+            });
+            target.style.border = "2px solid #FF69B4";
+            target.style.borderRadius = "10px";
+        }
+        if (target.getAttribute("class") == "account") {
+            account.style.display = "block";
+            activity.style.display = "none";
+        } else if (target.getAttribute("class") == "activity") {
+            account.style.display = "none";
+            activity.style.display = "block";
+        }
+    });
+
+    _$(".toggle").addEventListener("click", (e: MouseEvent) => {
+        let target = <HTMLElement>e.target!;
+        if (sensorAreaTabDiv.style.display == "block") {
+            sensorAreaTabDiv.style.display = "none";
+            target.innerHTML = "展开栏目";
+        } else {
+            sensorAreaTabDiv.style.display = "block";
+            target.innerHTML = "收起栏目";
+        }
+    })
+
     _$("#import").addEventListener('click', () => {
         Utils.importFile("text/plain").then(async (ck) => {
             Config.multiFlag = false;
@@ -278,6 +389,90 @@ function buildSensorArea() {
 
         });
     })
+
+    let activityExtensionDiv = _$(".activityExtensionDiv") as HTMLDivElement
+    _$(".activity-list").addEventListener("click", (e: MouseEvent) => {
+        let target = <HTMLElement>e.target!;
+        let nodes = activityExtensionDiv.childNodes;
+        let activityLiList = Array.from(_$(".activity-list").getElementsByTagName("li"));
+        // if (nodes.length > 0) {
+        //     activityExtensionDiv.removeChild(nodes[0]);
+        // }
+        nodes.forEach((node) => {
+            (<HTMLDivElement>node).style.display = "none";
+        });
+        if (target.getElementsByTagName("li").length == 0) {
+            activityLiList.forEach((li) => {
+                li.style.border = "";
+                li.style.borderRadius = "";
+            });
+            target.style.border = "2px solid #FF69B4";
+            target.style.borderRadius = "10px";
+        }
+        if (target.getAttribute("class") == "pig") {
+            if (!gameMap.Cloudpig) {
+                gameMap.Cloudpig = new Cloudpig(null, activityExtensionDiv, cloudpigOutputTextArea);
+                gameMap.Cloudpig.get();
+            }else{
+                gameMap.Cloudpig.content.style.display = "block";
+            }
+
+            outputTextArea.parentElement!.style.display = "none";
+            jdjoyOutputTextArea.parentElement!.style.display = "none";
+            cloudpigOutputTextArea.parentElement!.style.display = "block";
+            btgooseOutputTextArea.parentElement!.style.display = "none";
+        }
+        else if (target.getAttribute("class") == "goose") {
+            if (!gameMap.BTGoose) {
+                gameMap.BTGoose = new BTGoose(null, activityExtensionDiv, btgooseOutputTextArea);
+                gameMap.BTGoose.get();
+            }else{
+                gameMap.BTGoose.content.style.display = "block";
+            }
+
+            outputTextArea.parentElement!.style.display = "none";
+            jdjoyOutputTextArea.parentElement!.style.display = "none";
+            cloudpigOutputTextArea.parentElement!.style.display = "none";
+            btgooseOutputTextArea.parentElement!.style.display = "block";
+        }
+        else if (target.getAttribute("class") == "jdjoy") {
+            if (!gameMap.JdJoy) {
+                gameMap.JdJoy = new JdJoy(null, activityExtensionDiv, jdjoyOutputTextArea);
+                gameMap.JdJoy.get();
+            } else {
+                gameMap.JdJoy.content.style.display = "block";
+            }
+
+            outputTextArea.parentElement!.style.display = "none";
+            jdjoyOutputTextArea.parentElement!.style.display = "block";
+            cloudpigOutputTextArea.parentElement!.style.display = "none";
+            btgooseOutputTextArea.parentElement!.style.display = "none";
+        }
+        else if (target.getAttribute("class") == "moneyTree") {
+            outputTextArea.parentElement!.style.display = "none";
+            jdjoyOutputTextArea.parentElement!.style.display = "none";
+            cloudpigOutputTextArea.parentElement!.style.display = "none";
+            btgooseOutputTextArea.parentElement!.style.display = "none";
+
+            alert("该功能正在开发中，晚点再来吧~");
+            // if (!gameMap.MoneyTree) {
+            //     gameMap.MoneyTree = new MoneyTree(null, activityExtensionDiv, outputTextArea);
+            //     gameMap.MoneyTree.get();
+            // }else{
+            //     gameMap.MoneyTree.content.style.display = "block";
+            // }
+        }
+        else {
+            //outputTextArea.parentElement!.parentElement!.style.display = "none";
+            outputTextArea.parentElement!.style.display = "none";
+            jdjoyOutputTextArea.parentElement!.style.display = "none";
+            cloudpigOutputTextArea.parentElement!.style.display = "none";
+            btgooseOutputTextArea.parentElement!.style.display = "none";
+
+            alert("该功能正在开发中，晚点再来吧~");
+        }
+    });
+
 }
 
 function buildTimeoutArea() {
@@ -292,12 +487,14 @@ function buildTimeoutArea() {
             Config.timeoutSpan = +timeoutInput!.value || 1500;
         }
     }
-    container.append(timeoutDiv);
+    operateAreaDiv.append(timeoutDiv);
 }
+
 
 function getEntryType(): couponType | activityType | goodsType | gameType {
     let type: couponType | activityType | goodsType | gameType = couponType.none;
     if (!window.location.host.includes("jd.com")) {
+        isJDcontext = false;
         return type;
     }
 
@@ -412,26 +609,26 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
             const itemId = Utils.GetQueryString("id");
             coupon = new Exchange({ "itemId": itemId }, container, outputTextArea);
             break;
-        case activityType.monsterNian:
-            activity = new MonsterNian(null, container, outputTextArea);
-            Config.UAFlag = true;
-            break;
-        case activityType.brandCitySpring:
-            activity = new BrandCitySpring(null, container, outputTextArea);
-            break;
-        case activityType.palace:
-            activity = new Palace(null, container, outputTextArea);
-            break;
-        case activityType.receiveBless:
-            activity = new ReceiveBless(null, container, outputTextArea);
-            Config.UAFlag = true;
-            break;
-        case gameType.cloudpig:
-            game = new Cloudpig(null, container, outputTextArea);
-            break;
-        case gameType.jdjoy:
-            game = new JdJoy(null, container, outputTextArea);
-            break;
+        // case activityType.monsterNian:
+        //     activity = new MonsterNian(null, container, outputTextArea);
+        //     Config.UAFlag = true;
+        //     break;
+        // case activityType.brandCitySpring:
+        //     activity = new BrandCitySpring(null, container, outputTextArea);
+        //     break;
+        // case activityType.palace:
+        //     activity = new Palace(null, container, outputTextArea);
+        //     break;
+        // case activityType.receiveBless:
+        //     activity = new ReceiveBless(null, container, outputTextArea);
+        //     Config.UAFlag = true;
+        //     break;
+        // case gameType.cloudpig:
+        //     game = new Cloudpig(null, container, outputTextArea);
+        //     break;
+        //case gameType.jdjoy:
+        //    game = new JdJoy(null, container, outputTextArea);
+        //    break;
         default:
             break;
     }
@@ -440,32 +637,32 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
     }
     buildRecommend();
     buildActivity();
+    if (isJDcontext) {
+        buildSensorArea();
+        buildOperate();
+        // buildExtensionTab();
+        Utils.createJsonp(`${Config.JDUserInfoURL}&callback=getLoginMsg`);
+    }
     if (coupon) {
         Config.intervalId = window.setInterval(getTime, Config.intervalSpan);
-        // buildSensorArea();
-        buildOperate();
         coupon.get();
     } else if (activity) {
-        // buildSensorArea();
         // buildActivity();
-        buildOperate();
         buildTimeoutArea();
         activity.get();
     } else if (goods) {
         goods.get();
     } else if (game) {
-        buildSensorArea();
-        buildOperate();
-        if (type != gameType.jdjoy) {
-            buildTimeoutArea();
-        }
+        //buildSensorArea();
+        //buildOperate();
+        //if (type != gameType.jdjoy) {
+        //    buildTimeoutArea();
+        //}
         game.get();
     } else {
         Utils.loadCss("https://meyerweb.com/eric/tools/css/reset/reset200802.css");
         buildTips();
     }
-    Utils.createJsonp(`${Config.JDUserInfoURL}&callback=getLoginMsg`);
-
 }
 
 function getTime() {
@@ -507,9 +704,10 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.4.8】：合并原作者更新内容；优化所有板块结果显示顺序；完善原作者所有样式及功能；完善宠汪汪邀请用户功能；新增宠汪汪智能喂养选项', 'color:#009a61');
         console.log('%c【0.4.7】：新增宠汪汪邀请用户功能性测试', 'color:#009a61');
         console.log('%c【0.4.6】：自动活动首次触发修改为整点', 'color:#009a61');
-        console.log('%c【0.4.5】：去除自动换豆及戳泡泡的测试性代码；优化自动换豆及戳泡泡功能', 'color:#009a61');
+        //console.log('%c【0.4.5】：去除自动换豆及戳泡泡的测试性代码；优化自动换豆及戳泡泡功能', 'color:#009a61');
         //console.log('%c【0.4.4】：新增宠汪汪自动换豆功能性测试（自动使用积分换取当前等级区的京豆）', 'color:#009a61');
         //console.log('%c【0.4.3】：新增宠汪汪看激励视频任务；移除宠汪汪聚宝盆终极大奖活动；修改宠汪汪戳泡泡功能性测试', 'color:#009a61');
         //console.log('%c【0.4.2】：新增宠汪汪聚宝盆终极大奖功能；戳泡泡功能性测试', 'color:#009a61');

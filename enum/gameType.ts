@@ -6,6 +6,7 @@ export enum gameType {
 }
 //宠汪汪
 export enum feedGramsEnum {
+    smartFeed = "智能喂养",
     ten = 10,
     twenty = 20,
     forty = 40,

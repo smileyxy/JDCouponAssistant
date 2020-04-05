@@ -135,23 +135,26 @@ export default class Utils {
     }
 
     static outPutLog(output: HTMLTextAreaElement, log: string, timeFlag: boolean = true): void {
-        if (output.style.display == 'none') {
-            output.style.display = 'block';
-        }
+        //if (output.parentElement!.style.display == 'none') {
+        //    output.parentElement!.style.display = 'block';
+        //}
         if (timeFlag) {
             if (output.value) {
-                output.value = `${log}\n${new Date().toLocaleString()} ${output.value}`;
+                output.value = `${new Date().toLocaleString()}\n${log}\n${output.value}`;
             } else {
-                output.value = `${log}\n${new Date().toLocaleString()}`;
+                output.value = new Date().toLocaleString() + log;
             }
         } else {
             output.value = `${log}\n${output.value}`;
         }
-
     }
 
     static random(n: number, m: number): number {
         return Math.floor(Math.random() * (m - n + 1) + n);
+    }
+
+    static getTimestamp():number{
+        return new Date().getTime();
     }
 
     static copyText(text: string) {
@@ -179,7 +182,6 @@ export default class Utils {
             fInput.type = "file";
             document.body.appendChild(fInput);
             fInput.onchange = function (e: any) {
-
                 const file = e.target.files[0], reader = new FileReader();
                 if (file && file.type.includes(ext)) {
                     reader.readAsText(file)

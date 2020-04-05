@@ -1,7 +1,6 @@
-import Activity from "../interface/Activity";
+import Game from "../interface/Game";
 import Utils, { _$ } from "../utils/utils";
 import Config from "../config/config";
-import SecretConfig from "../config/secretConfig";
 import { consoleEnum } from '../enum/commonType';
 import {
     feedGramsEnum,
@@ -42,16 +41,18 @@ const defaultBeanDetection: number = 3600000, //1小时
     defaultActDetection: number = 3600000, //1小时
     defaultHelpDetection: number = 14400000; //4小时
 
-export default class JdJoy implements Activity {
+export default class JdJoy implements Game {
     //url: string = "https://api.m.jd.com/client.action";
     params: any;
     data: any;
     container: HTMLDivElement;
     outputTextarea: HTMLTextAreaElement;
+    content: HTMLDivElement;
     constructor(params: any, containerDiv: HTMLDivElement, outputTextarea: HTMLTextAreaElement) {
         this.params = params;
         this.container = containerDiv;
         this.outputTextarea = outputTextarea;
+        this.content = document.createElement("div");
         //this.outputTextarea.value = `【哎呀~助手初始化错误，请刷新后重新尝试或联系作者！】`;
 
         Config.debug = true;
@@ -106,9 +107,9 @@ export default class JdJoy implements Activity {
         const petContent = document.createElement("div");
         petContent.id = 'petInfo';
         let petInfo = `
-                        <div style="border: 1px solid #000;margin: 10px;font-weight: bold;line-height: 2;">
-                            <div><h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>宠物信息</h3></div>
-                            <table style="font-size: 12px;padding-left: 18%;">
+                        <div style="border-top: 1px solid #000;font-weight: bold;line-height: 2;">
+                            <div><h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>汪汪信息</h3></div>
+                            <table style="font-size: 12px;padding-left: 18%;border-collapse: separate;border-spacing: 2px;">
                                 <tr> 
                                     <td style="width: 150vw;text-align: -webkit-left;">宠物等级：<span id="petLevel" style="color: #FF69B4;">-</span></td>
                                     <td style="width: 150vw;text-align: -webkit-left;">当前积分：<span id="petCoin" style="color: #FF69B4;">-</div></td> 
@@ -128,32 +129,30 @@ export default class JdJoy implements Activity {
                             <div style="width: 70vw;text-align: -webkit-left;font-size: 12px;padding-left: 18%;margin-left: 1.5px;">
                                 下次喂养时间：<span id="nextFeedTime" style="color: #FF69B4;">-</span>
                             </div>
-                            <div style="width: 70vw;text-align: -webkit-left;font-size: 12px;padding-left: 18%;margin-left: 1.5px;">
-                                当前助力状态：<span id="nextFeedTime" style="color: #FF69B4;">-</span>
-                            </div>
-                            <div style="margin-top: 10px;display: flex;">
+                            <div style="margin: 10px auto 10px auto;display: flex;">
                                 <button class="refresh" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">手动刷新</button>
                                 <button class="autoBean" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">自动换豆</button>
                             </div>
                         </div>`;
         petContent.innerHTML = petInfo;
         petContent.style.display = 'none';
-        this.container.appendChild(petContent);
+        this.content.appendChild(petContent);
         //使用帮助
         const helpContent = document.createElement("div");
         helpContent.id = 'usingHelp';
-        let helpInfo = `<div style="border: 1px solid #000;margin:10px;font-weight:bold">
+        let helpInfo = `
+                        <div style="border-top: 1px solid #000;font-weight:bold;line-height: 1.6;">
                             <div>
                                 <h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>使用帮助</h3>
                             </div>
-                            <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px auto 10px;">
+                            <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px 10px 10px;">
                                 <details>
                                     <summary style="outline: 0;">自动换豆</summary>
                                     <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 3600000}小时。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动喂养</summary>
-                                    <p style="font-size: 12px;">根据所填项每天进行喂食；喂养间隔：默认${defaultFeedSpan / 3600000}小时，正在进食时自动计算时间差。</p>
+                                    <p style="font-size: 12px;">根据所填项每天进行喂食，智能喂养会自动计算合适的克数，一定程度上避免口粮不足；喂养间隔：默认${defaultFeedSpan / 3600000}小时，正在进食时自动计算时间差。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动活动</summary>
@@ -165,29 +164,30 @@ export default class JdJoy implements Activity {
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动任务</summary>
-                                    <p style="font-size: 12px;">根据所填项每天完成任务（除每日签到）；任务定时：默认${defaultTaskTiming}后；检测频率：默认${defaultTaskDetection / 60000}分钟。</p>
+                                    <p style="font-size: 12px;">根据所填项每天完成任务（除每日签到）；任务定时：默认${defaultTaskTiming}后；检测频率：默认${defaultTaskDetection / 3600000}小时。</p>
                                 </details> 
                             </div>
                         </div>`;
         helpContent.innerHTML = helpInfo;
         helpContent.style.display = 'none';
-        this.container.appendChild(helpContent);
+        this.content.appendChild(helpContent);
         //功能按键
         const btnContent = document.createElement("div");
         btnContent.id = 'functionButton';
         let btnInfo = `
-                        <div style="border: 1px solid #000;margin:10px;font-weight:bold">
+                        <div style="border-top: 1px solid #000;font-weight:bold;line-height: 1.6;">
                             <div>
                                 <h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>功能按键</h3>
                             </div>
-                            <table style="font-size: 12px;padding-left: 4px;">
+                            <table style="font-size: 12px;padding-left: 4px;margin-bottom: 10px;">
                                 <tr> 
-                                    <td style="width: 80vw;text-align: -webkit-left;">
+                                    <td style="width: 80vw;text-align: -webkit-right;">
                                         <div style="width: 24vw;">
                                             <select id="feedGrams" style="width: 23.5vw;">
+                                                <option value="${feedGramsEnum.smartFeed}" selected="selected">${feedGramsEnum.smartFeed}</option>
                                                 <option value="${feedGramsEnum.ten}">${feedGramsEnum.ten}g</option>
                                                 <option value="${feedGramsEnum.twenty}">${feedGramsEnum.twenty}g</option>
-                                                <option value="${feedGramsEnum.forty}" selected="selected">${feedGramsEnum.forty}g</option>
+                                                <option value="${feedGramsEnum.forty}">${feedGramsEnum.forty}g</option>
                                                 <option value="${feedGramsEnum.eighty}">${feedGramsEnum.eighty}g</option>
                                             </select>
                                         </div>
@@ -196,11 +196,11 @@ export default class JdJoy implements Activity {
                                         <input id="feedSpan" style="width:37vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;" placeholder = "喂养间隔" />
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
-                                        <button class="feedAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 12px;line-height: 0;">自动喂养</button>
+                                        <button class="feedAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动喂养</button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="width: 80vw;text-align: -webkit-left;">
+                                    <td style="width: 80vw;text-align: -webkit-right;">
                                         <div style="width: 24vw;">
                                             <select id="actType" style="width: 23.5vw;">
                                                 <option value="${petActEnum.全部}" selected="selected">全部</option>
@@ -213,11 +213,11 @@ export default class JdJoy implements Activity {
                                         <input id="actDetection" style="width:37vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;" placeholder = "检测频率" />
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
-                                        <button class="actAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 12px;line-height: 0;">自动活动</button>
+                                        <button class="actAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动活动</button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="width: 80vw;text-align: -webkit-left;">
+                                    <td style="width: 80vw;text-align: -webkit-right;">
                                         <div style="width: 24vw;">
                                             <select id="helpType" style="width: 23.5vw;">
                                                 <option value="${petHelpEnum.全部}" selected="selected">全部</option>
@@ -231,11 +231,11 @@ export default class JdJoy implements Activity {
                                         <input id="helpDetection" style="width:37vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: block;" placeholder = "检测频率" />
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
-                                        <button class="helpAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 12px;line-height: 0;">自动串门</button>
+                                        <button class="helpAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动串门</button>
                                     </td>
                                 </tr>
                                 <tr> 
-                                    <td style="width: 80vw;text-align: -webkit-left;">
+                                    <td style="width: 80vw;text-align: -webkit-right;">
                                         <div style="width: 24vw;">
                                             <select id="taskType" style="width: 23.5vw;">
                                                 <option value="${petTaskEnum.全部}" selected="selected">全部</option>
@@ -254,14 +254,15 @@ export default class JdJoy implements Activity {
                                         <input id="taskDetection" style="width:12.8vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "检测频率">
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
-                                        <button class="taskAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 12px;line-height: 0;">自动任务</button>
+                                        <button class="taskAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动任务</button>
                                     </td>
                                 </tr>
                             </table>
                         </div>`;
         btnContent.innerHTML = btnInfo;
         btnContent.style.display = 'none';
-        this.container.appendChild(btnContent);
+        this.content.appendChild(btnContent);
+        this.container.appendChild(this.content);
     }
 
     list(): void {
@@ -326,7 +327,7 @@ export default class JdJoy implements Activity {
                     if (timeDiff > 0) {
                         nextFeedStamp = +currentJDTime + timeDiff;
                         nextFeedTime!.innerText = new Date(nextFeedStamp).toLocaleString();
-
+                        this.feed(gramsSelectOptions.value);
                         feedTimeout = setTimeout(() => {
                             this.getJDTime().then((feedTime) => {
                                 nextFeedInterval = feedSpan + Utils.random(60000, 300000);
@@ -358,8 +359,8 @@ export default class JdJoy implements Activity {
                 else {
                     nextFeedStamp = 0;
                     feedAuto.innerHTML = petButtonEnum.feedStart;
-                    clearTimeout(feedTimeout);
                     clearInterval(feedInterval);
+                    clearTimeout(feedTimeout);
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动喂养！`, false);
                 }
             });
@@ -389,7 +390,7 @@ export default class JdJoy implements Activity {
             }
 
             taskTiming = +Utils.formateTime(taskTimingInput.value) || +Utils.formateTime(defaultTaskTiming);
-            taskSpan = ((+taskDetectionInput!.value * 60000) || defaultTaskDetection);
+            taskSpan = ((+taskDetectionInput!.value * 3600000) || defaultTaskDetection);
 
             typeSelect.disabled = !typeSelect.disabled;
             taskTimingInput.disabled = !taskTimingInput.disabled;
@@ -461,11 +462,11 @@ export default class JdJoy implements Activity {
                 }
                 else {
                     actAuto.innerHTML = petButtonEnum.actStart;
-                    clearTimeout(actTimeout);
                     clearInterval(actInterval);
-                    clearInterval(investTreasureInterval);
+                    clearTimeout(actTimeout);
+                    //clearInterval(investTreasureInterval);
                     actTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
-                    investTreasureInterval = 0;
+                    //investTreasureInterval = 0;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动活动！`, false);
                 }
             });
@@ -678,6 +679,13 @@ export default class JdJoy implements Activity {
     }
     //喂养
     async feed(grams: string | number): Promise<void> {
+        if (grams == feedGramsEnum.smartFeed) {
+            grams = this.smartFeedCount();
+            if (grams <= 0) {
+                Utils.outPutLog(this.outputTextarea, `没有足够的粮食喂养了！`, false);
+                return;
+            }
+        }
         const enterRoomUrl = `https://jdjoy.jd.com/pet/feed?feedCount=${grams}`;
         await fetch(enterRoomUrl, { credentials: "include" })
             .then((res) => { return res.json() })
@@ -686,14 +694,14 @@ export default class JdJoy implements Activity {
                     switch (feedJson.errorCode) {
                         case feedEnum.feedOk:
                         case feedEnum.levelUpgrade:
-                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 喂养成功！`, false);
+                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} ${grams}g狗粮喂养成功！`, false);
                             break;
                         case feedEnum.timeError:
                             Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 已经喂养过狗子了！`, false);
                             Utils.debugInfo(consoleEnum.log, feedJson);
                             break;
                         case feedEnum.foodInsufficient:
-                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 狗子的粮食吃空了！`, false);
+                            Utils.outPutLog(this.outputTextarea, `${new Date(+feedJson.currentTime).toLocaleString()} 没有足够的粮食喂养了！`, false);
                             Utils.debugInfo(consoleEnum.log, feedJson);
                             break;
                         default:
@@ -1096,7 +1104,7 @@ export default class JdJoy implements Activity {
                                         }
                                         else if (currentUserData.helpStatus) {
                                             //助力
-                                            this.helpFriend(inviteUserData, hPetTaskConfigJson.currentTime);
+                                            this.helpFriend(hPetTaskConfigJson.currentTime);
                                         }
                                         else {
                                             //更新
@@ -1111,7 +1119,7 @@ export default class JdJoy implements Activity {
                                                     .then((updateCurrentUserJson) => {
                                                         if (!!updateCurrentUserJson.updatedAt) {
                                                             //助力
-                                                            this.helpFriend(inviteUserData, hPetTaskConfigJson.currentTime);
+                                                            this.helpFriend(hPetTaskConfigJson.currentTime);
                                                         }
                                                         else {
                                                             Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
@@ -1141,7 +1149,7 @@ export default class JdJoy implements Activity {
                                                 .then((addCurrentUserJson) => {
                                                     if (!!addCurrentUserJson.objectId) {
                                                         //助力
-                                                        this.helpFriend(inviteUserData, hPetTaskConfigJson.currentTime);
+                                                        this.helpFriend(hPetTaskConfigJson.currentTime);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
@@ -1481,7 +1489,7 @@ export default class JdJoy implements Activity {
         }, 14000 + bubbleFloatTime);
     }
     //互助
-    async helpFriend(inviteUserData: any, currentTime: any): Promise<void> {
+    async helpFriend(currentTime: any): Promise<void> {
         let getData = `?where=${encodeURIComponent(`{ "pin": { "$ne": "${petPin}" }}`)}`;
         await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, currentTime) })
             .then((res) => { return res.json() })
@@ -1550,6 +1558,26 @@ export default class JdJoy implements Activity {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
                 Utils.outPutLog(this.outputTextarea, `【哎呀~获取其他用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
             });
+    }
+    //计算狗粮克数
+    smartFeedCount(): number {
+        const limit = 12;
+        const feedCountArray = [+feedGramsEnum.eighty, +feedGramsEnum.forty, +feedGramsEnum.twenty, +feedGramsEnum.ten];
+
+        let feedCount = 0;
+        let petFood = document.getElementById('petFood');
+
+        if (!!petFood && !!+petFood!.innerText) {
+            let result = Math.floor(+petFood!.innerText / limit);
+            feedCountArray.some((count) => {
+                if (result >= count) {
+                    feedCount = count;
+                    return true;
+                }
+            });
+        }
+
+        return feedCount;
     }
     //获取京东服务器时间
     getJDTime(): Promise<number> {

@@ -1,8 +1,8 @@
 export default class Config {
     static title: string = "京东领券助手";
-    static version: string = "v0.4.7";
+    static version: string = "v0.4.8";
     static author: string = "krapnik";
-    static edit: string = "smiley";
+    static edit: string = "smileyxy";
 
     static timingFlag: boolean = false;
     static UAFlag: boolean = false;
@@ -22,6 +22,7 @@ export default class Config {
     static JDUserInfoURL: string = "https://wq.jd.com/user/info/QueryJDUserInfo?sceneid=11110&sceneval=2&g_login_type=1";
     static JDTimeInfoURL: string = "https://api.m.jd.com/client.action?functionId=babelActivityGetShareInfo&client=wh5";
     static JDIMGSourcesURL: string = "https://img13.360buyimg.com/n1/s450x450_";
+    static NetdiskURL:string = "链接：https://pan.baidu.com/s/17eyRRSrFUQVSKdYwIcDsHg 提取码：jddk ";
     static WhoisURL: string = "https://ipapi.co/json";
     static BmobHost: string = "https://api2.bmob.cn";
     static BmobUserInfoUrl: string = "/1/classes/UserInfo";
