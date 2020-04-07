@@ -12,7 +12,8 @@ import {
     petActEnum,
     petHelpEnum,
     petFriendsStatusEnum,
-    petHelpConfirmEnum
+    petHelpConfirmEnum,
+    petCombatEnum
 } from '../enum/gameType';
 
 let petPin = "",
@@ -25,11 +26,15 @@ let petPin = "",
     taskTiming = 0,
     taskSpan = 0,
     taskInterval = 0,
+    combatTiming = 0,
+    combatSpan = 0,
+    combatInterval = 0,
     actSpan = 0,
     actInterval = 0,
     helpSpan = 0,
     helpInterval = 0,
     investTreasureInterval = 0,
+    allFriends: any[] = [],
     helpConfirmStatus = petHelpConfirmEnum.待确认;
 let taskTimeoutArray: any[] = [],
     actTimeoutArray: any[] = [],
@@ -39,7 +44,9 @@ const defaultBeanDetection: number = 3600000, //1小时
     defaultTaskTiming: string = '06:00',
     defaultTaskDetection: number = 3600000, //1小时
     defaultActDetection: number = 3600000, //1小时
-    defaultHelpDetection: number = 14400000; //4小时
+    defaultHelpDetection: number = 14400000, //4小时
+    defaultCombatTiming: string = '09:00',
+    defaultCombatDetection: number = 3600000; //1小时
 
 export default class JdJoy implements Game {
     //url: string = "https://api.m.jd.com/client.action";
@@ -165,6 +172,10 @@ export default class JdJoy implements Game {
                                 <details>
                                     <summary style="outline: 0;">自动任务</summary>
                                     <p style="font-size: 12px;">根据所填项每天完成任务（除每日签到）；任务定时：默认${defaultTaskTiming}后；检测频率：默认${defaultTaskDetection / 3600000}小时。</p>
+                                </details>
+                                <details>
+                                    <summary style="outline: 0;">自动组队</summary>
+                                    <p style="font-size: 12px;">随机好友：从你的汪汪好友中匹配优势战队自动加入（好友必须为队长）；指定好友：从下拉框中选择加入指定好友战队（好友必须已有战队）；任务定时：默认${defaultCombatTiming}后；检测频率：默认${defaultCombatDetection / 3600000}小时。</p>
                                 </details> 
                             </div>
                         </div>`;
@@ -181,7 +192,7 @@ export default class JdJoy implements Game {
                             </div>
                             <table style="font-size: 12px;padding-left: 4px;margin-bottom: 10px;">
                                 <tr> 
-                                    <td style="width: 80vw;text-align: -webkit-right;">
+                                    <td style="width: 80vw;text-align: -webkit-right;vertical-align: middle;">
                                         <div style="width: 24vw;">
                                             <select id="feedGrams" style="width: 23.5vw;">
                                                 <option value="${feedGramsEnum.smartFeed}" selected="selected">${feedGramsEnum.smartFeed}</option>
@@ -200,7 +211,7 @@ export default class JdJoy implements Game {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="width: 80vw;text-align: -webkit-right;">
+                                    <td style="width: 80vw;text-align: -webkit-right;vertical-align: middle;">
                                         <div style="width: 24vw;">
                                             <select id="actType" style="width: 23.5vw;">
                                                 <option value="${petActEnum.全部}" selected="selected">全部</option>
@@ -217,7 +228,7 @@ export default class JdJoy implements Game {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="width: 80vw;text-align: -webkit-right;">
+                                    <td style="width: 80vw;text-align: -webkit-right;vertical-align: middle;">
                                         <div style="width: 24vw;">
                                             <select id="helpType" style="width: 23.5vw;">
                                                 <option value="${petHelpEnum.全部}" selected="selected">全部</option>
@@ -235,7 +246,7 @@ export default class JdJoy implements Game {
                                     </td>
                                 </tr>
                                 <tr> 
-                                    <td style="width: 80vw;text-align: -webkit-right;">
+                                    <td style="width: 80vw;text-align: -webkit-right;vertical-align: middle;">
                                         <div style="width: 24vw;">
                                             <select id="taskType" style="width: 23.5vw;">
                                                 <option value="${petTaskEnum.全部}" selected="selected">全部</option>
@@ -255,6 +266,22 @@ export default class JdJoy implements Game {
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
                                         <button class="taskAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动任务</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 80vw;text-align: -webkit-right;vertical-align: middle;">
+                                        <div style="width: 24vw;">
+                                            <select id="combatType" style="width: 23.5vw;">
+                                                <option value="-1" selected="selected">随机</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td style="width: 230vw;text-align: -webkit-left;display: inline">
+                                        <input id="combatTiming" type="time" value="${defaultCombatTiming}" style="width:23.5vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;">
+                                        <input id="combatDetection" style="width:12.8vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "检测频率">
+                                    </td>
+                                    <td style="width: 50vw;text-align: -webkit-left;">
+                                        <button class="combatAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动组队</button>
                                     </td>
                                 </tr>
                             </table>
@@ -513,6 +540,60 @@ export default class JdJoy implements Game {
                 }
             });
         });
+        //自动组队
+        let combatAuto = _$('.combatAuto') as HTMLButtonElement;
+        combatAuto!.addEventListener('click', () => {
+            //验证组队类型
+            let typeSelect = document.getElementById('combatType') as HTMLSelectElement,
+                typeSelectOptions = typeSelect.options[typeSelect.selectedIndex];
+            if (!typeSelectOptions || !typeSelectOptions.value) {
+                alert("请选择组队类型！");
+                return false;
+            }
+            //验证组队定时
+            let combatTimingInput = document.getElementById('combatTiming') as HTMLInputElement;
+            if (!combatTimingInput.value) {
+                alert("请输入正确的组队定时格式！");
+                return false;
+            }
+            //验证任务检测频率
+            const reg = /^[1-9]\d*$/;
+            let combatDetectionInput = document.getElementById('combatDetection') as HTMLInputElement;
+            if (!!combatDetectionInput.value && !reg.test(combatDetectionInput.value)) {
+                alert("请检查组队检测频率是否为正整数！");
+                return false;
+            }
+
+            combatTiming = +Utils.formateTime(combatTimingInput.value) || +Utils.formateTime(defaultCombatTiming);
+            combatSpan = ((+combatDetectionInput!.value * 3600000) || defaultCombatDetection);
+
+            typeSelect.disabled = !typeSelect.disabled;
+            combatTimingInput.disabled = !combatTimingInput.disabled;
+            combatDetectionInput.disabled = !combatDetectionInput.disabled;
+
+            this.getJDTime().then((currentJDTime) => {
+                let currentJDDate = new Date(+currentJDTime);
+                if (combatAuto.innerHTML == petButtonEnum.combatStart) {
+                    combatAuto.innerHTML = petButtonEnum.combatStop;
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动组队！`, false);
+
+                    this.combat(typeSelectOptions.text, typeSelectOptions.value);
+                    combatInterval = setInterval(() => {
+                        this.getJDTime().then((nowJDTime) => {
+                            let nowJDDate = new Date(+nowJDTime);
+                            if (+(nowJDDate.getHours().toString() + nowJDDate.getMinutes().toString()) >= combatTiming) {
+                                this.combat(typeSelectOptions.text, typeSelectOptions.value);
+                            }
+                        });
+                    }, combatSpan);
+                }
+                else {
+                    combatAuto.innerHTML = petButtonEnum.combatStart;
+                    clearInterval(combatInterval);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动组队！`, false);
+                }
+            });
+        });
     }
 
     async info(tipsShow: boolean = true): Promise<void> {
@@ -524,7 +605,8 @@ export default class JdJoy implements Game {
             feedTotal = document.getElementById('feedTotal'),
             feedCount = document.getElementById('feedCount'),
             lastFeedTime = document.getElementById('lastFeedTime'),
-            nextFeedTime = document.getElementById('nextFeedTime');
+            nextFeedTime = document.getElementById('nextFeedTime'),
+            combatType = document.getElementById('combatType');
 
         petLevel!.innerText
             = petCoin!.innerText
@@ -567,24 +649,34 @@ export default class JdJoy implements Game {
                 Utils.outPutLog(this.outputTextarea, `【哎呀~首页信息异常，请手动刷新或联系作者！】`, false);
             });
         //获取好友信息
-        const getFriendsUrl = 'https://jdjoy.jd.com/pet/getFriends?itemsPerPage=20&currentPage=1';
-        await fetch(getFriendsUrl, { credentials: "include" })
-            .then((res) => { return res.json() })
-            .then((friendsJson) => {
-                if (friendsJson.success) {
-                    friendCount!.innerText = friendsJson.page.items;
-                }
-                else {
-                    isGetAllInfo = !isGetAllInfo;
-                    Utils.debugInfo(consoleEnum.log, friendsJson);
-                    Utils.outPutLog(this.outputTextarea, `【没有查找到你的好友信息，请手动刷新或联系作者！】`, false);
-                }
-            })
-            .catch((error) => {
-                isGetAllInfo = !isGetAllInfo;
-                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`, false);
-            });
+        let currentPage = 1,
+            pages = -1;
+        allFriends.splice(0); //清空好友
+        while (pages == -1 || currentPage <= pages) {
+            const getFriendsUrl = `https://jdjoy.jd.com/pet/getFriends?itemsPerPage=20&currentPage=${currentPage}`;
+            await fetch(getFriendsUrl, { credentials: "include" })
+                .then((res) => { return res.json() })
+                .then((getFriendsJson) => {
+                    if (getFriendsJson.success) {
+                        friendCount!.innerText = getFriendsJson.page.items;
+                        pages = getFriendsJson.page.pages;
+                        getFriendsJson.datas.forEach((item: any) => {
+                            allFriends.push(item);
+                            combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
+                        });
+                        currentPage++;
+                    }
+                    else {
+                        isGetAllInfo = !isGetAllInfo;
+                        Utils.debugInfo(consoleEnum.log, getFriendsJson);
+                        Utils.outPutLog(this.outputTextarea, `【没有查找到${currentPage}页好友信息，请手动刷新或联系作者！】`, false);
+                    }
+                })
+                .catch((error) => {
+                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~查询${currentPage}页好友信息异常，请手动刷新或联系作者！】`, false);
+                });
+        }
         //获取今日喂养信息
         const getTodayFeedInfoUrl = 'https://jdjoy.jd.com/pet/getTodayFeedInfo';
         await fetch(getTodayFeedInfoUrl, { credentials: "include" })
@@ -681,10 +773,6 @@ export default class JdJoy implements Game {
     async feed(grams: string | number): Promise<void> {
         if (grams == feedGramsEnum.smartFeed) {
             grams = this.smartFeedCount();
-            if (grams <= 0) {
-                Utils.outPutLog(this.outputTextarea, `没有足够的粮食喂养了！`, false);
-                return;
-            }
         }
         const enterRoomUrl = `https://jdjoy.jd.com/pet/feed?feedCount=${grams}`;
         await fetch(enterRoomUrl, { credentials: "include" })
@@ -1100,7 +1188,6 @@ export default class JdJoy implements Game {
                                         let currentUserData = getCurrentUserJson.results[0];
                                         if (currentUserData.isBlock) {
                                             Utils.outPutLog(this.outputTextarea, `【哎呀~做坏事被列入黑名单了，永久失去互助资格！】`, false);
-                                            return;
                                         }
                                         else if (currentUserData.helpStatus) {
                                             //助力
@@ -1320,136 +1407,194 @@ export default class JdJoy implements Game {
     }
     //串门
     async dropAround(helpType: string): Promise<void> {
-        let currentPage = 1,
-            pages = -1,
-            helpTimeout = 0;
-        while (pages == -1 || currentPage <= pages) {
-            const getFriendsUrl = `https://jdjoy.jd.com/pet/getFriends?itemsPerPage=20&currentPage=${currentPage}`;
-            await fetch(getFriendsUrl, { credentials: "include" })
-                .then((res) => { return res.json() })
-                .then((getFriendsJson) => {
-                    if (getFriendsJson.success) {
-                        pages = getFriendsJson.page.pages;
-                        for (let i = 0; i < getFriendsJson.datas.length; i++) {
-                            let currentFriend = getFriendsJson.datas[i];
-                            if (currentFriend.friendPin != petPin) {
-                                helpTimeoutArray.push(setTimeout(async () => {
-                                    const enterFriendRoomUrl = `https://jdjoy.jd.com/pet/enterFriendRoom?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
-                                    await fetch(enterFriendRoomUrl, { credentials: "include" })
-                                        .then((res) => { return res.json() })
-                                        .then(async (enterFriendRoomJson) => {
-                                            if (enterFriendRoomJson.success) {
-                                                if (helpType == petHelpEnum.帮助喂养 || helpType == petHelpEnum.全部) {
-                                                    if (currentFriend.status == petFriendsStatusEnum.notfeed) {
-                                                        const helpFeedUrl = `https://jdjoy.jd.com/pet/helpFeed?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
-                                                        await fetch(helpFeedUrl, { credentials: "include" })
-                                                            .then((res) => { return res.json() })
-                                                            .then((helpFeedJson) => {
-                                                                if (helpFeedJson.success) {
-                                                                    switch (helpFeedJson.errorCode) {
-                                                                        case petFriendsStatusEnum.helpok:
-                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 帮助【${currentFriend.friendName}】喂养成功！`, false);
-                                                                            break;
-                                                                        case petFriendsStatusEnum.chanceFull:
-                                                                            break;
-                                                                        default:
-                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】已帮喂或主人已喂！`, false);
-                                                                            break;
-                                                                    }
-                                                                }
-                                                                else {
-                                                                    Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
-                                                                    Utils.outPutLog(this.outputTextarea, `【帮助${currentFriend.friendName}喂养失败，请手动刷新或联系作者！】`, false);
-                                                                }
-                                                            })
-                                                            .catch((error) => {
-                                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~帮助${currentFriend.friendName}喂养异常，请手动刷新或联系作者！】`, false);
-                                                            });
+        let helpTimeout = 0,
+            friends = JSON.parse(JSON.stringify(allFriends)); //深拷贝
+        if (friends.length > 0) {
+            friends.forEach((currentFriend: any) => {
+                if (currentFriend.friendPin != petPin) {
+                    helpTimeoutArray.push(setTimeout(async () => {
+                        const enterFriendRoomUrl = `https://jdjoy.jd.com/pet/enterFriendRoom?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                        await fetch(enterFriendRoomUrl, { credentials: "include" })
+                            .then((res) => { return res.json() })
+                            .then(async (enterFriendRoomJson) => {
+                                if (enterFriendRoomJson.success) {
+                                    if (helpType == petHelpEnum.帮助喂养 || helpType == petHelpEnum.全部) {
+                                        if (currentFriend.status == petFriendsStatusEnum.notfeed) {
+                                            const helpFeedUrl = `https://jdjoy.jd.com/pet/helpFeed?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                            await fetch(helpFeedUrl, { credentials: "include" })
+                                                .then((res) => { return res.json() })
+                                                .then((helpFeedJson) => {
+                                                    if (helpFeedJson.success) {
+                                                        switch (helpFeedJson.errorCode) {
+                                                            case petFriendsStatusEnum.helpok:
+                                                                Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 帮助【${currentFriend.friendName}】喂养成功！`, false);
+                                                                break;
+                                                            case petFriendsStatusEnum.chanceFull:
+                                                                break;
+                                                            default:
+                                                                Utils.outPutLog(this.outputTextarea, `${new Date(+helpFeedJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】已帮喂或主人已喂！`, false);
+                                                                break;
+                                                        }
                                                     }
-                                                }
-                                                if (helpType == petHelpEnum.偷取狗粮 || helpType == petHelpEnum.全部) {
-                                                    if (+enterFriendRoomJson.data.stealFood > 0) {
-                                                        const getRandomFoodUrl = `https://jdjoy.jd.com/pet/getRandomFood?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
-                                                        await fetch(getRandomFoodUrl, { credentials: "include" })
-                                                            .then((res) => { return res.json() })
-                                                            .then((getRandomFoodJson) => {
-                                                                if (getRandomFoodJson.success) {
-                                                                    switch (getRandomFoodJson.errorCode) {
-                                                                        case petFriendsStatusEnum.stealok:
-                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 偷取【${currentFriend.friendName}】狗粮成功！`, false);
-                                                                            break;
-                                                                        case petFriendsStatusEnum.chanceFull:
-                                                                            break;
-                                                                        default:
-                                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的狗粮已偷取或无狗粮！`, false);
-                                                                            break;
-                                                                    }
-                                                                }
-                                                                else {
-                                                                    Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
-                                                                    Utils.outPutLog(this.outputTextarea, `【偷取${currentFriend.friendName}狗粮失败，请手动刷新或联系作者！】`, false);
-                                                                }
-                                                            })
-                                                            .catch((error) => {
-                                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~偷取${currentFriend.friendName}狗粮异常，请手动刷新或联系作者！】`, false);
-                                                            });
+                                                    else {
+                                                        Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
+                                                        Utils.outPutLog(this.outputTextarea, `【帮助${currentFriend.friendName}喂养失败，请手动刷新或联系作者！】`, false);
                                                     }
-                                                }
-                                                if (helpType == petHelpEnum.获取金币 || helpType == petHelpEnum.全部) {
-                                                    if (+enterFriendRoomJson.data.friendHomeCoin > 0) {
-                                                        const getFriendCoinUrl = `https://jdjoy.jd.com/pet/getFriendCoin?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
-                                                        await fetch(getFriendCoinUrl, { credentials: "include" })
-                                                            .then((res) => { return res.json() })
-                                                            .then((getFriendCoinJson) => {
-                                                                if (getFriendCoinJson.success) {
-                                                                    if (getFriendCoinJson.errorCode == petFriendsStatusEnum.cointookok) {
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 获取【${currentFriend.friendName}】金币成功！`, false);
-                                                                    }
-                                                                    else {
-                                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的金币已获取或无金币！`, false);
-                                                                    }
-                                                                }
-                                                                else {
-                                                                    Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
-                                                                    Utils.outPutLog(this.outputTextarea, `【获取${currentFriend.friendName}金币失败，请手动刷新或联系作者！】`, false);
-                                                                }
-                                                            })
-                                                            .catch((error) => {
-                                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}金币异常，请手动刷新或联系作者！】`, false);
-                                                            });
+                                                })
+                                                .catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~帮助${currentFriend.friendName}喂养异常，请手动刷新或联系作者！】`, false);
+                                                });
+                                        }
+                                    }
+                                    if (helpType == petHelpEnum.偷取狗粮 || helpType == petHelpEnum.全部) {
+                                        if (+enterFriendRoomJson.data.stealFood > 0) {
+                                            const getRandomFoodUrl = `https://jdjoy.jd.com/pet/getRandomFood?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                            await fetch(getRandomFoodUrl, { credentials: "include" })
+                                                .then((res) => { return res.json() })
+                                                .then((getRandomFoodJson) => {
+                                                    if (getRandomFoodJson.success) {
+                                                        switch (getRandomFoodJson.errorCode) {
+                                                            case petFriendsStatusEnum.stealok:
+                                                                Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 偷取【${currentFriend.friendName}】狗粮成功！`, false);
+                                                                break;
+                                                            case petFriendsStatusEnum.chanceFull:
+                                                                break;
+                                                            default:
+                                                                Utils.outPutLog(this.outputTextarea, `${new Date(+getRandomFoodJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的狗粮已偷取或无狗粮！`, false);
+                                                                break;
+                                                        }
                                                     }
-                                                }
-                                            }
-                                            else {
-                                                Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
-                                                Utils.outPutLog(this.outputTextarea, `【没有获取到${currentFriend.friendName}的信息，请手动刷新或联系作者！】`, false);
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                            Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}的信息异常，请手动刷新或联系作者！】`, false);
-                                        });
+                                                    else {
+                                                        Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
+                                                        Utils.outPutLog(this.outputTextarea, `【偷取${currentFriend.friendName}狗粮失败，请手动刷新或联系作者！】`, false);
+                                                    }
+                                                })
+                                                .catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~偷取${currentFriend.friendName}狗粮异常，请手动刷新或联系作者！】`, false);
+                                                });
+                                        }
+                                    }
+                                    if (helpType == petHelpEnum.获取金币 || helpType == petHelpEnum.全部) {
+                                        if (+enterFriendRoomJson.data.friendHomeCoin > 0) {
+                                            const getFriendCoinUrl = `https://jdjoy.jd.com/pet/getFriendCoin?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                            await fetch(getFriendCoinUrl, { credentials: "include" })
+                                                .then((res) => { return res.json() })
+                                                .then((getFriendCoinJson) => {
+                                                    if (getFriendCoinJson.success) {
+                                                        if (getFriendCoinJson.errorCode == petFriendsStatusEnum.cointookok) {
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 获取【${currentFriend.friendName}】金币成功！`, false);
+                                                        }
+                                                        else {
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFriendCoinJson.currentTime).toLocaleString()} 【${currentFriend.friendName}】的金币已获取或无金币！`, false);
+                                                        }
+                                                    }
+                                                    else {
+                                                        Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
+                                                        Utils.outPutLog(this.outputTextarea, `【获取${currentFriend.friendName}金币失败，请手动刷新或联系作者！】`, false);
+                                                    }
+                                                })
+                                                .catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}金币异常，请手动刷新或联系作者！】`, false);
+                                                });
+                                        }
+                                    }
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, enterFriendRoomJson);
+                                    Utils.outPutLog(this.outputTextarea, `【没有获取到${currentFriend.friendName}的信息，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}的信息异常，请手动刷新或联系作者！】`, false);
+                            });
 
-                                }, helpTimeout));
-                                helpTimeout += Utils.random(5000, 10000);
+                    }, helpTimeout));
+                    helpTimeout += Utils.random(5000, 10000);
+                }
+            })
+        }
+    }
+    //组队
+    async combat(combatName: string, combatValue: string): Promise<void> {
+        let isJoinCombat = true;
+        const limit = 50;
+        const myCombatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail?help=false&reqSource=h5`
+        await fetch(myCombatDetailUrl, { credentials: "include" })
+            .then((res) => { return res.json() })
+            .then(async (myCombatDetailJson) => {
+                if (myCombatDetailJson.success) {
+                    if (myCombatDetailJson.userStatus == petCombatEnum.notParticipate) {
+                        if (combatValue == "-1") {
+                            let friends = JSON.parse(JSON.stringify(allFriends)); //深拷贝
+                            if (friends.length > 0) {
+                                for (let currentFriend of friends) {
+                                    if (currentFriend.friendPin != petPin) {
+                                        const combatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail?help=true&inviterPin=${currentFriend.friendPin}&leaderPin=${currentFriend.friendPin}`;
+                                        await fetch(combatDetailUrl, { credentials: "include" })
+                                            .then((res) => { return res.json() })
+                                            .then(async (combatDetailJson) => {
+                                                if (combatDetailJson.success) {
+                                                    if (+combatDetailJson.data.teamMemberCount < 500 && +combatDetailJson.data.teamMemberCount - +combatDetailJson.data.enemyMemberCount >= limit) {
+                                                        const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/join?inviterPin=${currentFriend.friendPin}`;
+                                                        await fetch(combatJoinUrl, { credentials: "include" })
+                                                            .then((res) => { return res.json() })
+                                                            .then(async (combatJoinJson) => {
+                                                                if (combatJoinJson.success) {
+                                                                    isJoinCombat = false;
+                                                                    Utils.outPutLog(this.outputTextarea, `加入【${currentFriend.friendName}】战队成功！`, false);
+                                                                }
+                                                                else {
+                                                                    Utils.outPutLog(this.outputTextarea, `加入【${currentFriend.friendName}】战队失败！`, false);
+                                                                }
+                                                            })
+                                                            .catch((error) => {
+                                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~加入【${currentFriend.friendName}】战队异常，请手动刷新或联系作者！】`, false);
+                                                            });
+                                                    }
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}的战队信息异常，请手动刷新或联系作者！】`, false);
+                                            });
+
+                                        if (!isJoinCombat) break;
+                                    }
+                                }
                             }
                         }
-
-                        currentPage++;
+                        else {
+                            const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/join?inviterPin=${Utils.aesDecrypt(combatValue)}`;
+                            await fetch(combatJoinUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then(async (combatJoinJson) => {
+                                    if (combatJoinJson.success) {
+                                        Utils.outPutLog(this.outputTextarea, `加入【${combatName}】战队成功！`, false);
+                                    }
+                                    else {
+                                        Utils.outPutLog(this.outputTextarea, `【${combatName}】暂未加入任何战队或加入失败！`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~加入【${combatName}】战队异常，请手动刷新或联系作者！】`, false);
+                                });
+                        }
                     }
-                    else {
-                        Utils.debugInfo(consoleEnum.log, getFriendsJson);
-                        Utils.outPutLog(this.outputTextarea, `【没有查找到你的好友信息，请手动刷新或联系作者！】`, false);
-                    }
-                })
-                .catch((error) => {
-                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    Utils.outPutLog(this.outputTextarea, `【哎呀~查询好友信息异常，请手动刷新或联系作者！】`, false);
-                });
-        }
+                }
+                else {
+                    Utils.outPutLog(this.outputTextarea, `【获取自己的战队信息失败，请手动刷新或联系作者！】`, false);
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取自己的战队信息异常，请手动刷新或联系作者！】`, false);
+            });
     }
     //戳泡泡
     bulbble(enterRoomJson: any): void {
@@ -1564,7 +1709,7 @@ export default class JdJoy implements Game {
         const limit = 12;
         const feedCountArray = [+feedGramsEnum.eighty, +feedGramsEnum.forty, +feedGramsEnum.twenty, +feedGramsEnum.ten];
 
-        let feedCount = 0;
+        let feedCount = 10;
         let petFood = document.getElementById('petFood');
 
         if (!!petFood && !!+petFood!.innerText) {

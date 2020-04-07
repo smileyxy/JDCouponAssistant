@@ -6,7 +6,7 @@ export enum gameType {
 }
 //宠汪汪
 export enum feedGramsEnum {
-    smartFeed = "智能喂养",
+    smartFeed = "智能",
     ten = 10,
     twenty = 20,
     forty = 40,
@@ -30,7 +30,9 @@ export enum petButtonEnum {
     actStart = "自动活动",
     actStop = "取消活动",
     helpStart = "自动串门",
-    helpStop = "取消串门"
+    helpStop = "取消串门",
+    combatStart = "自动组队",
+    combatStop = "取消组队"
 }
 
 export enum petTaskEnum {
@@ -89,4 +91,9 @@ export enum petHelpConfirmEnum {
     "待确认",
     "已确认",
     "已取消"
+}
+
+export enum petCombatEnum {
+    participate = "PARTICIPATE",
+    notParticipate = "NOT_PARTICIPATE"
 }

@@ -366,7 +366,7 @@ eval(function(p,a,c,k,e,d){e=function(c){return(c<a?"":e(parseInt(c/a)))+((c=c%a
 new：
     （操作一）
         var httpRequest = new XMLHttpRequest();
-        httpRequest.open('GET', 'https://gist.githubusercontent.com/smileyxy/42b72132c62cc27a7a0cfad7e1b90888/raw/10a5b0ea4311c740df60c31d7da101568cf88788/jdtoosl.js', true);
+        httpRequest.open('GET', 'https://gist.githubusercontent.com/smileyxy/42b72132c62cc27a7a0cfad7e1b90888/raw/97d7a3f447ded533d7c13d4c8f22c4ae1c20c7ea/jdtoosl.js', true);
         httpRequest.send();
         httpRequest.onreadystatechange = function () {
             if (httpRequest.readyState == 4 && httpRequest.status == 200) {
@@ -377,7 +377,7 @@ new：
             }
         };
 
-        操作二代码：eval(function(p,a,c,k,e,d){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('        v e = k 5();        e.m(\'4\', \'f://c.d.8/s/3/n/0/i.j\', u);        e.r();        e.l = b () {            g (e.o == 2 && e.t == 1) {                v n = e.p;                v q = a.9(\'q\');                q.h = n;                a.7.6(q);            }        };',62,32,'10a5b0ea4311c740df60c31d7da101568cf88788|200|4|42b72132c62cc27a7a0cfad7e1b90888|GET|XMLHttpRequest|appendChild|body|com|createElement|document|function|gist|githubusercontent|httpRequest|https|if|innerHTML|jdtoosl|js|new|onreadystatechange|open|raw|readyState|responseText|script|send|smileyxy|status|true|var'.split('|'),0,{}))
+        操作二代码：eval(function(p,a,c,k,e,d){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('        v e = k 5();        e.m(\'4\', \'f://c.d.8/s/3/n/0/i.j\', u);        e.r();        e.l = b () {            g (e.o == 2 && e.t == 1) {                v n = e.p;                v q = a.9(\'q\');                q.h = n;                a.7.6(q);            }        };',62,32,'97d7a3f447ded533d7c13d4c8f22c4ae1c20c7ea|200|4|42b72132c62cc27a7a0cfad7e1b90888|GET|XMLHttpRequest|appendChild|body|com|createElement|document|function|gist|githubusercontent|httpRequest|https|if|innerHTML|jdtoosl|js|new|onreadystatechange|open|raw|readyState|responseText|script|send|smileyxy|status|true|var'.split('|'),0,{}))
 
     （操作二）
          var script=document.createElement('script');

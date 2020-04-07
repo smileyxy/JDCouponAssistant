@@ -307,7 +307,7 @@ function buildSensorArea() {
     let sensorArea: HTMLDivElement = document.createElement("div");
     sensorArea.innerHTML = `<div style="border: 1px solid #000;margin: 10px 0;font-weight:bold;line-height: 1.6;"><h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>扩展功能区</h3>
     <p style="color:red;font-weight:bold;">使用本栏目功能前请查看教程</p>
-    <div><button style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;" onclick="Utils.copyText(Config.NetdiskURL)">下载教程</button>
+    <div style="margin: 10px auto 10px auto;display: flex;"><button style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;" onclick="Utils.copyText(Config.NetdiskURL)">下载教程</button>
     <button class="toggle" style="width: 120px;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;">展开栏目</button></div>
     <div class="sensorAreaTabDiv" style="display:none;border-top: 1px solid #000;"><ul class="list" style="display:flex;justify-content: space-around;list-style:none;margin: 10px;"><li class="account" style="padding: 4px;border: 2px solid rgb(255, 105, 180);border-radius: 10px;">帐号管理</li><li class="activity" style="padding: 4px;">日常辅助</li></ul>
     <hr style="margin: 10px;">
@@ -704,9 +704,10 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.4.9】：新增宠汪汪自动组队功能', 'color:#009a61');
         console.log('%c【0.4.8】：合并原作者更新内容；优化所有板块结果显示顺序；完善原作者所有样式及功能；完善宠汪汪邀请用户功能；新增宠汪汪智能喂养选项', 'color:#009a61');
         console.log('%c【0.4.7】：新增宠汪汪邀请用户功能性测试', 'color:#009a61');
-        console.log('%c【0.4.6】：自动活动首次触发修改为整点', 'color:#009a61');
+        //console.log('%c【0.4.6】：自动活动首次触发修改为整点', 'color:#009a61');
         //console.log('%c【0.4.5】：去除自动换豆及戳泡泡的测试性代码；优化自动换豆及戳泡泡功能', 'color:#009a61');
         //console.log('%c【0.4.4】：新增宠汪汪自动换豆功能性测试（自动使用积分换取当前等级区的京豆）', 'color:#009a61');
         //console.log('%c【0.4.3】：新增宠汪汪看激励视频任务；移除宠汪汪聚宝盆终极大奖活动；修改宠汪汪戳泡泡功能性测试', 'color:#009a61');
