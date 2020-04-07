@@ -1527,7 +1527,7 @@ export default class JdJoy implements Game {
             .then((res) => { return res.json() })
             .then(async (myCombatDetailJson) => {
                 if (myCombatDetailJson.success) {
-                    if (myCombatDetailJson.userStatus == petCombatEnum.notParticipate) {
+                    if (myCombatDetailJson.data.userStatus == petCombatEnum.notParticipate) {
                         if (combatValue == "-1") {
                             let friends = JSON.parse(JSON.stringify(allFriends)); //深拷贝
                             if (friends.length > 0) {
