@@ -1,6 +1,7 @@
 import Utils from "../utils/utils";
 import Config from "../config/config";
 import fj from "../utils/fetch-jsonp";
+import { consoleEnum } from "../enum/commonType";
 type goodsDetails = {
     skuid: string
     name: string
@@ -52,17 +53,32 @@ export default class Seckill {
         //});
     }
     send(): void {
-        Utils.outPutLog(this.outputTextarea, `秒杀请求已完成`);
         let param = (document.getElementById('seckillUrl') as HTMLInputElement).value;
-        fj.fetchJsonp(`https://wqdeal.jd.com/miao/confirm?req=${new Date().getTime().toString().substring(0, 10)}&${param}`)
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+        fetch(`https://marathon.jd.com/seckillnew/orderService/pc/submitOrder.action?skuId=100012043978`, {
+            method: "POST",
+            mode: "cors",
+            headers: myHeaders,
+            body: param,
+        })
             .then((response) => {
-                //Utils.outPutLog(this.outputTextarea, `秒杀请求已完成`)
-                //Utils.outPutLog(this.outputTextarea, `秒杀结果：${response.text()}`)
+                return response.text();
             })
-            //.then((result) => {
-            //    Utils.outPutLog(this.outputTextarea, `秒杀结果：${result}`);
-            //})
+            .then((result) => {
+                Utils.outPutLog(this.outputTextarea, `秒杀结果：${result}`);
+            })
             .catch(error => console.log('error', error));
+        //fj.fetchJsonp(`https://wqdeal.jd.com/miao/confirm?req=${new Date().getTime().toString().substring(0, 10)}&${param}`)
+        //    .then((response) => {
+        //        //Utils.outPutLog(this.outputTextarea, `秒杀请求已完成`)
+        //        //Utils.outPutLog(this.outputTextarea, `秒杀结果：${response.text()}`)
+        //    })
+        //    //.then((result) => {
+        //    //    Utils.outPutLog(this.outputTextarea, `秒杀结果：${result}`);
+        //    //})
+        //    .catch(error => console.log('error', error));
     }
 
     get() {

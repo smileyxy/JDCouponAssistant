@@ -503,7 +503,7 @@ function getEntryType(): couponType | activityType | goodsType | gameType {
     if (Config.locationHref.includes("item.jd.com/")) {
         type = goodsType.goods;
     }
-    if (Config.locationHref.includes("item.m.jd.com/product/")) {
+    if (Config.locationHref.includes("marathon.jd.com/")) {
         type = goodsType.seckill;
     }
 
@@ -572,8 +572,8 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
             goods = new Goods(container, outputTextArea, goodsId);
             break;
         case goodsType.seckill:
-            const seckillId = Config.locationHref.match(/m.jd.com\/(\S*).html/)![1];
-            seckill = new Seckill(container, outputTextArea, seckillId);
+            //const seckillId = Config.locationHref.match(/m.jd.com\/(\S*).html/)![1];
+            seckill = new Seckill(container, outputTextArea, "");
             break;
         case couponType.newBabelAwardCollection:
             const activityId = Config.locationHref.match(/active\/(\S*)\/index/)![1];
