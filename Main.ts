@@ -5,6 +5,7 @@ import Coupon from "./interface/Coupon";
 import Activity from "./interface/Activity";
 import Game from "./interface/Game";
 import Goods from "./goods/goods";
+import Seckill from "./goods/seckill";
 
 import Utils, { _$ } from "./utils/utils";
 import Config from "./config/config";
@@ -42,6 +43,7 @@ import { consoleEnum } from './enum/commonType';
 
 let coupon: Coupon,
     goods: Goods,
+    seckill: Seckill,
     game: Game,
     activity: Activity,
     gameMap: { [type: string]: Game } = {},
@@ -80,7 +82,7 @@ let getLoginMsg = function (res: any) {
 function buildOperate() {
     operateAreaDiv.setAttribute("style", "border: 1px solid #000;margin: 10px 0;line-height: 1.6;");
     operateAreaDiv.innerHTML = "<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>操作区</h3>";
-    if (coupon) {
+    if (coupon || seckill) {
         buildTimerControl();
     }
     loginMsgDiv.innerHTML = "当前京东帐号：<a href='https://plogin.m.jd.com/login/login' target='_blank'>点击登录</a>";
@@ -203,7 +205,7 @@ function buildTimerControl() {
 
     });
     receiveAllBtn.addEventListener("click", () => {
-        if (coupon) {
+        if (coupon || seckill) {
             coupon.send(outputTextArea);
         }
     });
@@ -498,8 +500,11 @@ function getEntryType(): couponType | activityType | goodsType | gameType {
         return type;
     }
 
-    if (Config.locationHref.includes("item.jd.com/") || Config.locationHref.includes("item.m.jd.com/product/")) {
+    if (Config.locationHref.includes("item.jd.com/")) {
         type = goodsType.goods;
+    }
+    if (Config.locationHref.includes("item.m.jd.com/product/")) {
+        type = goodsType.seckill;
     }
 
     if ((window as any).__react_data__) {
@@ -565,6 +570,10 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
         case goodsType.goods:
             const goodsId = Config.locationHref.match(/jd.com\/(\S*).html/)![1];
             goods = new Goods(container, outputTextArea, goodsId);
+            break;
+        case goodsType.seckill:
+            const seckillId = Config.locationHref.match(/m.jd.com\/(\S*).html/)![1];
+            seckill = new Seckill(container, outputTextArea, seckillId);
             break;
         case couponType.newBabelAwardCollection:
             const activityId = Config.locationHref.match(/active\/(\S*)\/index/)![1];
@@ -652,6 +661,10 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
         activity.get();
     } else if (goods) {
         goods.get();
+    }
+    else if (seckill) {
+        Config.intervalId = window.setInterval(getTime, Config.intervalSpan);
+        seckill.get();
     } else if (game) {
         //buildSensorArea();
         //buildOperate();
@@ -683,6 +696,16 @@ function getTime() {
                                 setTimeout(() => {
                                     Utils.outPutLog(outputTextArea, `第${index + 1}次提交！`);
                                     coupon.send(outputTextArea);
+                                }, index * Config.postSpan)
+                            })(i)
+                        }
+                    }
+                    else {
+                        for (let i = 0; i < Config.postCount; i++) {
+                            (function (index) {
+                                setTimeout(() => {
+                                    Utils.outPutLog(outputTextArea, `第${index + 1}次提交！`);
+                                    seckill.send();
                                 }, index * Config.postSpan)
                             })(i)
                         }

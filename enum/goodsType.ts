@@ -1,3 +1,4 @@
 export enum goodsType {
-    goods = "goods"
+    goods = "goods",
+    seckill = "seckill"
 }

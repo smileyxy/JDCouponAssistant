@@ -1527,6 +1527,24 @@ export default class JdJoy implements Game {
             .then((res) => { return res.json() })
             .then(async (myCombatDetailJson) => {
                 if (myCombatDetailJson.success) {
+                    if (myCombatDetailJson.data.hasHistoryReward) {
+                        const combatReceiveUrl = `https://jdjoy.jd.com/pet/combat/receive`;
+                        await fetch(combatReceiveUrl, { credentials: "include" })
+                            .then((res) => { return res.json() })
+                            .then((combatReceiveJson) => {
+                                if (combatReceiveJson.success) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatReceiveJson.currentTime).toLocaleString()} 成功领取组队奖励！`, false);
+                                }
+                                else {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatReceiveJson.currentTime).toLocaleString()} 已经领取过组队奖励或无奖励！`, false);
+                                }
+
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `【哎呀~领取组队奖励异常，请手动刷新或联系作者！】`, false);
+                            });
+                    }
                     if (myCombatDetailJson.data.userStatus == petCombatEnum.notParticipate) {
                         if (combatValue == "-1") {
                             let friends = JSON.parse(JSON.stringify(allFriends)); //深拷贝
@@ -1545,10 +1563,10 @@ export default class JdJoy implements Game {
                                                             .then(async (combatJoinJson) => {
                                                                 if (combatJoinJson.success) {
                                                                     isJoinCombat = false;
-                                                                    Utils.outPutLog(this.outputTextarea, `加入【${currentFriend.friendName}】战队成功！`, false);
+                                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${currentFriend.friendName}】战队成功！`, false);
                                                                 }
                                                                 else {
-                                                                    Utils.outPutLog(this.outputTextarea, `加入【${currentFriend.friendName}】战队失败！`, false);
+                                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${currentFriend.friendName}】战队失败！`, false);
                                                                 }
                                                             })
                                                             .catch((error) => {
@@ -1574,10 +1592,10 @@ export default class JdJoy implements Game {
                                 .then((res) => { return res.json() })
                                 .then(async (combatJoinJson) => {
                                     if (combatJoinJson.success) {
-                                        Utils.outPutLog(this.outputTextarea, `加入【${combatName}】战队成功！`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${combatName}】战队成功！`, false);
                                     }
                                     else {
-                                        Utils.outPutLog(this.outputTextarea, `【${combatName}】暂未加入任何战队或加入失败！`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 【${combatName}】暂未加入任何战队或加入失败！`, false);
                                     }
                                 })
                                 .catch((error) => {
