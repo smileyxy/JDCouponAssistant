@@ -26,7 +26,7 @@ let petPin = "",
     taskTiming = 0,
     taskSpan = 0,
     taskInterval = 0,
-    combatTiming = 0,
+    combatTiming = "",
     combatSpan = 0,
     combatInterval = 0,
     actSpan = 0,
@@ -45,7 +45,7 @@ const defaultBeanDetection: number = 3600000, //1小时
     defaultTaskDetection: number = 3600000, //1小时
     defaultActDetection: number = 3600000, //1小时
     defaultHelpDetection: number = 14400000, //4小时
-    defaultCombatTiming: string = '09:00',
+    defaultCombatTiming: string = '09:10',
     defaultCombatDetection: number = 3600000; //1小时
 
 export default class JdJoy implements Game {
@@ -171,11 +171,11 @@ export default class JdJoy implements Game {
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动任务</summary>
-                                    <p style="font-size: 12px;">根据所填项每天完成任务（除每日签到）；任务定时：默认${defaultTaskTiming}后；检测频率：默认${defaultTaskDetection / 3600000}小时。</p>
+                                    <p style="font-size: 12px;">根据所填项每天完成任务（除每日签到）；任务定时：默认${defaultTaskTiming}之后；检测频率：默认${defaultTaskDetection / 3600000}小时。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动组队</summary>
-                                    <p style="font-size: 12px;">随机好友：从你的汪汪好友中匹配优势战队自动加入（好友必须为队长）；指定好友：从下拉框中选择加入指定好友战队（好友必须已有战队）；任务定时：默认${defaultCombatTiming}后；检测频率：默认${defaultCombatDetection / 3600000}小时。</p>
+                                    <p style="font-size: 12px;">随机好友：从你的汪汪好友中匹配优势战队自动加入（好友必须为队长）；指定好友：从下拉框中选择加入指定好友战队（好友必须已有战队）；任务定时：默认${defaultCombatTiming}整；检测频率：默认${defaultCombatDetection / 3600000}小时。</p>
                                 </details> 
                             </div>
                         </div>`;
@@ -564,7 +564,7 @@ export default class JdJoy implements Game {
                 return false;
             }
 
-            combatTiming = +Utils.formateTime(combatTimingInput.value) || +Utils.formateTime(defaultCombatTiming);
+            combatTiming = combatTimingInput.value || defaultCombatTiming;
             combatSpan = ((+combatDetectionInput!.value * 3600000) || defaultCombatDetection);
 
             typeSelect.disabled = !typeSelect.disabled;
@@ -572,24 +572,46 @@ export default class JdJoy implements Game {
             combatDetectionInput.disabled = !combatDetectionInput.disabled;
 
             this.getJDTime().then((currentJDTime) => {
-                let currentJDDate = new Date(+currentJDTime);
+                let firstSpan = 0,
+                    combatTimeout = 0,
+                    isTimeOut = false;
+                let currentJDDate = new Date(+currentJDTime),
+                    timeSplit = combatTiming.split(':'),
+                    timingStamp = new Date(+currentJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
                 if (combatAuto.innerHTML == petButtonEnum.combatStart) {
                     combatAuto.innerHTML = petButtonEnum.combatStop;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动组队！`, false);
 
-                    this.combat(typeSelectOptions.text, typeSelectOptions.value);
-                    combatInterval = setInterval(() => {
-                        this.getJDTime().then((nowJDTime) => {
-                            let nowJDDate = new Date(+nowJDTime);
-                            if (+(nowJDDate.getHours().toString() + nowJDDate.getMinutes().toString()) >= combatTiming) {
-                                this.combat(typeSelectOptions.text, typeSelectOptions.value);
-                            }
-                        });
-                    }, combatSpan);
+                    if (currentJDDate.getTime() < timingStamp) {
+                        firstSpan = timingStamp - currentJDDate.getTime();
+                    }
+
+                    combatTimeout = setTimeout(() => {
+                        this.combat(typeSelectOptions.text, typeSelectOptions.value);
+                        combatInterval = setInterval(() => {
+                            this.getJDTime().then((nowJDTime) => {
+                                let nowJDDate = new Date(+nowJDTime);
+                                if (nowJDDate.getTime() >= timingStamp) {
+                                    clearTimeout(combatTimeout);
+                                    this.combat(typeSelectOptions.text, typeSelectOptions.value);
+                                }
+                                else {
+                                    if (!isTimeOut) {
+                                        isTimeOut = true;
+                                        combatTimeout = setTimeout(() => {
+                                            isTimeOut = false;
+                                            this.combat(typeSelectOptions.text, typeSelectOptions.value);
+                                        }, new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0) - nowJDDate.getTime());
+                                    }
+                                }
+                            });
+                        }, combatSpan);
+                    }, firstSpan);
                 }
                 else {
                     combatAuto.innerHTML = petButtonEnum.combatStart;
                     clearInterval(combatInterval);
+                    clearTimeout(combatTimeout);
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动组队！`, false);
                 }
             });
@@ -651,7 +673,7 @@ export default class JdJoy implements Game {
         //获取好友信息
         let currentPage = 1,
             pages = -1;
-        allFriends.splice(0); //清空好友
+        //allFriends.splice(0); //清空好友
         while (pages == -1 || currentPage <= pages) {
             const getFriendsUrl = `https://jdjoy.jd.com/pet/getFriends?itemsPerPage=20&currentPage=${currentPage}`;
             await fetch(getFriendsUrl, { credentials: "include" })
@@ -661,8 +683,10 @@ export default class JdJoy implements Game {
                         friendCount!.innerText = getFriendsJson.page.items;
                         pages = getFriendsJson.page.pages;
                         getFriendsJson.datas.forEach((item: any) => {
-                            allFriends.push(item);
-                            combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
+                            if (allFriends.length == 0 || !allFriends.some(friend => { return friend.friendPin === item.friendPin })) {
+                                allFriends.push(item);
+                                combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
+                            }
                         });
                         currentPage++;
                     }
@@ -1520,7 +1544,7 @@ export default class JdJoy implements Game {
     }
     //组队
     async combat(combatName: string, combatValue: string): Promise<void> {
-        let isJoinCombat = true;
+        let isJoinCombat = false;
         const limit = 50;
         const myCombatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail?help=false&reqSource=h5`
         await fetch(myCombatDetailUrl, { credentials: "include" })
@@ -1561,12 +1585,12 @@ export default class JdJoy implements Game {
                                                         await fetch(combatJoinUrl, { credentials: "include" })
                                                             .then((res) => { return res.json() })
                                                             .then(async (combatJoinJson) => {
-                                                                if (combatJoinJson.success) {
-                                                                    isJoinCombat = false;
+                                                                if (combatJoinJson.success && !combatJoinJson.errorCode) {
+                                                                    isJoinCombat = true;
                                                                     Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${currentFriend.friendName}】战队成功！`, false);
                                                                 }
                                                                 else {
-                                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${currentFriend.friendName}】战队失败！`, false);
+                                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${currentFriend.friendName}】战队失败或战队已满！`, false);
                                                                 }
                                                             })
                                                             .catch((error) => {
@@ -1581,7 +1605,7 @@ export default class JdJoy implements Game {
                                                 Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}的战队信息异常，请手动刷新或联系作者！】`, false);
                                             });
 
-                                        if (!isJoinCombat) break;
+                                        if (isJoinCombat) break;
                                     }
                                 }
                             }
