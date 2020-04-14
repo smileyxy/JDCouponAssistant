@@ -61,7 +61,8 @@ export enum petTaskErrorCodeEnum {
     followSuccess = "follow_success",
     followRepeat = "follow_repeat",
     followFail = "follow_fail",
-    followFull = "follow_full"
+    followFull = "follow_full",
+    helpFull = "help_full"
 }
 
 export enum petActEnum {

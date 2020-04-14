@@ -1687,7 +1687,7 @@ export default class JdJoy implements Game {
                 if (!!getOtherUserJson.results && getOtherUserJson.results.length > 0) {
                     getOtherUserJson.results.forEach(async (item: any) => {
                         if (item.helpStatus && !item.isBlock) {
-                            const enterRoomUrl = `https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=${item.pin}&inviteSource=task_invite&shareSource=h5`;
+                            const enterRoomUrl = `https://jdjoy.jd.com/pet/enterRoom?reqSource=weapp&invitePin=${item.pin}&inviteSource=task_invite&shareSource=h5&inviteTimeStamp=${await (await this.getJDTime()).toString()}&openId=`;
                             await fetch(enterRoomUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then(async (enterRoomJson) => {
@@ -1697,12 +1697,11 @@ export default class JdJoy implements Game {
                                             await fetch(helpFriendUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
                                                 .then(async (helpFriendJson) => {
-                                                    if (helpFriendJson.success) {
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+currentTime).toLocaleString()} 帮助【${enterRoomJson.data.needHelpUserNickName || enterRoomJson.data.pin}】助力成功！`, false);
+                                                    if (helpFriendJson.success && helpFriendJson.errorCode != petTaskErrorCodeEnum.helpFull) {
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+currentTime).toLocaleString()} 帮助【${enterRoomJson.data.needHelpUserNickName || item.pin}】助力成功！`, false);
                                                     }
                                                     else {
-                                                        Utils.debugInfo(consoleEnum.log, helpFriendJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【助力请求失败，请手动刷新或联系作者！】`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `【${enterRoomJson.data.needHelpUserNickName || enterRoomJson.data.pin}】重复助力或助力失败`, false);
                                                     }
                                                     //记录明细
                                                     let postData = `{ "pin": { "__type": "Pointer", "className": "UserInfo", "objectId": "${item.objectId}" }, "help_pin": "${item.pin}", "help_status": "${helpFriendJson.errorCode}", "remark": "${helpFriendJson.errorMessage ?? ""}", "ip_address": "${await (await this.getIpAddress()).toString()}" }`;
