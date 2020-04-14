@@ -683,12 +683,14 @@ export default class JdJoy implements Game {
                     if (getFriendsJson.success) {
                         friendCount!.innerText = getFriendsJson.page.items;
                         pages = getFriendsJson.page.pages;
-                        getFriendsJson.datas.forEach((item: any) => {
-                            if (allFriends.length == 0 || !allFriends.some(friend => { return friend.friendPin === item.friendPin })) {
-                                allFriends.push(item);
-                                combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
-                            }
-                        });
+                        if (allFriends.length > 0) {
+                            getFriendsJson.datas.forEach((item: any) => {
+                                if (!allFriends.some(friend => { return friend.friendPin === item.friendPin })) {
+                                    allFriends.push(item);
+                                    combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
+                                }
+                            });
+                        }
                         currentPage++;
                     }
                     else {
