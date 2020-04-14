@@ -1692,13 +1692,13 @@ export default class JdJoy implements Game {
                                 .then((res) => { return res.json() })
                                 .then(async (enterRoomJson) => {
                                     if (enterRoomJson.success) {
-                                        if (enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.canHelp) {
+                                        if (enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.canHelp || enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.cardExpire) {
                                             const helpFriendUrl = `https://jdjoy.jd.com/pet/helpFriend?friendPin=${item.pin}`;
                                             await fetch(helpFriendUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
                                                 .then(async (helpFriendJson) => {
                                                     if (helpFriendJson.success) {
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+currentTime).toLocaleString()} 帮助【${enterRoomJson.data.needHelpUserNickName}】助力成功！`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+currentTime).toLocaleString()} 帮助【${enterRoomJson.data.needHelpUserNickName || enterRoomJson.data.pin}】助力成功！`, false);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, helpFriendJson);

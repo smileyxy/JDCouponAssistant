@@ -51,7 +51,8 @@ export enum petTaskReceiveStatusEnum {
     chanceLeft = "chance_left",
     chanceFull = "chance_full",
     canHelp = "can_help",
-    cannotHelp = "cannot_help"
+    cannotHelp = "cannot_help",
+    cardExpire = "card_expire"
 }
 
 export enum petTaskErrorCodeEnum {
