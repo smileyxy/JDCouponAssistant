@@ -590,8 +590,9 @@ export default class JdJoy implements Game {
                         this.combat(typeSelectOptions.text, typeSelectOptions.value);
                         combatInterval = setInterval(() => {
                             this.getJDTime().then((nowJDTime) => {
-                                let nowJDDate = new Date(+nowJDTime);
-                                if (nowJDDate.getTime() >= timingStamp) {
+                                let nowJDDate = new Date(+nowJDTime),
+                                    nowTimingStamp = new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                                if (nowJDDate.getTime() >= nowTimingStamp) {
                                     clearTimeout(combatTimeout);
                                     this.combat(typeSelectOptions.text, typeSelectOptions.value);
                                 }
@@ -601,7 +602,7 @@ export default class JdJoy implements Game {
                                         combatTimeout = setTimeout(() => {
                                             isTimeOut = false;
                                             this.combat(typeSelectOptions.text, typeSelectOptions.value);
-                                        }, new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0) - nowJDDate.getTime());
+                                        }, nowTimingStamp - nowJDDate.getTime());
                                     }
                                 }
                             });
