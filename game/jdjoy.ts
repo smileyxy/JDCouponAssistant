@@ -305,7 +305,7 @@ export default class JdJoy implements Game {
             favCommDel.style.backgroundColor = "darkgray";
 
             const limit = 10;
-            const pageSize = 1000;
+            const pageSize = 500;
             let commIdArray: any[] = [];
             new Promise(async (resolve, reject) => {
                 const favCommQueryFilterUrl = `https://wq.jd.com/fav/comm/FavCommQueryFilter?cp=1&pageSize=${pageSize}&_=${await (await this.getJDTime()).toString()}&sceneval=2&g_login_type=1&g_ty=ls`;
@@ -345,7 +345,7 @@ export default class JdJoy implements Game {
 
                 (favCommDel as HTMLButtonElement).disabled = false;
                 favCommDel.style.backgroundColor = "#2196F3";
-                Utils.outPutLog(this.outputTextarea, `已完成取消关注商品（每次最多取消1000个）！`, false);
+                Utils.outPutLog(this.outputTextarea, `已完成取消关注商品（每次最多取消${pageSize}个）！`, false);
                 resolve(true);
             });
         });
