@@ -1,3 +1,4 @@
+import fj from "../utils/fetch-jsonp";
 import Game from "../interface/Game";
 import Utils, { _$ } from "../utils/utils";
 import Config from "../config/config";
@@ -139,6 +140,10 @@ export default class JdJoy implements Game {
                             <div style="margin: 10px auto 10px auto;display: flex;">
                                 <button class="refresh" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">手动刷新</button>
                                 <button class="autoBean" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">自动换豆</button>
+                            </div>
+                            <div style="margin: 10px auto 10px auto;display: flex;">
+                                <button class="favCommDel" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">取消关注商品</button>
+                                <button class="favShopDel" style="width: 120px;height:30px;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px auto;display:block;font-size: 14px;line-height: 0;">取消关注店铺</button>
                             </div>
                         </div>`;
         petContent.innerHTML = petInfo;
@@ -293,6 +298,108 @@ export default class JdJoy implements Game {
     }
 
     list(): void {
+        //取消商品关注
+        const favCommDel = _$('.favCommDel');
+        favCommDel!.addEventListener('click', async () => {
+            (favCommDel as HTMLButtonElement).disabled = true;
+            favCommDel.style.backgroundColor = "darkgray";
+
+            const limit = 10;
+            const pageSize = 1000;
+            let commIdArray: any[] = [];
+            new Promise(async (resolve, reject) => {
+                const favCommQueryFilterUrl = `https://wq.jd.com/fav/comm/FavCommQueryFilter?cp=1&pageSize=${pageSize}&_=${await (await this.getJDTime()).toString()}&sceneval=2&g_login_type=1&g_ty=ls`;
+                await fj.fetchJsonp(favCommQueryFilterUrl, { timeout: 10000, jsonpCallbackFunction: "jsonpCBKPP" })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then((res) => {
+                        if (!res.errMsg || res.errMsg == "success") {
+                            commIdArray = res.data.map((item: any) => { return item.commId; });
+                        }
+                        else {
+                            Utils.outPutLog(this.outputTextarea, `【查询关注商品失败，请刷新后重新尝试或联系作者！】`, false);
+                        }
+                    }).catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `【哎呀~查询关注商品异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
+
+                let forCount = commIdArray.length / limit;
+                for (let i = 0; i < forCount; i++) {
+                    let commIds = commIdArray.slice(i * limit, i * limit + limit + 1).join();
+                    const favCommBatchDelUrl = `https://wq.jd.com/fav/comm/FavCommBatchDel?commId=${commIds}&sceneval=2&g_login_type=1&g_ty=ls`;
+                    await fj.fetchJsonp(favCommBatchDelUrl, { timeout: 10000, jsonpCallbackFunction: "jsonpCBKT" })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then((res) => {
+                            //if (!!res.errMsg && res.errMsg != "success") {
+                            //    Utils.outPutLog(this.outputTextarea, `【取消关注商品失败，请刷新后重新尝试或联系作者！】`, false);
+                            //}
+                        }).catch((error) => {
+                            //Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            //Utils.outPutLog(this.outputTextarea, `【哎呀~取消关注商品异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }
+
+                (favCommDel as HTMLButtonElement).disabled = false;
+                favCommDel.style.backgroundColor = "#2196F3";
+                Utils.outPutLog(this.outputTextarea, `已完成取消关注商品（每次最多取消1000个）！`, false);
+                resolve(true);
+            });
+        });
+        //取消店铺关注
+        const favShopDel = _$('.favShopDel');
+        favShopDel!.addEventListener('click', async () => {
+            (favShopDel as HTMLButtonElement).disabled = true;
+            favShopDel.style.backgroundColor = "darkgray";
+
+            const limit = 10;
+            const pageSize = 1000;
+            let shopIdArray: any[] = [];
+            new Promise(async (resolve, reject) => {
+                const queryShopFavListUrl = `https://wq.jd.com/fav/shop/QueryShopFavList?cp=1&pageSize=${pageSize}&lastlogintime=0&_=${await (await this.getJDTime()).toString()}&sceneval=2&g_login_type=1&g_ty=ls`;
+                await fj.fetchJsonp(queryShopFavListUrl, { timeout: 10000, jsonpCallbackFunction: "jsonpCBKA" })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then((res) => {
+                        if (!res.errMsg || res.errMsg == "success") {
+                            shopIdArray = res.data.map((item: any) => { return item.shopId; });
+                        }
+                        else {
+                            Utils.outPutLog(this.outputTextarea, `【查询关注店铺失败，请刷新后重新尝试或联系作者！】`, false);
+                        }
+                    }).catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `【哎呀~查询关注店铺异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
+
+                let forCount = shopIdArray.length / limit;
+                for (let i = 0; i < forCount; i++) {
+                    let shopIds = shopIdArray.slice(i * limit, i * limit + limit + 1).join();
+                    const batchunFollowUrl = `https://wq.jd.com/fav/shop/batchunfollow?shopId=${shopIds}&_=${await (await this.getJDTime()).toString()}&sceneval=2&g_login_type=1&g_ty=ls`;
+                    await fj.fetchJsonp(batchunFollowUrl, { timeout: 10000, jsonpCallbackFunction: "jsonpCBKJ" })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then((res) => {
+                            //if (!!res.errMsg && res.errMsg != "success") {
+                            //    Utils.outPutLog(this.outputTextarea, `【取消关注店铺失败，请刷新后重新尝试或联系作者！】`, false);
+                            //}
+                        }).catch((error) => {
+                            //Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            //Utils.outPutLog(this.outputTextarea, `【哎呀~取消关注店铺异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }
+
+                (favShopDel as HTMLButtonElement).disabled = false;
+                favShopDel.style.backgroundColor = "#2196F3";
+                Utils.outPutLog(this.outputTextarea, `已完成取消关注店铺（每次最多取消1000个）！`, false);
+                resolve(true);
+            });
+        });
         //手动刷新
         const refresh = _$('.refresh');
         refresh!.addEventListener('click', () => {
