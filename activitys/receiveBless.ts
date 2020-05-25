@@ -13,6 +13,7 @@ export default class ReceiveBless implements Activity {
     shareLink: string = "";
     shareData: Array<string> = [];
     shareListDiv: HTMLDivElement;
+    content: HTMLDivElement;
     constructor(params: any, containerDiv: HTMLDivElement, outputTextarea: HTMLTextAreaElement) {
         this.params = params;
         this.container = containerDiv;
@@ -21,6 +22,7 @@ export default class ReceiveBless implements Activity {
         this.shareListDiv = document.createElement("div");
         this.shareListDiv.setAttribute("style", "margin:10px; border:1px solid #000;font-size: 14px;");
         this.shareListDiv.setAttribute("class", "shareList");
+        this.content = document.createElement("div");
     }
     get(): void {
         fetch("https://api.m.jd.com/client.action?functionId=getDefaultTpl&body={%22templateId%22:1001}&appid=content_ecology&clientVersion=1.0.0&client=wh5", { credentials: "include" })

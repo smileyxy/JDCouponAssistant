@@ -6,10 +6,12 @@ export default class BrandCitySpring implements Activity {
     params: any;
     container: HTMLDivElement;
     outputTextarea: HTMLTextAreaElement;
+    content: HTMLDivElement;
     constructor(params: any, containerDiv: HTMLDivElement, outputTextarea: HTMLTextAreaElement) {
         this.params = params;
         this.container = containerDiv;
         this.outputTextarea = outputTextarea;
+        this.content = document.createElement("div");
     }
     get(): void {
         this.list();

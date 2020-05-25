@@ -11,11 +11,13 @@ export default class MonsterNian implements Activity {
     params: any;
     taskToken: string = "";
     outputTextarea: HTMLTextAreaElement;
+    content: HTMLDivElement;
     constructor(params: any, containerDiv: HTMLDivElement, outputTextarea: HTMLTextAreaElement) {
         this.params = params;
         this.container = containerDiv;
         this.outputTextarea = outputTextarea;
         this.outputTextarea.value = `当你看到这行文字时，说明你还没有配置好浏览器UA或者还没有登录京东帐号！`;
+        this.content = document.createElement("div");
     }
     get(): void {
         var postData = "functionId=bombnian_getTaskDetail&body={}&client=wh5&clientVersion=1.0.0";

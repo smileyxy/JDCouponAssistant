@@ -10,10 +10,12 @@ export default class Palace implements Activity {
     outputTextarea: HTMLTextAreaElement;
     taskType: string = "BROWSE_PRODUCT";
     taskCnt: number = 5;
+    content: HTMLDivElement;
     constructor(params: any, containerDiv: HTMLDivElement, outputTextarea: HTMLTextAreaElement) {
         this.params = params;
         this.container = containerDiv;
         this.outputTextarea = outputTextarea;
+        this.content = document.createElement("div");
     }
     get(): void {
         fetch("https://api.m.jd.com/?functionId=pokerTaskList&body={}&client=megatron&clientVersion=1.0.0", { credentials: "include" })
