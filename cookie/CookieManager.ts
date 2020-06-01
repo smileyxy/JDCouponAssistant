@@ -1,7 +1,7 @@
 import Utils from "../utils/utils";
 import Config from "../config/config";
 import fj from "../utils/fetch-jsonp";
-import  { CookieHandler,CookieType } from "./CookieHandler";
+import { CookieHandler, CookieType } from "./CookieHandler";
 
 
 export default class CookieManager {
@@ -32,7 +32,7 @@ export default class CookieManager {
                 mark: result[0],
                 ck: result[1],
                 index: index,
-                favoriteFood:"南瓜"
+                favoriteFood: "南瓜"
             });
         })
         return o;

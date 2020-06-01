@@ -3,17 +3,31 @@ import Activity from "../interface/Activity";
 import Utils, { _$ } from "../utils/utils";
 import Config from "../config/config";
 import { consoleEnum } from '../enum/commonType';
+import { CookieType, CookieHandler } from "../cookie/CookieHandler";
+import CookieManager from "../cookie/CookieManager";
 import {
+    activityType,
     cakeBakerTaskEnum,
-    cakeBakerButtonEnum
+    cakeBakerButtonEnum,
+    carnivalCityTaskEnum,
+    carnivalCityButtonEnum
 } from '../enum/activityType';
 
 let cakeBakerTiming = "",
     cakeBakerSpan = 0,
-    cakeBakerInterval = 0;
-let cakeBakerTimeoutArray: any[] = [];
-const defaultCakeBakerTiming: string = '06:00',
-    defaultCakeBakerDetection: number = 3600000; //1小时
+    cakeBakerInterval = 0,
+    carnivalCityTiming = "",
+    carnivalCitySpan = 0,
+    carnivalCityInterval = 0;
+let cakeBakerTimeoutArray: any[] = [],
+    carnivalCityTimeoutArray: any[] = [];
+let taskTimeout = 0,
+    carnivalCityTimeOut = 0;
+const defaultCakeBakerTiming: string = '01:00',
+    defaultCakeBakerDetection: number = 3600000, //1小时
+    defaultCarnivalCityTiming: string = '02:00',
+    defaultCarnivalCityDetection: number = 3600000, //1小时
+    defaultMultiPollingDetection: number = 1800000; //30分钟
 
 export default class jdCollectionAct implements Activity {
     rootURI: string = "https://api.m.jd.com/client.action?functionId=";
@@ -42,32 +56,15 @@ export default class jdCollectionAct implements Activity {
 
     page(): void {
         //使用帮助
-        const helpContent = document.createElement("div");
-        helpContent.id = 'usingHelp';
-        let helpInfo = `
-                        <div style="border-top: 1px solid #000;font-weight:bold;line-height: 1.6;">
-                            <div>
-                                <h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>使用帮助</h3>
-                            </div>
-                            <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px 10px 10px;">
-                                <details>
-                                    <summary style="outline: 0;">自动蛋糕</summary>
-                                    <p style="font-size: 12px;">根据所填项每天完成叠蛋糕任务；任务定时：默认${defaultCakeBakerTiming}之后；检测频率：默认${defaultCakeBakerDetection / 3600000}小时。</p>
-                                </details>
-                            </div>
-                        </div>`;
-        helpContent.innerHTML = helpInfo;
-        this.content.appendChild(helpContent);
-        //功能按键
-        const btnContent = document.createElement("div");
-        btnContent.id = 'functionButton';
-        let btnInfo = `
-                        <div style="border-top: 1px solid #000;font-weight:bold;line-height: 1.6;">
-                            <div>
-                                <h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>功能按键</h3>
-                            </div>
-                            <table style="font-size: 12px;padding-left: 4px;margin-bottom: 10px;">
-                                <tr> 
+        let helpInfoDetail = '';
+        let btnInfoDetail = '';
+        switch (this.params.switchType) {
+            case activityType.cakeBaker:
+                helpInfoDetail = `<details>
+                                      <summary style="outline: 0;">自动蛋糕</summary>
+                                      <p style="font-size: 12px;">根据所填项每天完成叠蛋糕任务；任务定时：默认${defaultCakeBakerTiming}之后；检测频率：默认${defaultCakeBakerDetection / 3600000}小时。</p>
+                                  </details>`;
+                btnInfoDetail = `<tr> 
                                     <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
                                         <div style="width: 24vw;">
                                             <select id="cakeBakerType" style="width: 23.5vw;">
@@ -85,6 +82,7 @@ export default class jdCollectionAct implements Activity {
                                                 <option value="${cakeBakerTaskEnum.逛品牌庆生}">逛品牌庆生</option>
                                                 <option value="${cakeBakerTaskEnum.逛校园会场}">逛校园会场</option>
                                                 <option value="${cakeBakerTaskEnum.加购商品}">加购商品</option>
+                                                <option value="${cakeBakerTaskEnum.AR吃蛋糕}">AR吃蛋糕</option>
                                                 <option value="${cakeBakerTaskEnum.逛店铺}">逛店铺</option>
                                             </select>
                                         </div>
@@ -96,7 +94,60 @@ export default class jdCollectionAct implements Activity {
                                     <td style="width: 50vw;text-align: -webkit-left;">
                                         <button class="cakeBakerAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动蛋糕</button>
                                     </td>
-                                </tr>
+                                </tr>`;
+            //    break;
+            //case activityType.carnivalCity:
+                helpInfoDetail += `<details>
+                                    <summary style="outline: 0;">自动狂欢</summary>
+                                    <p style="font-size: 12px;">根据所填项每天完成品牌狂欢城任务；任务定时：默认${defaultCarnivalCityTiming}之后；检测频率：默认${defaultCarnivalCityDetection / 3600000}小时。</p>
+                                </details>`;
+                btnInfoDetail += `<tr> 
+                                    <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
+                                        <div style="width: 24vw;">
+                                            <select id="carnivalCityType" style="width: 23.5vw;">
+                                                <option value="${carnivalCityTaskEnum.全部}" selected="selected">全部</option>
+                                                <option value="${carnivalCityTaskEnum.今日主推}">今日主推</option>
+                                                <option value="${carnivalCityTaskEnum.今日大牌}">今日大牌</option>
+                                                <option value="${carnivalCityTaskEnum.今日精选}">今日精选</option>
+                                                <option value="${carnivalCityTaskEnum.热卖单品}">热卖单品</option>
+                                                <option value="${carnivalCityTaskEnum.精选会场}">精选会场</option>
+                                                <option value="${carnivalCityTaskEnum.探索物种}">探索物种</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td style="width: 230vw;text-align: -webkit-left">
+                                        <input id="carnivalCityTiming" type="time" value="${defaultCarnivalCityTiming}" style="width:23.5vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;">
+                                        <input id="carnivalCityDetection" style="width:12.8vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "检测频率">
+                                    </td>
+                                    <td style="width: 50vw;text-align: -webkit-left;">
+                                        <button class="carnivalCityAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动狂欢</button>
+                                    </td>
+                                </tr>`;
+                break;
+        }
+        const helpContent = document.createElement("div");
+        helpContent.id = 'usingHelp';
+        let helpInfo = `
+                        <div style="border-top: 1px solid #000;font-weight:bold;line-height: 1.6;">
+                            <div>
+                                <h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>使用帮助</h3>
+                            </div>
+                            <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px 10px 10px;">
+                                ${helpInfoDetail}
+                            </div>
+                        </div>`;
+        helpContent.innerHTML = helpInfo;
+        this.content.appendChild(helpContent);
+        //功能按键
+        const btnContent = document.createElement("div");
+        btnContent.id = 'functionButton';
+        let btnInfo = `
+                        <div style="border-top: 1px solid #000;font-weight:bold;line-height: 1.6;">
+                            <div>
+                                <h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>功能按键</h3>
+                            </div>
+                            <table style="font-size: 12px;padding-left: 4px;margin-bottom: 10px;">
+                                ${btnInfoDetail}
                             </table>
                         </div>`;
         btnContent.innerHTML = btnInfo;
@@ -107,7 +158,7 @@ export default class jdCollectionAct implements Activity {
     list(): void {
         //自动蛋糕
         let cakeBakerAuto = _$('.cakeBakerAuto') as HTMLButtonElement;
-        cakeBakerAuto!.addEventListener('click', () => {
+        cakeBakerAuto?.addEventListener('click', () => {
             //验证蛋糕任务类型
             let typeSelect = document.getElementById('cakeBakerType') as HTMLSelectElement,
                 typeSelectOptions = typeSelect.options[typeSelect.selectedIndex];
@@ -130,7 +181,13 @@ export default class jdCollectionAct implements Activity {
             }
 
             cakeBakerTiming = cakeBakerTimingInput.value || defaultCakeBakerTiming;
-            cakeBakerSpan = ((+cakeBakerDetectionInput!.value * 3600000) || defaultCakeBakerDetection);
+
+            if (Config.multiFlag) {
+                cakeBakerSpan = ((+cakeBakerDetectionInput!.value * 3600000) || defaultCakeBakerDetection) + (defaultMultiPollingDetection * CookieManager.cookieArr.length);
+            }
+            else {
+                cakeBakerSpan = ((+cakeBakerDetectionInput!.value * 3600000) || defaultCakeBakerDetection);
+            }
 
             typeSelect.disabled = !typeSelect.disabled;
             cakeBakerTimingInput.disabled = !cakeBakerTimingInput.disabled;
@@ -152,21 +209,51 @@ export default class jdCollectionAct implements Activity {
                     }
 
                     cakeBakerTimeout = setTimeout(() => {
-                        this.cakeBaker(typeSelectOptions.value);
+                        if (Config.multiFlag) {
+                            CookieManager.cookieArr.map((item: CookieType) => {
+                                setTimeout(() => {
+                                    CookieHandler.coverCookie(item);
+                                    this.cakeBaker(typeSelectOptions.value, item);
+                                }, item.index * defaultMultiPollingDetection);
+                            });
+                        }
+                        else {
+                            this.cakeBaker(typeSelectOptions.value);
+                        }
                         cakeBakerInterval = setInterval(() => {
                             this.getJDTime().then((nowJDTime) => {
                                 let nowJDDate = new Date(+nowJDTime),
                                     nowTimingStamp = new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
                                 if (nowJDDate.getTime() >= nowTimingStamp) {
                                     clearTimeout(cakeBakerTimeout);
-                                    this.cakeBaker(typeSelectOptions.value);
+                                    if (Config.multiFlag) {
+                                        CookieManager.cookieArr.map((item: CookieType) => {
+                                            setTimeout(() => {
+                                                CookieHandler.coverCookie(item);
+                                                this.cakeBaker(typeSelectOptions.value, item);
+                                            }, item.index * defaultMultiPollingDetection);
+                                        });
+                                    }
+                                    else {
+                                        this.cakeBaker(typeSelectOptions.value);
+                                    }
                                 }
                                 else {
                                     if (!isTimeOut) {
                                         isTimeOut = true;
                                         cakeBakerTimeout = setTimeout(() => {
                                             isTimeOut = false;
-                                            this.cakeBaker(typeSelectOptions.value);
+                                            if (Config.multiFlag) {
+                                                CookieManager.cookieArr.map((item: CookieType) => {
+                                                    setTimeout(() => {
+                                                        CookieHandler.coverCookie(item);
+                                                        this.cakeBaker(typeSelectOptions.value, item);
+                                                    }, item.index * defaultMultiPollingDetection);
+                                                });
+                                            }
+                                            else {
+                                                this.cakeBaker(typeSelectOptions.value);
+                                            }
                                         }, nowTimingStamp - nowJDDate.getTime());
                                     }
                                 }
@@ -183,11 +270,126 @@ export default class jdCollectionAct implements Activity {
                 }
             });
         });
+        //自动狂欢
+        let carnivalCityAuto = _$('.carnivalCityAuto') as HTMLButtonElement;
+        carnivalCityAuto?.addEventListener('click', () => {
+            //验证狂欢任务类型
+            let typeSelect = document.getElementById('carnivalCityType') as HTMLSelectElement,
+                typeSelectOptions = typeSelect.options[typeSelect.selectedIndex];
+            if (!typeSelectOptions || !typeSelectOptions.value) {
+                alert("请选择任务类型！");
+                return false;
+            }
+            //验证狂欢任务定时
+            let carnivalCityTimingInput = document.getElementById('carnivalCityTiming') as HTMLInputElement;
+            if (!carnivalCityTimingInput.value) {
+                alert("请输入正确的任务定时格式！");
+                return false;
+            }
+            //验证狂欢任务检测频率
+            const reg = /^[1-9]\d*$/;
+            let carnivalCityDetectionInput = document.getElementById('carnivalCityDetection') as HTMLInputElement;
+            if (!!carnivalCityDetectionInput.value && !reg.test(carnivalCityDetectionInput.value)) {
+                alert("请检查组队检测频率是否为正整数！");
+                return false;
+            }
+
+            carnivalCityTiming = carnivalCityTimingInput.value || defaultCarnivalCityTiming;
+
+            if (Config.multiFlag) {
+                carnivalCitySpan = ((+carnivalCityDetectionInput!.value * 3600000) || defaultCarnivalCityDetection) + (defaultMultiPollingDetection * CookieManager.cookieArr.length);
+            }
+            else {
+                carnivalCitySpan = ((+carnivalCityDetectionInput!.value * 3600000) || defaultCarnivalCityDetection);
+            }
+
+            typeSelect.disabled = !typeSelect.disabled;
+            carnivalCityTimingInput.disabled = !carnivalCityTimingInput.disabled;
+            carnivalCityDetectionInput.disabled = !carnivalCityDetectionInput.disabled;
+
+            this.getJDTime().then((currentJDTime) => {
+                let firstSpan = 0,
+                    carnivalCityTimeout = 0,
+                    isTimeOut = false;
+                let currentJDDate = new Date(+currentJDTime),
+                    timeSplit = carnivalCityTiming.split(':'),
+                    timingStamp = new Date(+currentJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                if (carnivalCityAuto.innerHTML == carnivalCityButtonEnum.carnivalCityStart) {
+                    carnivalCityAuto.innerHTML = carnivalCityButtonEnum.carnivalCityStop;
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动狂欢！`, false);
+
+                    if (currentJDDate.getTime() < timingStamp) {
+                        firstSpan = timingStamp - currentJDDate.getTime();
+                    }
+
+                    carnivalCityTimeout = setTimeout(() => {
+                        if (Config.multiFlag) {
+                            CookieManager.cookieArr.map((item: CookieType) => {
+                                setTimeout(() => {
+                                    CookieHandler.coverCookie(item);
+                                    this.carnivalCity(typeSelectOptions.value, item);
+                                }, item.index * defaultMultiPollingDetection);
+                            });
+                        }
+                        else {
+                            this.carnivalCity(typeSelectOptions.value);
+                        }
+                        carnivalCityInterval = setInterval(() => {
+                            this.getJDTime().then((nowJDTime) => {
+                                let nowJDDate = new Date(+nowJDTime),
+                                    nowTimingStamp = new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                                if (nowJDDate.getTime() >= nowTimingStamp) {
+                                    clearTimeout(carnivalCityTimeout);
+                                    if (Config.multiFlag) {
+                                        CookieManager.cookieArr.map((item: CookieType) => {
+                                            setTimeout(() => {
+                                                CookieHandler.coverCookie(item);
+                                                this.carnivalCity(typeSelectOptions.value, item);
+                                            }, item.index * defaultMultiPollingDetection);
+                                        });
+                                    }
+                                    else {
+                                        this.carnivalCity(typeSelectOptions.value);
+                                    }
+                                }
+                                else {
+                                    if (!isTimeOut) {
+                                        isTimeOut = true;
+                                        carnivalCityTimeout = setTimeout(() => {
+                                            isTimeOut = false;
+                                            if (Config.multiFlag) {
+                                                CookieManager.cookieArr.map((item: CookieType) => {
+                                                    setTimeout(() => {
+                                                        CookieHandler.coverCookie(item);
+                                                        this.carnivalCity(typeSelectOptions.value, item);
+                                                    }, item.index * defaultMultiPollingDetection);
+                                                });
+                                            }
+                                            else {
+                                                this.carnivalCity(typeSelectOptions.value);
+                                            }
+                                        }, nowTimingStamp - nowJDDate.getTime());
+                                    }
+                                }
+                            });
+                        }, carnivalCitySpan);
+                    }, firstSpan);
+                }
+                else {
+                    carnivalCityAuto.innerHTML = carnivalCityButtonEnum.carnivalCityStart;
+                    clearInterval(carnivalCityInterval);
+                    clearTimeout(carnivalCityTimeout);
+                    carnivalCityTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动狂欢！`, false);
+                }
+            });
+        });
     }
     //叠蛋糕任务
-    async cakeBaker(taskType: any) {
-        let taskTimeout = 0,
-            submitTimeout = 0;
+    async cakeBaker(taskType: any, ckObj?: CookieType) {
+        taskTimeout = 0;
+
+        let submitTimeout = 0;
         let secretp = '',
             needLevel = false;
         let getTaskDetailJson: any,
@@ -204,7 +406,9 @@ export default class jdCollectionAct implements Activity {
             shoppingBrandBirthday: any,
             shoppingCampusVenue: any,
             addProduct: any,
+            arEatCake: any,
             browseShop: any;
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
         //蛋糕首页信息
         await fetch(`${this.rootURI}cakebaker_getHomeData&client=wh5&clientVersion=1.0.0`, {
             method: "POST",
@@ -222,7 +426,7 @@ export default class jdCollectionAct implements Activity {
                 }
                 else {
                     Utils.debugInfo(consoleEnum.log, cakebakergetHomeDataJson);
-                    Utils.outPutLog(this.outputTextarea, `【获取蛋糕首页信息失败，请手动刷新或联系作者！】`, false);
+                    Utils.outPutLog(this.outputTextarea, `${nick}【获取蛋糕首页信息失败，请手动刷新或联系作者！】`, false);
                 }
             })
             .catch((error) => {
@@ -244,7 +448,7 @@ export default class jdCollectionAct implements Activity {
             .then(function (res) { return res.json(); })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~获取蛋糕任务信息1异常，请刷新后重新尝试或联系作者！】`, false);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取蛋糕任务信息1异常，请刷新后重新尝试或联系作者！】`, false);
             });
         //蛋糕任务信息2
         getFeedDetailJson = await fetch(`${this.rootURI}cakebaker_getFeedDetail`, {
@@ -259,7 +463,7 @@ export default class jdCollectionAct implements Activity {
             .then(function (res) { return res.json(); })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~获取蛋糕任务信息2异常，请刷新后重新尝试或联系作者！】`, false);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取蛋糕任务信息2异常，请刷新后重新尝试或联系作者！】`, false);
             });
         //任务分组1
         if ((getTaskDetailJson.code == 0 || getTaskDetailJson.msg == "调用成功") && getTaskDetailJson.data.success) {
@@ -301,12 +505,15 @@ export default class jdCollectionAct implements Activity {
                     case cakeBakerTaskEnum.加购商品:
                         addProduct = getTaskDetailJson.data.result.taskVos[i];
                         break;
+                    case cakeBakerTaskEnum.AR吃蛋糕:
+                        arEatCake = getTaskDetailJson.data.result.taskVos[i];
+                        break;
                 }
             }
         }
         else {
             Utils.debugInfo(consoleEnum.log, getTaskDetailJson);
-            Utils.outPutLog(this.outputTextarea, `【获取蛋糕任务信息1请求失败，请手动刷新或联系作者！】`, false);
+            Utils.outPutLog(this.outputTextarea, `${nick}【获取蛋糕任务信息1请求失败，请手动刷新或联系作者！】`, false);
         }
         //任务分组2
         if ((getFeedDetailJson.code == 0 || getFeedDetailJson.msg == "调用成功") && getFeedDetailJson.data.success) {
@@ -314,7 +521,7 @@ export default class jdCollectionAct implements Activity {
         }
         else {
             Utils.debugInfo(consoleEnum.log, getFeedDetailJson);
-            Utils.outPutLog(this.outputTextarea, `【获取蛋糕任务信息2请求失败，请手动刷新或联系作者！】`, false);
+            Utils.outPutLog(this.outputTextarea, `${nick}【获取蛋糕任务信息2请求失败，请手动刷新或联系作者！】`, false);
         }
         //完成任务1
         if (taskType == cakeBakerTaskEnum.小精灵 || taskType == cakeBakerTaskEnum.全部) {
@@ -336,16 +543,16 @@ export default class jdCollectionAct implements Activity {
                             .then((cakebakerckCollectScoreJson) => {
                                 if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
                                     joinedCount++;
-                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕小精灵成功！`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕小精灵成功！`, false);
                                 }
                                 else {
                                     Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                    Utils.outPutLog(this.outputTextarea, `【蛋糕小精灵失败，请手动刷新或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕小精灵失败，请手动刷新或联系作者！】`, false);
                                 }
                             })
                             .catch((error) => {
                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕小精灵异常，请刷新后重新尝试或联系作者！】`, false);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕小精灵异常，请刷新后重新尝试或联系作者！】`, false);
                             });
                     }, taskTimeout));
                     taskTimeout += Utils.random(11000, 12000);
@@ -370,16 +577,16 @@ export default class jdCollectionAct implements Activity {
                         .then((cakebakerckCollectScoreJson) => {
                             if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
                                 joinedCount++;
-                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕签到成功！`, false);
+                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕签到成功！`, false);
                             }
                             else {
                                 Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                Utils.outPutLog(this.outputTextarea, `【蛋糕签到失败，请手动刷新或联系作者！】`, false);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕签到失败，请手动刷新或联系作者！】`, false);
                             }
                         })
                         .catch((error) => {
                             Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                            Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕签到异常，请刷新后重新尝试或联系作者！】`, false);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕签到异常，请刷新后重新尝试或联系作者！】`, false);
                         });
                 }, taskTimeout));
                 taskTimeout += Utils.random(11000, 12000);
@@ -419,27 +626,27 @@ export default class jdCollectionAct implements Activity {
                                                 .then((tcdoTaskmongoJson) => {
                                                     if ((tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") && tcdoTaskmongoJson.data.success) {
                                                         joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕逛主会场成功！`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕逛主会场成功！`, false);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛主会场请求失败，请手动刷新或联系作者！】`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛主会场请求失败，请手动刷新或联系作者！】`, false);
                                                     }
                                                 })
                                                 .catch((error) => {
                                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛主会场请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛主会场请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                 });
                                         }, Utils.random(9000, 10000));
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛主会场领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛主会场领取失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛主会场领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛主会场领取异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }, taskTimeout));
                         taskTimeout += Utils.random(11000, 12000);
@@ -484,16 +691,16 @@ export default class jdCollectionAct implements Activity {
                                                             .then((cakebakerckCollectScoreJson) => {
                                                                 if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
                                                                     joinedCount++;
-                                                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕去逛商品${k + 1}成功！`, false);
+                                                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕去逛商品${k + 1}成功！`, false);
                                                                 }
                                                                 else {
                                                                     Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                                                    Utils.outPutLog(this.outputTextarea, `【蛋糕去逛商品${k + 1}请求失败，请手动刷新或联系作者！】`, false);
+                                                                    Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕去逛商品${k + 1}请求失败，请手动刷新或联系作者！】`, false);
                                                                 }
                                                             })
                                                             .catch((error) => {
                                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕去逛商品${k + 1}请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕去逛商品${k + 1}请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                             });
                                                     }
                                                 }, submitTimeout);
@@ -505,12 +712,12 @@ export default class jdCollectionAct implements Activity {
                             }
                             else {
                                 Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                Utils.outPutLog(this.outputTextarea, `【蛋糕去逛商品领取失败，请手动刷新或联系作者！】`, false);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕去逛商品领取失败，请手动刷新或联系作者！】`, false);
                             }
                         })
                         .catch((error) => {
                             Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                            Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕去逛商品领取异常，请刷新后重新尝试或联系作者！】`, false);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕去逛商品领取异常，请刷新后重新尝试或联系作者！】`, false);
                         });
                 }, taskTimeout));
                 taskTimeout += Utils.random(11000, 12000);
@@ -550,27 +757,27 @@ export default class jdCollectionAct implements Activity {
                                                 .then((tcdoTaskmongoJson) => {
                                                     if ((tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") && tcdoTaskmongoJson.data.success) {
                                                         joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕浏览游戏1成功！`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕浏览游戏1成功！`, false);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【蛋糕浏览游戏1请求失败，请手动刷新或联系作者！】`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕浏览游戏1请求失败，请手动刷新或联系作者！】`, false);
                                                     }
                                                 })
                                                 .catch((error) => {
                                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕浏览游戏1请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕浏览游戏1请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                 });
                                         }, Utils.random(9000, 10000));
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕浏览游戏1领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕浏览游戏1领取失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕浏览游戏1领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕浏览游戏1领取异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }, taskTimeout));
                         taskTimeout += Utils.random(11000, 12000);
@@ -598,16 +805,16 @@ export default class jdCollectionAct implements Activity {
                                 .then((cakebakerckCollectScoreJson) => {
                                     if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
                                         joinedCount++;
-                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕浏览游戏2成功！`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕浏览游戏2成功！`, false);
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕浏览游戏2请求失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕浏览游戏2请求失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕浏览游戏2请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕浏览游戏2请求异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }, taskTimeout));
                         taskTimeout += Utils.random(3000, 5000);
@@ -649,27 +856,27 @@ export default class jdCollectionAct implements Activity {
                                                 .then((qryViewkitCallbackResultJson) => {
                                                     if ((qryViewkitCallbackResultJson.code == 0 || qryViewkitCallbackResultJson.msg == "调用成功") && qryViewkitCallbackResultJson.data.success) {
                                                         joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕浏览频道成功！`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕浏览频道成功！`, false);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, qryViewkitCallbackResultJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【蛋糕浏览频道请求失败，请手动刷新或联系作者！】`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕浏览频道请求失败，请手动刷新或联系作者！】`, false);
                                                     }
                                                 })
                                                 .catch((error) => {
                                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕浏览频道请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕浏览频道请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                 });
                                         }, Utils.random(9000, 10000));
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕浏览频道领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕浏览频道领取失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕浏览频道领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕浏览频道领取异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }, taskTimeout));
                         taskTimeout += Utils.random(11000, 12000);
@@ -682,57 +889,59 @@ export default class jdCollectionAct implements Activity {
                 let joinedCount = +viewVenue.times,
                     taskChance = +viewVenue.maxTimes;
                 for (let j = 0; j < viewVenue.shoppingActivityVos.length; j++) {
-                    if (viewVenue.shoppingActivityVos[j].status == 1 && joinedCount < taskChance) {
+                    if (viewVenue.shoppingActivityVos[j].status == 1) {
                         cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${viewVenue.taskId},\"itemId\":\"${viewVenue.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
-                            fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
-                                method: "POST",
-                                mode: "cors",
-                                credentials: "include",
-                                headers: {
-                                    "Content-Type": "application/x-www-form-urlencoded"
-                                }
-                            })
-                                .then(function (res) { return res.json(); })
-                                .then((cakebakerckCollectScoreJson) => {
-                                    if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
-                                        setTimeout(() => {
-                                            postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${viewVenue.shoppingActivityVos[j].taskToken}%22%7D&appid=publicUseApi`;
-                                            fetch(`${this.rootURI}tc_doTask_mongo`, {
-                                                method: "POST",
-                                                mode: "cors",
-                                                credentials: "include",
-                                                headers: {
-                                                    "Content-Type": "application/x-www-form-urlencoded"
-                                                },
-                                                body: postData
-                                            })
-                                                .then(function (res) { return res.json(); })
-                                                .then((qryViewkitCallbackResultJson) => {
-                                                    if ((qryViewkitCallbackResultJson.code == 0 || qryViewkitCallbackResultJson.msg == "调用成功") && qryViewkitCallbackResultJson.data.success) {
-                                                        joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕浏览会场成功！`, false);
-                                                    }
-                                                    else {
-                                                        Utils.debugInfo(consoleEnum.log, qryViewkitCallbackResultJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【蛋糕浏览会场请求失败，请手动刷新或联系作者！】`, false);
-                                                    }
-                                                })
-                                                .catch((error) => {
-                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕浏览会场请求异常，请刷新后重新尝试或联系作者！】`, false);
-                                                });
-                                        }, Utils.random(9000, 10000));
-                                    }
-                                    else {
-                                        Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕浏览会场领取失败，请手动刷新或联系作者！】`, false);
+                            if (joinedCount < taskChance) {
+                                let postData = `&body={\"taskId\":${viewVenue.taskId},\"itemId\":\"${viewVenue.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                                fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
+                                    method: "POST",
+                                    mode: "cors",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/x-www-form-urlencoded"
                                     }
                                 })
-                                .catch((error) => {
-                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕浏览会场领取异常，请刷新后重新尝试或联系作者！】`, false);
-                                });
+                                    .then(function (res) { return res.json(); })
+                                    .then((cakebakerckCollectScoreJson) => {
+                                        if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
+                                            setTimeout(() => {
+                                                postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${viewVenue.shoppingActivityVos[j].taskToken}%22%7D&appid=publicUseApi`;
+                                                fetch(`${this.rootURI}tc_doTask_mongo`, {
+                                                    method: "POST",
+                                                    mode: "cors",
+                                                    credentials: "include",
+                                                    headers: {
+                                                        "Content-Type": "application/x-www-form-urlencoded"
+                                                    },
+                                                    body: postData
+                                                })
+                                                    .then(function (res) { return res.json(); })
+                                                    .then((qryViewkitCallbackResultJson) => {
+                                                        if ((qryViewkitCallbackResultJson.code == 0 || qryViewkitCallbackResultJson.msg == "调用成功") && qryViewkitCallbackResultJson.data.success) {
+                                                            joinedCount++;
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕浏览会场成功！`, false);
+                                                        }
+                                                        else {
+                                                            Utils.debugInfo(consoleEnum.log, qryViewkitCallbackResultJson);
+                                                            Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕浏览会场请求失败，请手动刷新或联系作者！】`, false);
+                                                        }
+                                                    })
+                                                    .catch((error) => {
+                                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕浏览会场请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    });
+                                            }, Utils.random(9000, 10000));
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕浏览会场领取失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕浏览会场领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            }
                         }, taskTimeout));
                         taskTimeout += Utils.random(11000, 12000);
                     }
@@ -773,27 +982,27 @@ export default class jdCollectionAct implements Activity {
                                                 .then((qryViewkitCallbackResultJson) => {
                                                     if ((qryViewkitCallbackResultJson.code == 0 || qryViewkitCallbackResultJson.msg == "调用成功") && qryViewkitCallbackResultJson.data.success) {
                                                         joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕逛金融主会场成功！`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕逛金融主会场成功！`, false);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, qryViewkitCallbackResultJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛金融主会场请求失败，请手动刷新或联系作者！】`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛金融主会场请求失败，请手动刷新或联系作者！】`, false);
                                                     }
                                                 })
                                                 .catch((error) => {
                                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛金融主会场请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛金融主会场请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                 });
                                         }, Utils.random(9000, 10000));
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛金融主会场领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛金融主会场领取失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛金融主会场领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛金融主会场领取异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }, taskTimeout));
                         taskTimeout += Utils.random(11000, 12000);
@@ -835,27 +1044,27 @@ export default class jdCollectionAct implements Activity {
                                                 .then((qryViewkitCallbackResultJson) => {
                                                     if ((qryViewkitCallbackResultJson.code == 0 || qryViewkitCallbackResultJson.msg == "调用成功") && qryViewkitCallbackResultJson.data.success) {
                                                         joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕逛品牌庆生成功！`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕逛品牌庆生成功！`, false);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, qryViewkitCallbackResultJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛品牌庆生请求失败，请手动刷新或联系作者！】`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛品牌庆生请求失败，请手动刷新或联系作者！】`, false);
                                                     }
                                                 })
                                                 .catch((error) => {
                                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛品牌庆生请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛品牌庆生请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                 });
                                         }, Utils.random(9000, 10000));
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛品牌庆生领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛品牌庆生领取失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛品牌庆生领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛品牌庆生领取异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }, taskTimeout));
                         taskTimeout += Utils.random(11000, 12000);
@@ -897,27 +1106,27 @@ export default class jdCollectionAct implements Activity {
                                                 .then((qryViewkitCallbackResultJson) => {
                                                     if ((qryViewkitCallbackResultJson.code == 0 || qryViewkitCallbackResultJson.msg == "调用成功") && qryViewkitCallbackResultJson.data.success) {
                                                         joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕逛校园会场成功！`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕逛校园会场成功！`, false);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, qryViewkitCallbackResultJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛校园会场请求失败，请手动刷新或联系作者！】`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛校园会场请求失败，请手动刷新或联系作者！】`, false);
                                                     }
                                                 })
                                                 .catch((error) => {
                                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛校园会场请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛校园会场请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                 });
                                         }, Utils.random(9000, 10000));
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛校园会场领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛校园会场领取失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛校园会场领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛校园会场领取异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }, taskTimeout));
                         taskTimeout += Utils.random(11000, 12000);
@@ -962,12 +1171,12 @@ export default class jdCollectionAct implements Activity {
                                                             .then((cakebakerckCollectScoreJson) => {
                                                                 if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
                                                                     joinedCount++;
-                                                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕加购商品${k + 1}成功！`, false);
+                                                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕加购商品${k + 1}成功！`, false);
                                                                 }
                                                             })
                                                             .catch((error) => {
                                                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕加购商品${k + 1}请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕加购商品${k + 1}请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                             });
                                                     }
                                                 }, submitTimeout);
@@ -979,17 +1188,79 @@ export default class jdCollectionAct implements Activity {
                             }
                             else {
                                 Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                Utils.outPutLog(this.outputTextarea, `【蛋糕加购商品领取失败，请手动刷新或联系作者！】`, false);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕加购商品领取失败，请手动刷新或联系作者！】`, false);
                             }
                         })
                         .catch((error) => {
                             Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                            Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕加购商品领取异常，请刷新后重新尝试或联系作者！】`, false);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕加购商品领取异常，请刷新后重新尝试或联系作者！】`, false);
                         });
                 }, taskTimeout));
                 taskTimeout += Utils.random(11000, 12000);
             }
         }
+        //if (taskType == cakeBakerTaskEnum.AR吃蛋糕 || taskType == cakeBakerTaskEnum.全部) {
+        //    if (!!arEatCake && arEatCake.status == 1) {
+        //        let joinedCount = +arEatCake.times,
+        //            taskChance = +arEatCake.maxTimes;
+        //        for (let j = 0; j < taskChance - joinedCount; j++) {
+        //            if (arEatCake.status == 1) {
+        //                cakeBakerTimeoutArray.push(setTimeout(() => {
+        //                    let postData = `&body={\"taskId\":${arEatCake.taskId},\"itemId\":\"${arEatCake.simpleRecordInfoVo.itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+        //                    fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
+        //                        method: "POST",
+        //                        mode: "cors",
+        //                        credentials: "include",
+        //                        headers: {
+        //                            "Content-Type": "application/x-www-form-urlencoded"
+        //                        }
+        //                    })
+        //                        .then(function (res) { return res.json(); })
+        //                        .then((cakebakerckCollectScoreJson) => {
+        //                            if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
+        //                                setTimeout(() => {
+        //                                    postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${arEatCake.simpleRecordInfoVo.taskToken}%22%7D&appid=publicUseApi`;
+        //                                    fetch(`${this.rootURI}tc_doTask_mongo`, {
+        //                                        method: "POST",
+        //                                        mode: "cors",
+        //                                        credentials: "include",
+        //                                        headers: {
+        //                                            "Content-Type": "application/x-www-form-urlencoded"
+        //                                        },
+        //                                        body: postData
+        //                                    })
+        //                                        .then(function (res) { return res.json(); })
+        //                                        .then((qryViewkitCallbackResultJson) => {
+        //                                            if ((qryViewkitCallbackResultJson.code == 0 || qryViewkitCallbackResultJson.msg == "调用成功") && qryViewkitCallbackResultJson.data.success) {
+        //                                                joinedCount++;
+        //                                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕AR吃蛋糕成功！`, false);
+        //                                            }
+        //                                            else {
+        //                                                Utils.debugInfo(consoleEnum.log, qryViewkitCallbackResultJson);
+        //                                                Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕AR吃蛋糕请求失败，请手动刷新或联系作者！】`, false);
+        //                                            }
+        //                                        })
+        //                                        .catch((error) => {
+        //                                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+        //                                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕AR吃蛋糕请求异常，请刷新后重新尝试或联系作者！】`, false);
+        //                                        });
+        //                                }, Utils.random(9000, 10000));
+        //                            }
+        //                            else {
+        //                                Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
+        //                                Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕AR吃蛋糕领取失败，请手动刷新或联系作者！】`, false);
+        //                            }
+        //                        })
+        //                        .catch((error) => {
+        //                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+        //                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕AR吃蛋糕领取异常，请刷新后重新尝试或联系作者！】`, false);
+        //                        });
+        //                }, taskTimeout));
+        //                taskTimeout += Utils.random(11000, 12000);
+        //            }
+        //        }
+        //    }
+        //}
         //完成任务2
         if (taskType == cakeBakerTaskEnum.逛店铺 || taskType == cakeBakerTaskEnum.全部) {
             if (!!browseShop && browseShop.status == 1) {
@@ -1025,27 +1296,27 @@ export default class jdCollectionAct implements Activity {
                                                 .then((tcdoTaskmongoJson) => {
                                                     if (tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") {
                                                         joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 【${joinedCount}/${taskChance}】蛋糕逛店铺成功！`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕逛店铺成功！`, false);
                                                     }
                                                     else {
                                                         Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛店铺请求失败，请手动刷新或联系作者！】`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛店铺请求失败，请手动刷新或联系作者！】`, false);
                                                     }
                                                 })
                                                 .catch((error) => {
                                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛店铺请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛店铺请求异常，请刷新后重新尝试或联系作者！】`, false);
                                                 });
                                         }, Utils.random(9000, 10000));
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `【蛋糕逛店铺领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕逛店铺领取失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~蛋糕逛店铺领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕逛店铺领取异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }, taskTimeout));
                         taskTimeout += Utils.random(11000, 12000);
@@ -1055,31 +1326,312 @@ export default class jdCollectionAct implements Activity {
         }
         //叠蛋糕
         if (taskType == cakeBakerTaskEnum.叠蛋糕 || taskType == cakeBakerTaskEnum.全部) {
-            while (needLevel) {
-                await fetch(`${this.rootURI}cakebaker_raise&vody={}&client=wh5&clientVersion=1.0.0`, {
-                    method: "POST",
-                    mode: "cors",
-                    credentials: "include",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    }
-                })
-                    .then(function (res) { return res.json(); })
-                    .then((cakebakerRaiseJson) => {
-                        if ((cakebakerRaiseJson.code == 0 || cakebakerRaiseJson.msg == "调用成功") && cakebakerRaiseJson.data.success) {
-                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 叠蛋糕升至${cakebakerRaiseJson.data.result.raiseInfo.scoreLevel}级！`, false);
-                        }
-                        else {
-                            needLevel = false;
-                            //Utils.debugInfo(consoleEnum.log, cakebakerRaiseJson);
-                            //Utils.outPutLog(this.outputTextarea, `【叠蛋糕失败，请手动刷新或联系作者！】`, false);
+            cakeBakerTimeoutArray.push(setTimeout(async () => {
+                while (needLevel) {
+                    await fetch(`${this.rootURI}cakebaker_raise&vody={}&client=wh5&clientVersion=1.0.0`, {
+                        method: "POST",
+                        mode: "cors",
+                        credentials: "include",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
                         }
                     })
-                    .catch((error) => {
-                        needLevel = false;
-                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                        Utils.outPutLog(this.outputTextarea, `【哎呀~叠蛋糕异常，请刷新后重新尝试或联系作者！】`, false);
-                    });
+                        .then(function (res) { return res.json(); })
+                        .then((cakebakerRaiseJson) => {
+                            if ((cakebakerRaiseJson.code == 0 || cakebakerRaiseJson.msg == "调用成功") && cakebakerRaiseJson.data.success) {
+                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}叠蛋糕升至${cakebakerRaiseJson.data.result.raiseInfo.scoreLevel}级！`, false);
+                            }
+                            else {
+                                needLevel = false;
+                                //Utils.debugInfo(consoleEnum.log, cakebakerRaiseJson);
+                                //Utils.outPutLog(this.outputTextarea, `${nick}【叠蛋糕失败，请手动刷新或联系作者！】`, false);
+                            }
+                        })
+                        .catch((error) => {
+                            needLevel = false;
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~叠蛋糕异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }
+            }, taskTimeout));
+        }
+    }
+    //品牌狂欢城任务
+    async carnivalCity(taskType: any, ckObj?: CookieType) {
+        carnivalCityTimeOut = 0;
+
+        let uuid = 'ee9a4e872b8043c8c6d550fbdc636823e2096324';
+        //let submitTimeout = 0;
+        //let secretp = '',
+        //    needLevel = false;
+        let getIndexJson: any,
+            getTaskJson: any;
+        let tPlusShop: any,
+            t1ShopList: any,
+            featuredShop: any,
+            singleSku: any,
+            venue: any,
+            exploreSpecies: any;
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+
+        //狂欢任务信息1
+        getIndexJson = await fetch(`${this.rootURI}sixOneEight_index&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"opType\":\"1\",\"uuid\":\"${uuid}\"}`,
+            {
+                method: "GET",
+                credentials: "include"
+            })
+            .then(function (res) { return res.json(); })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取狂欢任务信息1异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        //狂欢任务信息2
+        getTaskJson = await fetch(`${this.rootURI}sixOneEight_taskInfo&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"uuid"\:\"${uuid}\"}`,
+            {
+                method: "GET",
+                credentials: "include"
+            })
+            .then(function (res) { return res.json(); })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取狂欢任务信息2异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        //任务分组1
+        if ((getIndexJson.code == 0 || getIndexJson.msg == "调用成功") && getIndexJson.data.success) {
+            tPlusShop = getIndexJson.data.result.tPlusShopList;
+            t1ShopList = getIndexJson.data.result.t1ShopList;
+            exploreSpecies = getIndexJson.data.result.homeButton;
+        }
+        else {
+            Utils.debugInfo(consoleEnum.log, getIndexJson);
+            Utils.outPutLog(this.outputTextarea, `${nick}【获取狂欢任务信息1请求失败，请手动刷新或联系作者！】`, false);
+        }
+        //任务分组2
+        if ((getTaskJson.code == 0 || getTaskJson.msg == "调用成功") && getTaskJson.data.success) {
+            featuredShop = getTaskJson.data.result.featuredShopLimitCount;
+            singleSku = getTaskJson.data.result.singleSkuInfo;
+            venue = getTaskJson.data.result.venueLimitCount;
+        }
+        else {
+            Utils.debugInfo(consoleEnum.log, getTaskJson);
+            Utils.outPutLog(this.outputTextarea, `${nick}【获取狂欢任务信息2请求失败，请手动刷新或联系作者！】`, false);
+        }
+        //完成任务1
+        if (taskType == carnivalCityTaskEnum.今日主推 || taskType == carnivalCityTaskEnum.全部) {
+            if (!!tPlusShop) {
+                let joinedCount = +getIndexJson.data.result.tPlusCoinTimes,
+                    taskChance = +tPlusShop.length;
+                for (let i = 0; i < tPlusShop.length; i++) {
+                    if (!tPlusShop[i].viewed) {
+                        carnivalCityTimeoutArray.push(setTimeout(() => {
+                            fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":4,\"shopId\":${tPlusShop[i].shopId},\"uuid\":\"${uuid}\"}`, {
+                                method: "GET",
+                                credentials: "include"
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((practicalTaskJson) => {
+                                    if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢今日主推成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【狂欢今日主推失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢今日主推异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }, carnivalCityTimeOut));
+                        carnivalCityTimeOut += Utils.random(2000, 3000);
+                    }
+                }
+            }
+        }
+        if (taskType == carnivalCityTaskEnum.今日大牌 || taskType == carnivalCityTaskEnum.全部) {
+            if (!!t1ShopList) {
+                let joinedCount = +getIndexJson.data.result.t1CoinTimes,
+                    taskChance = 20;
+                if (joinedCount < taskChance) {
+                    for (let i = 0; i < t1ShopList.length; i++) {
+                        if (!t1ShopList[i].viewed) {
+                            carnivalCityTimeoutArray.push(setTimeout(() => {
+                                if (joinedCount < taskChance) {
+                                    fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":5,\"shopId\":${t1ShopList[i].shopId},\"uuid\":\"${uuid}\"}`, {
+                                        method: "GET",
+                                        credentials: "include"
+                                    })
+                                        .then(function (res) { return res.json(); })
+                                        .then((practicalTaskJson) => {
+                                            if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+                                                joinedCount++;
+                                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢今日大牌成功！`, false);
+                                            }
+                                            else {
+                                                Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+                                                Utils.outPutLog(this.outputTextarea, `${nick}【狂欢今日大牌失败，请手动刷新或联系作者！】`, false);
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢今日大牌异常，请刷新后重新尝试或联系作者！】`, false);
+                                        });
+                                }
+                            }, carnivalCityTimeOut));
+                            carnivalCityTimeOut += Utils.random(2000, 3000);
+                        }
+                    }
+                }
+            }
+        }
+        if (taskType == carnivalCityTaskEnum.今日精选 || taskType == carnivalCityTaskEnum.全部) {
+            if (!!featuredShop) {
+                let joinedCount = +featuredShop,
+                    taskChance = 80;
+                if (joinedCount < taskChance) {
+                    for (let i = 0; i < taskChance; i++) {
+                        carnivalCityTimeoutArray.push(setTimeout(() => {
+                            if (joinedCount < taskChance) {
+                                fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":6,\"uuid\":\"${uuid}\"}`, {
+                                    method: "GET",
+                                    credentials: "include"
+                                })
+                                    .then(function (res) { return res.json(); })
+                                    .then((practicalTaskJson) => {
+                                        if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+                                            joinedCount++;
+                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢今日精选成功！`, false);
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【狂欢今日精选失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢今日精选异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            }
+                        }, carnivalCityTimeOut));
+                        carnivalCityTimeOut += Utils.random(2000, 3000);
+                    }
+                }
+            }
+        }
+        if (taskType == carnivalCityTaskEnum.热卖单品 || taskType == carnivalCityTaskEnum.全部) {
+            if (!!singleSku) {
+                let joinedCount = +singleSku.skuLimitCount,
+                    taskChance = +singleSku.skuList.length;
+                for (let i = 0; i < singleSku.skuList.length; i++) {
+                    if (!singleSku.skuList[i].visited) {
+                        carnivalCityTimeoutArray.push(setTimeout(() => {
+                            fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":8,\"skuId\":${singleSku.skuList[i].skuId},\"uuid\":\"${uuid}\"}`, {
+                                method: "GET",
+                                credentials: "include"
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((practicalTaskJson) => {
+                                    if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢热卖单品成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【狂欢热卖单品失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢热卖单品异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }, carnivalCityTimeOut));
+                        carnivalCityTimeOut += Utils.random(2000, 3000);
+                    }
+                }
+            }
+        }
+        if (taskType == carnivalCityTaskEnum.精选会场 || taskType == carnivalCityTaskEnum.全部) {
+            if (!!venue) {
+                let joinedCount = +venue,
+                    taskChance = 8;
+                if (joinedCount < taskChance) {
+                    for (let i = 0; i < taskChance; i++) {
+                        carnivalCityTimeoutArray.push(setTimeout(() => {
+                            if (joinedCount < taskChance) {
+                                fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":9,\"uuid\":\"${uuid}\"}`, {
+                                    method: "GET",
+                                    credentials: "include"
+                                })
+                                    .then(function (res) { return res.json(); })
+                                    .then((practicalTaskJson) => {
+                                        if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+                                            joinedCount++;
+                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢精选会场成功！`, false);
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【狂欢精选会场失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢精选会场异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            }
+                        }, carnivalCityTimeOut));
+                        carnivalCityTimeOut += Utils.random(2000, 3000);
+                    }
+                }
+            }
+        }
+        if (taskType == carnivalCityTaskEnum.探索物种 || taskType == carnivalCityTaskEnum.全部) {
+            if (!!exploreSpecies) {
+                let limit = 400;
+                let levelCount = Math.floor(+exploreSpecies.curCoinNum / limit);
+                if (exploreSpecies.state == 1 && levelCount > 0) {
+                    for (let i = 0; i < levelCount; i++) {
+                        carnivalCityTimeoutArray.push(setTimeout(async () => {
+                            await fetch(`${this.rootURI}sixOneEight_getSpecies&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"continentId\":0}`, {
+                                method: "GET",
+                                credentials: "include"
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((getSpeciesJson) => {
+                                    if ((getSpeciesJson.code == 0 || getSpeciesJson.msg == "调用成功") && getSpeciesJson.data.success) {
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}狂欢探索物种成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, getSpeciesJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【狂欢探索物种失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢探索物种异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                            await fetch(`${this.rootURI}sixOneEight_getLottery&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"type\":2,\"brickId\":\"0_1\"}`, {
+                                method: "GET",
+                                credentials: "include"
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((getLotteryJson) => {
+                                    if ((getLotteryJson.code == 0 || getLotteryJson.msg == "调用成功") && getLotteryJson.data.success) {
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}狂欢探索奖励领取成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, getLotteryJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【狂欢狂欢探索奖励领取失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢狂欢探索奖励领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }, carnivalCityTimeOut));
+                        carnivalCityTimeOut += Utils.random(2000, 3000);
+                    }
+                }
             }
         }
     }

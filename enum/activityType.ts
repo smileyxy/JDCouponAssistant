@@ -5,6 +5,7 @@ export enum activityType {
     palace = "palace",
     receiveBless = "ReceiveBless",
     cakeBaker = "cakeBaker",
+    carnivalCity = "carnivalCity"
 }
 
 export enum cakeBakerTaskEnum {
@@ -22,6 +23,7 @@ export enum cakeBakerTaskEnum {
     "逛品牌庆生" = 11,
     "逛校园会场" = 25,
     "加购商品" = 101,
+    "AR吃蛋糕" = 34,
     "逛店铺" = "taskVos"
     //"浏览商品" = "viewProductVos"
 }
@@ -29,4 +31,19 @@ export enum cakeBakerTaskEnum {
 export enum cakeBakerButtonEnum {
     cakeBakerStart = "自动蛋糕",
     cakeBakerStop = "取消蛋糕"
+}
+
+export enum carnivalCityTaskEnum {
+    "全部" = "All",
+    "今日主推" = "tPlusShop",
+    "今日大牌" = "t1ShopList",
+    "今日精选" = "featuredShop",
+    "热卖单品" ="singleSku",
+    "精选会场" = "venue",
+    "探索物种" = "exploreSpecies"
+}
+
+export enum carnivalCityButtonEnum {
+    carnivalCityStart = "自动狂欢",
+    carnivalCityStop = "取消狂欢"
 }

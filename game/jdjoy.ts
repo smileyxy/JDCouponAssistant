@@ -1200,7 +1200,7 @@ export default class JdJoy implements Game {
                                 let scanMarketListData = scanMarketData.scanMarketList[j];
                                 if (!scanMarketListData.status) {
                                     taskTimeoutArray.push(setTimeout(() => {
-                                        let postData = `{"marketLink":"${scanMarketListData.marketLinkH5}","taskType":"${petTaskEnum.逛会场}","reqSource":"h5"}`;
+                                        let postData = `{"marketLink":${JSON.stringify(scanMarketListData.marketLinkH5)},"taskType":"${petTaskEnum.逛会场}","reqSource":"h5"}`;
                                         const scanUrl = `https://jdjoy.jd.com/pet/scan`;
                                         fetch(scanUrl, {
                                             method: "POST",
