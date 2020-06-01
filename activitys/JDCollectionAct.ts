@@ -26,7 +26,7 @@ let taskTimeout = 0,
 const defaultCakeBakerTiming: string = '01:00',
     defaultCakeBakerDetection: number = 3600000, //1小时
     defaultCarnivalCityTiming: string = '02:00',
-    defaultCarnivalCityDetection: number = 3600000, //1小时
+    defaultCarnivalCityDetection: number = 10800000, //3小时
     defaultMultiPollingDetection: number = 1800000; //30分钟
 
 export default class jdCollectionAct implements Activity {
@@ -1486,36 +1486,34 @@ export default class jdCollectionAct implements Activity {
             }
         }
         if (taskType == carnivalCityTaskEnum.今日精选 || taskType == carnivalCityTaskEnum.全部) {
-            if (!!featuredShop) {
-                let joinedCount = +featuredShop,
-                    taskChance = 80;
-                if (joinedCount < taskChance) {
-                    for (let i = 0; i < taskChance; i++) {
-                        carnivalCityTimeoutArray.push(setTimeout(() => {
-                            if (joinedCount < taskChance) {
-                                fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":6,\"uuid\":\"${uuid}\"}`, {
-                                    method: "GET",
-                                    credentials: "include"
+            let joinedCount = +featuredShop,
+                taskChance = 80;
+            if (joinedCount < taskChance) {
+                for (let i = 0; i < taskChance; i++) {
+                    carnivalCityTimeoutArray.push(setTimeout(() => {
+                        if (joinedCount < taskChance) {
+                            fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":6,\"uuid\":\"${uuid}\"}`, {
+                                method: "GET",
+                                credentials: "include"
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((practicalTaskJson) => {
+                                    if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢今日精选成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【狂欢今日精选失败，请手动刷新或联系作者！】`, false);
+                                    }
                                 })
-                                    .then(function (res) { return res.json(); })
-                                    .then((practicalTaskJson) => {
-                                        if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
-                                            joinedCount++;
-                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢今日精选成功！`, false);
-                                        }
-                                        else {
-                                            Utils.debugInfo(consoleEnum.log, practicalTaskJson);
-                                            Utils.outPutLog(this.outputTextarea, `${nick}【狂欢今日精选失败，请手动刷新或联系作者！】`, false);
-                                        }
-                                    })
-                                    .catch((error) => {
-                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢今日精选异常，请刷新后重新尝试或联系作者！】`, false);
-                                    });
-                            }
-                        }, carnivalCityTimeOut));
-                        carnivalCityTimeOut += Utils.random(2000, 3000);
-                    }
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢今日精选异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    }, carnivalCityTimeOut));
+                    carnivalCityTimeOut += Utils.random(2000, 3000);
                 }
             }
         }
@@ -1552,36 +1550,34 @@ export default class jdCollectionAct implements Activity {
             }
         }
         if (taskType == carnivalCityTaskEnum.精选会场 || taskType == carnivalCityTaskEnum.全部) {
-            if (!!venue) {
-                let joinedCount = +venue,
-                    taskChance = 8;
-                if (joinedCount < taskChance) {
-                    for (let i = 0; i < taskChance; i++) {
-                        carnivalCityTimeoutArray.push(setTimeout(() => {
-                            if (joinedCount < taskChance) {
-                                fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":9,\"uuid\":\"${uuid}\"}`, {
-                                    method: "GET",
-                                    credentials: "include"
+            let joinedCount = +venue,
+                taskChance = 8;
+            if (joinedCount < taskChance) {
+                for (let i = 0; i < taskChance; i++) {
+                    carnivalCityTimeoutArray.push(setTimeout(() => {
+                        if (joinedCount < taskChance) {
+                            fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":9,\"uuid\":\"${uuid}\"}`, {
+                                method: "GET",
+                                credentials: "include"
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((practicalTaskJson) => {
+                                    if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢精选会场成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【狂欢精选会场失败，请手动刷新或联系作者！】`, false);
+                                    }
                                 })
-                                    .then(function (res) { return res.json(); })
-                                    .then((practicalTaskJson) => {
-                                        if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
-                                            joinedCount++;
-                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢精选会场成功！`, false);
-                                        }
-                                        else {
-                                            Utils.debugInfo(consoleEnum.log, practicalTaskJson);
-                                            Utils.outPutLog(this.outputTextarea, `${nick}【狂欢精选会场失败，请手动刷新或联系作者！】`, false);
-                                        }
-                                    })
-                                    .catch((error) => {
-                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢精选会场异常，请刷新后重新尝试或联系作者！】`, false);
-                                    });
-                            }
-                        }, carnivalCityTimeOut));
-                        carnivalCityTimeOut += Utils.random(2000, 3000);
-                    }
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢精选会场异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    }, carnivalCityTimeOut));
+                    carnivalCityTimeOut += Utils.random(2000, 3000);
                 }
             }
         }
