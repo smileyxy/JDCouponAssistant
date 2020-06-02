@@ -758,6 +758,7 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.5.3】：新增AR超未来城市', 'color:#009a61');
         console.log('%c【0.5.2】：修复品牌狂欢城探索物种；新增京东小魔方活动', 'color:#009a61');
         console.log('%c【0.5.1】：修复宠汪汪个别逛会场失败；新增品牌狂欢城活动', 'color:#009a61');
         console.log('%c【0.5.0】：新增叠蛋糕活动', 'color:#009a61');

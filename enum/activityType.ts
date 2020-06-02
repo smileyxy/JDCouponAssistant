@@ -6,7 +6,8 @@ export enum activityType {
     receiveBless = "ReceiveBless",
     cakeBaker = "cakeBaker",
     carnivalCity = "carnivalCity",
-    rubiksCube = "rubiksCube"
+    rubiksCube = "rubiksCube",
+    arFutureCity = "arFutureCity"
 }
 
 export enum cakeBakerTaskEnum {
@@ -61,4 +62,18 @@ export enum rubiksCubeTaskEnum {
 export enum rubiksCubeButtonEnum {
     rubiksCubeStart = "自动魔方",
     rubiksCubeStop = "取消魔方"
+}
+
+export enum arFutureCityTaskEnum {
+    "全部" = "All",
+    "每日登录" = 1,
+    "逛逛家电" = 2,
+    "逛逛好店" = 4,
+    "加购好物" = 5,
+    "红包雨" = "RedRain"
+}
+
+export enum arFutureCityButtonEnum {
+    arFutureCityStart = "自动城市",
+    arFutureCityStop = "取消城市"
 }

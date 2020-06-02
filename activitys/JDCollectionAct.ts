@@ -12,7 +12,9 @@ import {
     carnivalCityTaskEnum,
     carnivalCityButtonEnum,
     rubiksCubeTaskEnum,
-    rubiksCubeButtonEnum
+    rubiksCubeButtonEnum,
+    arFutureCityTaskEnum,
+    arFutureCityButtonEnum
 } from '../enum/activityType';
 
 let cakeBakerTiming = "",
@@ -23,19 +25,26 @@ let cakeBakerTiming = "",
     carnivalCityInterval = 0,
     rubiksCubeTiming = "",
     rubiksCubeSpan = 0,
-    rubiksCubeInterval = 0;
+    rubiksCubeInterval = 0,
+    arFutureCityTiming = "",
+    arFutureCitySpan = 0,
+    arFutureCityInterval = 0;
 let cakeBakerTimeoutArray: any[] = [],
     carnivalCityTimeoutArray: any[] = [],
-    rubiksCubeTimeoutArray: any[] = [];
+    rubiksCubeTimeoutArray: any[] = [],
+    arFutureCityTimeoutArray: any[] = [];
 let taskTimeout = 0,
     carnivalCityTimeOut = 0,
-    rubiksCubeTimeOut = 0;
+    rubiksCubeTimeOut = 0,
+    arFutureCityTimeOut = 0;
 const defaultCakeBakerTiming: string = '01:00',
     defaultCakeBakerDetection: number = 3600000, //1小时
     defaultCarnivalCityTiming: string = '02:00',
     defaultCarnivalCityDetection: number = 10800000, //3小时
     defaultRubiksCubeTiming: string = '03:00',
     defaultRubiksCubeDetection: number = 3600000, //1小时
+    defaultARFutureCityTiming: string = '04:00',
+    defaultARFutureCityDetection: number = 3600000, //1小时
     defaultMultiPollingDetection: number = 1800000; //30分钟
 
 export default class jdCollectionAct implements Activity {
@@ -155,6 +164,31 @@ export default class jdCollectionAct implements Activity {
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
                                         <button class="rubiksCubeAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动魔方</button>
+                                    </td>
+                                </tr>`;
+                helpInfoDetail += `<details>
+                                    <summary style="outline: 0;">自动城市</summary>
+                                    <p style="font-size: 12px;">根据所填项每天完成AR超未来城市任务；任务定时：默认${defaultARFutureCityTiming}之后；检测频率：默认${defaultARFutureCityDetection / 3600000}小时。</p>
+                                </details>`;
+                btnInfoDetail += `<tr> 
+                                    <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
+                                        <div style="width: 24vw;">
+                                            <select id="arFutureCityType" style="width: 23.5vw;">
+                                                <option value="${arFutureCityTaskEnum.全部}" selected="selected">全部</option>
+                                                <option value="${arFutureCityTaskEnum.每日登录}">每日登录</option>
+                                                <option value="${arFutureCityTaskEnum.逛逛家电}">逛逛家电</option>
+                                                <option value="${arFutureCityTaskEnum.逛逛好店}">逛逛好店</option>
+                                                <option value="${arFutureCityTaskEnum.加购好物}">每日登录</option>
+                                                <option value="${arFutureCityTaskEnum.红包雨}">红包雨</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td style="width: 230vw;text-align: -webkit-left">
+                                        <input id="arFutureCityTiming" type="time" value="${defaultARFutureCityTiming}" style="width:23.5vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;">
+                                        <input id="arFutureCityDetection" style="width:12.8vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "检测频率">
+                                    </td>
+                                    <td style="width: 50vw;text-align: -webkit-left;">
+                                        <button class="arFutureCityAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动城市</button>
                                     </td>
                                 </tr>`;
                 break;
@@ -529,6 +563,120 @@ export default class jdCollectionAct implements Activity {
                     clearTimeout(rubiksCubeTimeout);
                     rubiksCubeTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动魔方！`, false);
+                }
+            });
+        });
+        //自动城市
+        let arFutureCityAuto = _$('.arFutureCityAuto') as HTMLButtonElement;
+        arFutureCityAuto?.addEventListener('click', () => {
+            //验证城市任务类型
+            let typeSelect = document.getElementById('arFutureCityType') as HTMLSelectElement,
+                typeSelectOptions = typeSelect.options[typeSelect.selectedIndex];
+            if (!typeSelectOptions || !typeSelectOptions.value) {
+                alert("请选择任务类型！");
+                return false;
+            }
+            //验证城市任务定时
+            let arFutureCityTimingInput = document.getElementById('arFutureCityTiming') as HTMLInputElement;
+            if (!arFutureCityTimingInput.value) {
+                alert("请输入正确的任务定时格式！");
+                return false;
+            }
+            //验证城市任务检测频率
+            const reg = /^[1-9]\d*$/;
+            let arFutureCityDetectionInput = document.getElementById('arFutureCityDetection') as HTMLInputElement;
+            if (!!arFutureCityDetectionInput.value && !reg.test(arFutureCityDetectionInput.value)) {
+                alert("请检查组队检测频率是否为正整数！");
+                return false;
+            }
+
+            arFutureCityTiming = arFutureCityTimingInput.value || defaultARFutureCityTiming;
+
+            if (Config.multiFlag) {
+                arFutureCitySpan = ((+arFutureCityDetectionInput!.value * 3600000) || defaultARFutureCityDetection) + (defaultMultiPollingDetection * CookieManager.cookieArr.length);
+            }
+            else {
+                arFutureCitySpan = ((+arFutureCityDetectionInput!.value * 3600000) || defaultARFutureCityDetection);
+            }
+
+            typeSelect.disabled = !typeSelect.disabled;
+            arFutureCityTimingInput.disabled = !arFutureCityTimingInput.disabled;
+            arFutureCityDetectionInput.disabled = !arFutureCityDetectionInput.disabled;
+
+            this.getJDTime().then((currentJDTime) => {
+                let firstSpan = 0,
+                    arFutureCityTimeout = 0,
+                    isTimeOut = false;
+                let currentJDDate = new Date(+currentJDTime),
+                    timeSplit = arFutureCityTiming.split(':'),
+                    timingStamp = new Date(+currentJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                if (arFutureCityAuto.innerHTML == arFutureCityButtonEnum.arFutureCityStart) {
+                    arFutureCityAuto.innerHTML = arFutureCityButtonEnum.arFutureCityStop;
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动城市！`, false);
+
+                    if (currentJDDate.getTime() < timingStamp) {
+                        firstSpan = timingStamp - currentJDDate.getTime();
+                    }
+
+                    arFutureCityTimeout = setTimeout(() => {
+                        if (Config.multiFlag) {
+                            CookieManager.cookieArr.map((item: CookieType) => {
+                                setTimeout(() => {
+                                    CookieHandler.coverCookie(item);
+                                    this.arFutureCity(typeSelectOptions.value, item);
+                                }, item.index * defaultMultiPollingDetection);
+                            });
+                        }
+                        else {
+                            this.arFutureCity(typeSelectOptions.value);
+                        }
+                        arFutureCityInterval = setInterval(() => {
+                            this.getJDTime().then((nowJDTime) => {
+                                let nowJDDate = new Date(+nowJDTime),
+                                    nowTimingStamp = new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                                if (nowJDDate.getTime() >= nowTimingStamp) {
+                                    clearTimeout(arFutureCityTimeout);
+                                    if (Config.multiFlag) {
+                                        CookieManager.cookieArr.map((item: CookieType) => {
+                                            setTimeout(() => {
+                                                CookieHandler.coverCookie(item);
+                                                this.arFutureCity(typeSelectOptions.value, item);
+                                            }, item.index * defaultMultiPollingDetection);
+                                        });
+                                    }
+                                    else {
+                                        this.arFutureCity(typeSelectOptions.value);
+                                    }
+                                }
+                                else {
+                                    if (!isTimeOut) {
+                                        isTimeOut = true;
+                                        arFutureCityTimeout = setTimeout(() => {
+                                            isTimeOut = false;
+                                            if (Config.multiFlag) {
+                                                CookieManager.cookieArr.map((item: CookieType) => {
+                                                    setTimeout(() => {
+                                                        CookieHandler.coverCookie(item);
+                                                        this.arFutureCity(typeSelectOptions.value, item);
+                                                    }, item.index * defaultMultiPollingDetection);
+                                                });
+                                            }
+                                            else {
+                                                this.arFutureCity(typeSelectOptions.value);
+                                            }
+                                        }, nowTimingStamp - nowJDDate.getTime());
+                                    }
+                                }
+                            });
+                        }, arFutureCitySpan);
+                    }, firstSpan);
+                }
+                else {
+                    arFutureCityAuto.innerHTML = arFutureCityButtonEnum.arFutureCityStart;
+                    clearInterval(arFutureCityInterval);
+                    clearTimeout(arFutureCityTimeout);
+                    arFutureCityTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动城市！`, false);
                 }
             });
         });
@@ -1967,6 +2115,201 @@ export default class jdCollectionAct implements Activity {
                             });
                     }, rubiksCubeTimeOut));
                     rubiksCubeTimeOut += Utils.random(2000, 3000);
+                }
+            }
+        }
+    }
+    //AR超未来城市
+    async arFutureCity(taskType: any, ckObj?: CookieType) {
+        arFutureCityTimeOut = 0;
+
+        let arCityUserJson: any;
+        let dailyLogin: any,
+            viewHomeAppliance: any,
+            viewShop: any,
+            addProduct: any,
+            redRain: any;
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+        //城市任务信息
+        arCityUserJson = await fetch(`${this.rootURI}arCityUser&appid=arcity&body={}`,
+            {
+                method: "GET",
+                credentials: "include"
+            })
+            .then(function (res) { return res.json(); })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取城市任务信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        //任务分组
+        if (arCityUserJson.code == 0 || arCityUserJson.rc == 200) {
+            redRain = arCityUserJson.rv;
+            for (let i = 0; i < arCityUserJson.rv.task_list.length; i++) {
+                switch (arCityUserJson.rv.task_list[i].task_id) {
+                    case arFutureCityTaskEnum.每日登录:
+                        dailyLogin = arCityUserJson.rv.task_list[i];
+                        break;
+                    case arFutureCityTaskEnum.逛逛家电:
+                        viewHomeAppliance = arCityUserJson.rv.task_list[i];
+                        break;
+                    case arFutureCityTaskEnum.逛逛好店:
+                        viewShop = arCityUserJson.rv.task_list[i];
+                        break;
+                    case arFutureCityTaskEnum.加购好物:
+                        addProduct = arCityUserJson.rv.task_list[i];
+                        break;
+                }
+            }
+        }
+        else {
+            Utils.debugInfo(consoleEnum.log, arCityUserJson);
+            Utils.outPutLog(this.outputTextarea, `${nick}【获取魔方任务信息请求失败，请手动刷新或联系作者！】`, false);
+        }
+        //完成任务
+        if (taskType == arFutureCityTaskEnum.每日登录 || taskType == arFutureCityTaskEnum.全部) {
+            if (!!dailyLogin) {
+                let joinedCount = +dailyLogin.task_num,
+                    taskChance = +dailyLogin.task_top;
+                for (let i = 0; i < taskChance - joinedCount; i++) {
+                    arFutureCityTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}arCityTask&appid=arcity&body={type:${dailyLogin.task_id}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((arCityTaskJson) => {
+                                if (arCityTaskJson.code == 0 && arCityTaskJson.rc == 200) {
+                                    joinedCount++;
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】城市每日登录成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, arCityTaskJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【城市每日登录失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~城市每日登录异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, arFutureCityTimeOut));
+                    arFutureCityTimeOut += Utils.random(10000, 11000);
+                }
+            }
+        }
+        if (taskType == arFutureCityTaskEnum.逛逛家电 || taskType == arFutureCityTaskEnum.全部) {
+            if (!!viewHomeAppliance) {
+                let joinedCount = +viewHomeAppliance.task_num,
+                    taskChance = +viewHomeAppliance.task_top;
+                for (let i = 0; i < taskChance - joinedCount; i++) {
+                    arFutureCityTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}arCityTask&appid=arcity&body={type:${viewHomeAppliance.task_id}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((arCityTaskJson) => {
+                                if (arCityTaskJson.code == 0 && arCityTaskJson.rc == 200) {
+                                    joinedCount++;
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】城市逛逛家电成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, arCityTaskJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【城市逛逛家电失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~城市逛逛家电异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, arFutureCityTimeOut));
+                    arFutureCityTimeOut += Utils.random(10000, 11000);
+                }
+            }
+        }
+        if (taskType == arFutureCityTaskEnum.逛逛好店 || taskType == arFutureCityTaskEnum.全部) {
+            if (!!viewShop) {
+                let joinedCount = +viewShop.task_num,
+                    taskChance = +viewShop.task_top;
+                for (let i = 0; i < taskChance - joinedCount; i++) {
+                    arFutureCityTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}arCityTask&appid=arcity&body={type:${viewShop.task_id}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((arCityTaskJson) => {
+                                if (arCityTaskJson.code == 0 && arCityTaskJson.rc == 200) {
+                                    joinedCount++;
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】城市逛逛好店成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, arCityTaskJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【城市逛逛好店失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~城市逛逛好店异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, arFutureCityTimeOut));
+                    arFutureCityTimeOut += Utils.random(10000, 11000);
+                }
+            }
+        }
+        if (taskType == arFutureCityTaskEnum.加购好物 || taskType == arFutureCityTaskEnum.全部) {
+            if (!!addProduct) {
+                let joinedCount = +addProduct.task_num,
+                    taskChance = +addProduct.task_top;
+                for (let i = 0; i < taskChance - joinedCount; i++) {
+                    arFutureCityTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}arCityTask&appid=arcity&body={type:${addProduct.task_id}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((arCityTaskJson) => {
+                                if (arCityTaskJson.code == 0 && arCityTaskJson.rc == 200) {
+                                    joinedCount++;
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】城市加购好物成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, arCityTaskJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【城市加购好物失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~城市加购好物异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, arFutureCityTimeOut));
+                    arFutureCityTimeOut += Utils.random(10000, 11000);
+                }
+            }
+        }
+        if (taskType == arFutureCityTaskEnum.红包雨 || taskType == arFutureCityTaskEnum.全部) {
+            if (!!redRain) {
+                for (let i = 0; i < +redRain.red_num; i++) {
+                    arFutureCityTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}arCityRedEnvelope&appid=arcity`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((arCityRedEnvelopeJson) => {
+                                if (arCityRedEnvelopeJson.code == 0 && arCityRedEnvelopeJson.rc == 200) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}城市红包雨获得京豆${arCityRedEnvelopeJson.rv.beans ?? 0}！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, arCityRedEnvelopeJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【城市城市红包雨失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~城市城市红包雨异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, arFutureCityTimeOut));
+                    arFutureCityTimeOut += Utils.random(10000, 11000);
                 }
             }
         }
