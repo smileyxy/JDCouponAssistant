@@ -5,7 +5,8 @@ export enum activityType {
     palace = "palace",
     receiveBless = "ReceiveBless",
     cakeBaker = "cakeBaker",
-    carnivalCity = "carnivalCity"
+    carnivalCity = "carnivalCity",
+    rubiksCube = "rubiksCube"
 }
 
 export enum cakeBakerTaskEnum {
@@ -40,10 +41,24 @@ export enum carnivalCityTaskEnum {
     "今日精选" = "featuredShop",
     "热卖单品" ="singleSku",
     "精选会场" = "venue",
+    "开通会员" = "brandMembers",
     "探索物种" = "exploreSpecies"
 }
 
 export enum carnivalCityButtonEnum {
     carnivalCityStart = "自动狂欢",
     carnivalCityStop = "取消狂欢"
+}
+
+export enum rubiksCubeTaskEnum {
+    "全部" = "All",
+    "浏览新品" = "taskSkuInfo",
+    "关注浏览" = 6,
+    "浏览会场" = 9,
+    "抽奖" = "luckyDraw"
+}
+
+export enum rubiksCubeButtonEnum {
+    rubiksCubeStart = "自动魔方",
+    rubiksCubeStop = "取消魔方"
 }

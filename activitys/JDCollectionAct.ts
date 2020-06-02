@@ -10,7 +10,9 @@ import {
     cakeBakerTaskEnum,
     cakeBakerButtonEnum,
     carnivalCityTaskEnum,
-    carnivalCityButtonEnum
+    carnivalCityButtonEnum,
+    rubiksCubeTaskEnum,
+    rubiksCubeButtonEnum
 } from '../enum/activityType';
 
 let cakeBakerTiming = "",
@@ -18,15 +20,22 @@ let cakeBakerTiming = "",
     cakeBakerInterval = 0,
     carnivalCityTiming = "",
     carnivalCitySpan = 0,
-    carnivalCityInterval = 0;
+    carnivalCityInterval = 0,
+    rubiksCubeTiming = "",
+    rubiksCubeSpan = 0,
+    rubiksCubeInterval = 0;
 let cakeBakerTimeoutArray: any[] = [],
-    carnivalCityTimeoutArray: any[] = [];
+    carnivalCityTimeoutArray: any[] = [],
+    rubiksCubeTimeoutArray: any[] = [];
 let taskTimeout = 0,
-    carnivalCityTimeOut = 0;
+    carnivalCityTimeOut = 0,
+    rubiksCubeTimeOut = 0;
 const defaultCakeBakerTiming: string = '01:00',
     defaultCakeBakerDetection: number = 3600000, //1小时
     defaultCarnivalCityTiming: string = '02:00',
     defaultCarnivalCityDetection: number = 10800000, //3小时
+    defaultRubiksCubeTiming: string = '03:00',
+    defaultRubiksCubeDetection: number = 3600000, //1小时
     defaultMultiPollingDetection: number = 1800000; //30分钟
 
 export default class jdCollectionAct implements Activity {
@@ -111,6 +120,7 @@ export default class jdCollectionAct implements Activity {
                                                 <option value="${carnivalCityTaskEnum.今日精选}">今日精选</option>
                                                 <option value="${carnivalCityTaskEnum.热卖单品}">热卖单品</option>
                                                 <option value="${carnivalCityTaskEnum.精选会场}">精选会场</option>
+                                                <option value="${carnivalCityTaskEnum.开通会员}">开通会员</option>
                                                 <option value="${carnivalCityTaskEnum.探索物种}">探索物种</option>
                                             </select>
                                         </div>
@@ -121,6 +131,30 @@ export default class jdCollectionAct implements Activity {
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
                                         <button class="carnivalCityAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动狂欢</button>
+                                    </td>
+                                </tr>`;
+                helpInfoDetail += `<details>
+                                    <summary style="outline: 0;">自动魔方</summary>
+                                    <p style="font-size: 12px;">根据所填项每天完成京东小魔方任务；任务定时：默认${defaultRubiksCubeTiming}之后；检测频率：默认${defaultRubiksCubeDetection / 3600000}小时。</p>
+                                </details>`;
+                btnInfoDetail += `<tr> 
+                                    <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
+                                        <div style="width: 24vw;">
+                                            <select id="rubiksCubeType" style="width: 23.5vw;">
+                                                <option value="${rubiksCubeTaskEnum.全部}" selected="selected">全部</option>
+                                                <option value="${rubiksCubeTaskEnum.浏览新品}">浏览新品</option>
+                                                <option value="${rubiksCubeTaskEnum.关注浏览}">关注浏览</option>
+                                                <option value="${rubiksCubeTaskEnum.浏览会场}">浏览会场</option>
+                                                <option value="${rubiksCubeTaskEnum.抽奖}">抽奖</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td style="width: 230vw;text-align: -webkit-left">
+                                        <input id="rubiksCubeTiming" type="time" value="${defaultRubiksCubeTiming}" style="width:23.5vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;">
+                                        <input id="rubiksCubeDetection" style="width:12.8vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "检测频率">
+                                    </td>
+                                    <td style="width: 50vw;text-align: -webkit-left;">
+                                        <button class="rubiksCubeAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动魔方</button>
                                     </td>
                                 </tr>`;
                 break;
@@ -381,6 +415,120 @@ export default class jdCollectionAct implements Activity {
                     clearTimeout(carnivalCityTimeout);
                     carnivalCityTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动狂欢！`, false);
+                }
+            });
+        });
+        //自动魔方
+        let rubiksCubeAuto = _$('.rubiksCubeAuto') as HTMLButtonElement;
+        rubiksCubeAuto?.addEventListener('click', () => {
+            //验证魔方任务类型
+            let typeSelect = document.getElementById('rubiksCubeType') as HTMLSelectElement,
+                typeSelectOptions = typeSelect.options[typeSelect.selectedIndex];
+            if (!typeSelectOptions || !typeSelectOptions.value) {
+                alert("请选择任务类型！");
+                return false;
+            }
+            //验证魔方任务定时
+            let rubiksCubeTimingInput = document.getElementById('rubiksCubeTiming') as HTMLInputElement;
+            if (!rubiksCubeTimingInput.value) {
+                alert("请输入正确的任务定时格式！");
+                return false;
+            }
+            //验证魔方任务检测频率
+            const reg = /^[1-9]\d*$/;
+            let rubiksCubeDetectionInput = document.getElementById('rubiksCubeDetection') as HTMLInputElement;
+            if (!!rubiksCubeDetectionInput.value && !reg.test(rubiksCubeDetectionInput.value)) {
+                alert("请检查组队检测频率是否为正整数！");
+                return false;
+            }
+
+            rubiksCubeTiming = rubiksCubeTimingInput.value || defaultRubiksCubeTiming;
+
+            if (Config.multiFlag) {
+                rubiksCubeSpan = ((+rubiksCubeDetectionInput!.value * 3600000) || defaultRubiksCubeDetection) + (defaultMultiPollingDetection * CookieManager.cookieArr.length);
+            }
+            else {
+                rubiksCubeSpan = ((+rubiksCubeDetectionInput!.value * 3600000) || defaultRubiksCubeDetection);
+            }
+
+            typeSelect.disabled = !typeSelect.disabled;
+            rubiksCubeTimingInput.disabled = !rubiksCubeTimingInput.disabled;
+            rubiksCubeDetectionInput.disabled = !rubiksCubeDetectionInput.disabled;
+
+            this.getJDTime().then((currentJDTime) => {
+                let firstSpan = 0,
+                    rubiksCubeTimeout = 0,
+                    isTimeOut = false;
+                let currentJDDate = new Date(+currentJDTime),
+                    timeSplit = rubiksCubeTiming.split(':'),
+                    timingStamp = new Date(+currentJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                if (rubiksCubeAuto.innerHTML == rubiksCubeButtonEnum.rubiksCubeStart) {
+                    rubiksCubeAuto.innerHTML = rubiksCubeButtonEnum.rubiksCubeStop;
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动魔方！`, false);
+
+                    if (currentJDDate.getTime() < timingStamp) {
+                        firstSpan = timingStamp - currentJDDate.getTime();
+                    }
+
+                    rubiksCubeTimeout = setTimeout(() => {
+                        if (Config.multiFlag) {
+                            CookieManager.cookieArr.map((item: CookieType) => {
+                                setTimeout(() => {
+                                    CookieHandler.coverCookie(item);
+                                    this.rubiksCube(typeSelectOptions.value, item);
+                                }, item.index * defaultMultiPollingDetection);
+                            });
+                        }
+                        else {
+                            this.rubiksCube(typeSelectOptions.value);
+                        }
+                        rubiksCubeInterval = setInterval(() => {
+                            this.getJDTime().then((nowJDTime) => {
+                                let nowJDDate = new Date(+nowJDTime),
+                                    nowTimingStamp = new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                                if (nowJDDate.getTime() >= nowTimingStamp) {
+                                    clearTimeout(rubiksCubeTimeout);
+                                    if (Config.multiFlag) {
+                                        CookieManager.cookieArr.map((item: CookieType) => {
+                                            setTimeout(() => {
+                                                CookieHandler.coverCookie(item);
+                                                this.rubiksCube(typeSelectOptions.value, item);
+                                            }, item.index * defaultMultiPollingDetection);
+                                        });
+                                    }
+                                    else {
+                                        this.rubiksCube(typeSelectOptions.value);
+                                    }
+                                }
+                                else {
+                                    if (!isTimeOut) {
+                                        isTimeOut = true;
+                                        rubiksCubeTimeout = setTimeout(() => {
+                                            isTimeOut = false;
+                                            if (Config.multiFlag) {
+                                                CookieManager.cookieArr.map((item: CookieType) => {
+                                                    setTimeout(() => {
+                                                        CookieHandler.coverCookie(item);
+                                                        this.rubiksCube(typeSelectOptions.value, item);
+                                                    }, item.index * defaultMultiPollingDetection);
+                                                });
+                                            }
+                                            else {
+                                                this.rubiksCube(typeSelectOptions.value);
+                                            }
+                                        }, nowTimingStamp - nowJDDate.getTime());
+                                    }
+                                }
+                            });
+                        }, rubiksCubeSpan);
+                    }, firstSpan);
+                }
+                else {
+                    rubiksCubeAuto.innerHTML = rubiksCubeButtonEnum.rubiksCubeStart;
+                    clearInterval(rubiksCubeInterval);
+                    clearTimeout(rubiksCubeTimeout);
+                    rubiksCubeTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动魔方！`, false);
                 }
             });
         });
@@ -1361,9 +1509,6 @@ export default class jdCollectionAct implements Activity {
         carnivalCityTimeOut = 0;
 
         let uuid = 'ee9a4e872b8043c8c6d550fbdc636823e2096324';
-        //let submitTimeout = 0;
-        //let secretp = '',
-        //    needLevel = false;
         let getIndexJson: any,
             getTaskJson: any;
         let tPlusShop: any,
@@ -1371,6 +1516,7 @@ export default class jdCollectionAct implements Activity {
             featuredShop: any,
             singleSku: any,
             venue: any,
+            brandMembers: any,
             exploreSpecies: any;
         let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
 
@@ -1400,7 +1546,7 @@ export default class jdCollectionAct implements Activity {
         if ((getIndexJson.code == 0 || getIndexJson.msg == "调用成功") && getIndexJson.data.success) {
             tPlusShop = getIndexJson.data.result.tPlusShopList;
             t1ShopList = getIndexJson.data.result.t1ShopList;
-            exploreSpecies = getIndexJson.data.result.homeButton;
+            exploreSpecies = getIndexJson.data.result.continentList;
         }
         else {
             Utils.debugInfo(consoleEnum.log, getIndexJson);
@@ -1410,6 +1556,7 @@ export default class jdCollectionAct implements Activity {
         if ((getTaskJson.code == 0 || getTaskJson.msg == "调用成功") && getTaskJson.data.success) {
             featuredShop = getTaskJson.data.result.featuredShopLimitCount;
             singleSku = getTaskJson.data.result.singleSkuInfo;
+            brandMembers = getTaskJson.data.result.brandMembersInfo;
             venue = getTaskJson.data.result.venueLimitCount;
         }
         else {
@@ -1581,21 +1728,74 @@ export default class jdCollectionAct implements Activity {
                 }
             }
         }
+        //if (taskType == carnivalCityTaskEnum.开通会员 || taskType == carnivalCityTaskEnum.全部) {
+        //    if (!!brandMembers) {
+        //        let joinedCount = +getTaskJson.data.result.brandMembersInfo.memberLimitCount,
+        //            taskChance = +brandMembers.brandMemberList.length;
+        //        for (let i = 0; i < brandMembers.brandMemberList.length; i++) {
+        //            if (!brandMembers.brandMemberList[i].member) {
+        //                carnivalCityTimeoutArray.push(setTimeout(() => {
+        //                    fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":7,\"shopId\":${brandMembers.brandMemberList[i].venderId},\"uuid\":\"${uuid}\"}`, {
+        //                        method: "GET",
+        //                        credentials: "include"
+        //                    })
+        //                        .then(function (res) { return res.json(); })
+        //                        .then((practicalTaskJson) => {
+        //                            if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+        //                                joinedCount++;
+        //                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢开通会员成功！`, false);
+        //                            }
+        //                            else {
+        //                                Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+        //                                Utils.outPutLog(this.outputTextarea, `${nick}【狂欢开通会员失败，请手动刷新或联系作者！】`, false);
+        //                            }
+        //                        })
+        //                        .catch((error) => {
+        //                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+        //                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢开通会员异常，请刷新后重新尝试或联系作者！】`, false);
+        //                        });
+        //                }, carnivalCityTimeOut));
+        //                carnivalCityTimeOut += Utils.random(2000, 3000);
+        //            }
+        //        }
+        //    }
+        //}
         if (taskType == carnivalCityTaskEnum.探索物种 || taskType == carnivalCityTaskEnum.全部) {
             if (!!exploreSpecies) {
                 let limit = 400;
-                let levelCount = Math.floor(+exploreSpecies.curCoinNum / limit);
-                if (exploreSpecies.state == 1 && levelCount > 0) {
+                let levelCount = Math.floor(+getIndexJson.data.result.homeButton.curCoinNum / limit);
+                let continentId = exploreSpecies.find((item: any) => { return item.state == 2 })?.id;
+                if (getIndexJson.data.result.homeButton.state == 1 && levelCount > 0) {
                     for (let i = 0; i < levelCount; i++) {
-                        carnivalCityTimeoutArray.push(setTimeout(async () => {
-                            await fetch(`${this.rootURI}sixOneEight_getSpecies&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"continentId\":0}`, {
+                        carnivalCityTimeoutArray.push(setTimeout(() => {
+                            fetch(`${this.rootURI}sixOneEight_getSpecies&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"continentId\":${continentId}}`, {
                                 method: "GET",
                                 credentials: "include"
                             })
                                 .then(function (res) { return res.json(); })
                                 .then((getSpeciesJson) => {
                                     if ((getSpeciesJson.code == 0 || getSpeciesJson.msg == "调用成功") && getSpeciesJson.data.success) {
+
                                         Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}狂欢探索物种成功！`, false);
+
+                                        fetch(`${this.rootURI}sixOneEight_getLottery&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"type\":2,\"brickId\":\"${continentId}_${getSpeciesJson.data.result.speciesId}\"}`, {
+                                            method: "GET",
+                                            credentials: "include"
+                                        })
+                                            .then(function (res) { return res.json(); })
+                                            .then((getLotteryJson) => {
+                                                if ((getLotteryJson.code == 0 || getLotteryJson.msg == "调用成功") && getLotteryJson.data.success) {
+                                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}狂欢探索奖励领取成功！`, false);
+                                                }
+                                                else {
+                                                    Utils.debugInfo(consoleEnum.log, getLotteryJson);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【狂欢狂欢探索奖励领取失败，请手动刷新或联系作者！】`, false);
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢狂欢探索奖励领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                            });
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, getSpeciesJson);
@@ -1606,27 +1806,167 @@ export default class jdCollectionAct implements Activity {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
                                     Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢探索物种异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
-                            await fetch(`${this.rootURI}sixOneEight_getLottery&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"type\":2,\"brickId\":\"0_1\"}`, {
+                        }, carnivalCityTimeOut));
+                        carnivalCityTimeOut += Utils.random(2000, 3000);
+                    }
+                }
+            }
+        }
+    }
+    //京东小魔方任务
+    async rubiksCube(taskType: any, ckObj?: CookieType) {
+        rubiksCubeTimeOut = 0;
+
+        let getNewsInteractionInfoJson: any;
+        let luckyDraw: any,
+            taskSkuInfo: any,
+            viewVenue: any,
+            followView: any;
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+        //魔方任务信息
+        getNewsInteractionInfoJson = await fetch(`${this.rootURI}getNewsInteractionInfo&appid=smfe&body={}`,
+            {
+                method: "GET",
+                credentials: "include"
+            })
+            .then(function (res) { return res.json(); })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取魔方任务信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        //任务分组
+        if (getNewsInteractionInfoJson.result.code == 0 || getNewsInteractionInfoJson.result.toast == "响应成功") {
+            taskSkuInfo = getNewsInteractionInfoJson.result.taskSkuInfo;
+            luckyDraw = getNewsInteractionInfoJson.result.lotteryInfo;
+
+            for (let i = 0; i < getNewsInteractionInfoJson.result.taskPoolInfo.taskList.length; i++) {
+                switch (getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId) {
+                    case rubiksCubeTaskEnum.关注浏览:
+                        followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
+                    case rubiksCubeTaskEnum.浏览会场:
+                        viewVenue = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
+                }
+            }
+        }
+        else {
+            Utils.debugInfo(consoleEnum.log, getNewsInteractionInfoJson);
+            Utils.outPutLog(this.outputTextarea, `${nick}【获取魔方任务信息请求失败，请手动刷新或联系作者！】`, false);
+        }
+        //完成任务
+        if (taskType == rubiksCubeTaskEnum.浏览新品 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!taskSkuInfo) {
+                let joinedCount = +getNewsInteractionInfoJson.result.taskSkuNum,
+                    taskChance = +taskSkuInfo.length;
+                for (let i = 0; i < taskChance; i++) {
+                    if (taskSkuInfo[i].browseStatus == 0) {
+                        rubiksCubeTimeoutArray.push(setTimeout(() => {
+                            fetch(`${this.rootURI}viewNewsInteractionSkus&appid=smfe&body={\"sku\":\"${taskSkuInfo[i].skuId}\",\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId}}`, {
                                 method: "GET",
                                 credentials: "include"
                             })
                                 .then(function (res) { return res.json(); })
-                                .then((getLotteryJson) => {
-                                    if ((getLotteryJson.code == 0 || getLotteryJson.msg == "调用成功") && getLotteryJson.data.success) {
-                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}狂欢探索奖励领取成功！`, false);
+                                .then((viewNewsInteractionSkusJson) => {
+                                    if (viewNewsInteractionSkusJson.result.code == 0) {
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】魔方浏览新品成功！`, false);
                                     }
                                     else {
-                                        Utils.debugInfo(consoleEnum.log, getLotteryJson);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【狂欢狂欢探索奖励领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.debugInfo(consoleEnum.log, viewNewsInteractionSkusJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览新品失败，请手动刷新或联系作者！】`, false);
                                     }
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢狂欢探索奖励领取异常，请刷新后重新尝试或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览新品异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
-                        }, carnivalCityTimeOut));
-                        carnivalCityTimeOut += Utils.random(2000, 3000);
+                        }, rubiksCubeTimeOut));
+                        rubiksCubeTimeOut += Utils.random(2000, 3000);
                     }
+                }
+            }
+        }
+        if (taskType == rubiksCubeTaskEnum.关注浏览 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!followView) {
+                if (followView.taskStatus == 0) {
+                    rubiksCubeTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}followViewChannelInteraction&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((followViewChannelInteractionJson) => {
+                                if (followViewChannelInteractionJson.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方浏览关注成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, followViewChannelInteractionJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览关注失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览关注异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, rubiksCubeTimeOut));
+                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                }
+            }
+        }
+        if (taskType == rubiksCubeTaskEnum.浏览会场 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!viewVenue) {
+                if (viewVenue.taskStatus == 0) {
+                    rubiksCubeTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"taskType\":9}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((executeInteractionTaskJson) => {
+                                if (executeInteractionTaskJson.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方浏览会场成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, executeInteractionTaskJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览会场失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览会场异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, rubiksCubeTimeOut));
+                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                }
+            }
+        }
+        if (taskType == rubiksCubeTaskEnum.抽奖 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!luckyDraw) {
+                let luckyDrawCount = +luckyDraw.lotteryNum;
+                for (let i = 0; i < luckyDrawCount; i++) {
+                    rubiksCubeTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}getNewsInteractionLotteryInfo&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.text(); })
+                            .then((getNewsInteractionLotteryInfoJson) => {
+                                let data = JSON.parse(getNewsInteractionLotteryInfoJson);
+                                if (data.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方抽奖获得${data.result.lotteryInfo.name ?? "空气"}${data.result.lotteryInfo.quantity ?? ""}！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, getNewsInteractionLotteryInfoJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方抽奖失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方抽奖异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, rubiksCubeTimeOut));
+                    rubiksCubeTimeOut += Utils.random(2000, 3000);
                 }
             }
         }

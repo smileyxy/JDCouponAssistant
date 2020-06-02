@@ -274,7 +274,8 @@ function buildActivity() {
     activityArea.setAttribute("style", "border: 1px solid #000;margin:10px 0");
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>活动推荐</h3>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://bunearth.m.jd.com/babelDiy/Zeus/3xAU77DgiPoDvHdbXUZb95a7u71X/index.html?babelChannel=dgmf#/Call" target="_blank">叠红包</a></p>
-    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/QzjyrF2MpMcB5yq9zwaNpwspZWx/index.html?babelChannel=ttt6#/home" target="_blank">品牌狂欢城</a></p>`;
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/QzjyrF2MpMcB5yq9zwaNpwspZWx/index.html?babelChannel=ttt6#/home" target="_blank">品牌狂欢城</a></p>
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/BDBYCXZDUYYWOHUGDJUK/3ir78c82wkBTA4kwtuAUb3F1T5ej/index.html" target="_blank">京东小魔方</a></p>`;
     container.append(activityArea);
 }
 
@@ -557,6 +558,8 @@ function getEntryType(): couponType | activityType | goodsType | gameType {
     if (Config.locationHref.includes("h5.m.jd.com")) {
         if (Config.locationHref.includes("QzjyrF2MpMcB5yq9zwaNpwspZWx")) {
             type = activityType.carnivalCity;
+        } else if (Config.locationHref.includes("3ir78c82wkBTA4kwtuAUb3F1T5ej")) {
+            type = activityType.rubiksCube;
         }
     }
     if (Config.locationHref.includes("palace")) {
@@ -639,6 +642,10 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
             break;
         case activityType.carnivalCity:
             activity = new JDCollectionAct({ "switchType": activityType.carnivalCity }, container, outputTextArea);
+             Config.UAFlag = true;
+            break;
+        case activityType.rubiksCube:
+            activity = new JDCollectionAct({ "switchType": activityType.rubiksCube }, container, outputTextArea);
              Config.UAFlag = true;
             break;
         // case activityType.monsterNian:
@@ -751,9 +758,10 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近三次更新内容：', 'color:#009a61');
+        console.log('%c【0.5.2】：修复品牌狂欢城探索物种；新增京东小魔方活动', 'color:#009a61');
         console.log('%c【0.5.1】：修复宠汪汪个别逛会场失败；新增品牌狂欢城活动', 'color:#009a61');
         console.log('%c【0.5.0】：新增叠蛋糕活动', 'color:#009a61');
-        console.log('%c【0.4.9】：新增宠汪汪自动组队功能', 'color:#009a61');
+        //console.log('%c【0.4.9】：新增宠汪汪自动组队功能', 'color:#009a61');
         //console.log('%c【0.4.8】：合并原作者更新内容；优化所有板块结果显示顺序；完善原作者所有样式及功能；完善宠汪汪邀请用户功能；新增宠汪汪智能喂养选项', 'color:#009a61');
         //console.log('%c【0.4.7】：新增宠汪汪邀请用户功能性测试', 'color:#009a61');
         //console.log('%c【0.4.6】：自动活动首次触发修改为整点', 'color:#009a61');
