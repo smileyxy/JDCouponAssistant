@@ -102,6 +102,7 @@ export default class jdCollectionAct implements Activity {
                                                 <option value="${cakeBakerTaskEnum.加购商品}">加购商品</option>
                                                 <option value="${cakeBakerTaskEnum.AR吃蛋糕}">AR吃蛋糕</option>
                                                 <option value="${cakeBakerTaskEnum.逛店铺}">逛店铺</option>
+                                                <option value="${cakeBakerTaskEnum.扔炸弹}">扔炸弹</option>
                                             </select>
                                         </div>
                                     </td>
@@ -1620,11 +1621,10 @@ export default class jdCollectionAct implements Activity {
                 }
             }
         }
-        //叠蛋糕
         if (taskType == cakeBakerTaskEnum.叠蛋糕 || taskType == cakeBakerTaskEnum.全部) {
             cakeBakerTimeoutArray.push(setTimeout(async () => {
                 while (needLevel) {
-                    await fetch(`${this.rootURI}cakebaker_raise&vody={}&client=wh5&clientVersion=1.0.0`, {
+                    await fetch(`${this.rootURI}cakebaker_raise&body={}&client=wh5&clientVersion=1.0.0`, {
                         method: "POST",
                         mode: "cors",
                         credentials: "include",
@@ -1649,6 +1649,32 @@ export default class jdCollectionAct implements Activity {
                             Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~叠蛋糕异常，请刷新后重新尝试或联系作者！】`, false);
                         });
                 }
+            }, taskTimeout));
+        }
+        if (taskType == cakeBakerTaskEnum.扔炸弹 || taskType == cakeBakerTaskEnum.全部) {
+            cakeBakerTimeoutArray.push(setTimeout(async () => {
+                await fetch(`${this.rootURI}cakebaker_pk_getCakeBomb&body={}&client=wh5&clientVersion=1.0.0`, {
+                    method: "POST",
+                    mode: "cors",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    }
+                })
+                    .then(function (res) { return res.json(); })
+                    .then((getCakeBombJson) => {
+                        if (getCakeBombJson.code == 0 && getCakeBombJson.data.success) {
+                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}${getCakeBombJson.data.result.tip}！`, false);
+                        }
+                        else {
+                            Utils.debugInfo(consoleEnum.log, getCakeBombJson);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕扔炸弹失败，请手动刷新或联系作者！】`, false);
+                        }
+                    })
+                    .catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕扔炸弹异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
             }, taskTimeout));
         }
     }

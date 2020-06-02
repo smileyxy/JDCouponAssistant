@@ -1,6 +1,6 @@
 export default class Config {
     static title: string = "京东领券助手";
-    static version: string = "v0.5.3";
+    static version: string = "v0.5.4";
     static author: string = "krapnik";
     static edit: string = "smileyxy";
 
