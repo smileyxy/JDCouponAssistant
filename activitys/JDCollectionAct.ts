@@ -1954,7 +1954,7 @@ export default class jdCollectionAct implements Activity {
                             .then((getNewsInteractionLotteryInfoJson) => {
                                 let data = JSON.parse(getNewsInteractionLotteryInfoJson);
                                 if (data.result.code == 0) {
-                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方抽奖获得${data.result.lotteryInfo.name ?? "空气"}${data.result.lotteryInfo.quantity ?? ""}！`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方抽奖获得${data.result.lotteryInfo?.name ?? "空气"}${data.result.lotteryInfo?.quantity ?? ""}！`, false);
                                 }
                                 else {
                                     Utils.debugInfo(consoleEnum.log, getNewsInteractionLotteryInfoJson);
