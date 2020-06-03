@@ -42,6 +42,7 @@ export enum carnivalCityTaskEnum {
     "今日精选" = "featuredShop",
     "热卖单品" ="singleSku",
     "精选会场" = "venue",
+    "精选直播" = "live",
     "开通会员" = "brandMembers",
     "探索物种" = "exploreSpecies"
 }

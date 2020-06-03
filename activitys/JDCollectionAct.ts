@@ -130,6 +130,7 @@ export default class jdCollectionAct implements Activity {
                                                 <option value="${carnivalCityTaskEnum.今日精选}">今日精选</option>
                                                 <option value="${carnivalCityTaskEnum.热卖单品}">热卖单品</option>
                                                 <option value="${carnivalCityTaskEnum.精选会场}">精选会场</option>
+                                                <option value="${carnivalCityTaskEnum.精选直播}">精选直播</option>
                                                 <option value="${carnivalCityTaskEnum.开通会员}">开通会员</option>
                                                 <option value="${carnivalCityTaskEnum.探索物种}">探索物种</option>
                                             </select>
@@ -1690,6 +1691,7 @@ export default class jdCollectionAct implements Activity {
             featuredShop: any,
             singleSku: any,
             venue: any,
+            live: any,
             brandMembers: any,
             exploreSpecies: any;
         let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
@@ -1732,6 +1734,7 @@ export default class jdCollectionAct implements Activity {
             singleSku = getTaskJson.data.result.singleSkuInfo;
             brandMembers = getTaskJson.data.result.brandMembersInfo;
             venue = getTaskJson.data.result.venueLimitCount;
+            live = getTaskJson.data.result.liveShowLimitCount;
         }
         else {
             Utils.debugInfo(consoleEnum.log, getTaskJson);
@@ -1895,6 +1898,38 @@ export default class jdCollectionAct implements Activity {
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
                                     Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢精选会场异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    }, carnivalCityTimeOut));
+                    carnivalCityTimeOut += Utils.random(2000, 3000);
+                }
+            }
+        }
+        if (taskType == carnivalCityTaskEnum.精选直播 || taskType == carnivalCityTaskEnum.全部) {
+            let joinedCount = +live,
+                taskChance = 3;
+            if (joinedCount < taskChance) {
+                for (let i = 0; i < taskChance; i++) {
+                    carnivalCityTimeoutArray.push(setTimeout(() => {
+                        if (joinedCount < taskChance) {
+                            fetch(`${this.rootURI}sixOneEight_practicalTask&clientVersion=1.0.0&client=wh5&uuid=${uuid}&area=2_2826_51941_0&appid=publicUseApi&body={\"source\":11,\"uuid\":\"${uuid}\"}`, {
+                                method: "GET",
+                                credentials: "include"
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((practicalTaskJson) => {
+                                    if ((practicalTaskJson.code == 0 || practicalTaskJson.msg == "调用成功") && practicalTaskJson.data.success) {
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】狂欢精选直播成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, practicalTaskJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【狂欢精选直播失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~狂欢精选直播异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }
                     }, carnivalCityTimeOut));
