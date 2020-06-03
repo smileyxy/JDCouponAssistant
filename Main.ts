@@ -758,11 +758,12 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.5.4】：修复京东小魔方任务失效；修复品牌狂欢城热卖单品BUG', 'color:#009a61');
         console.log('%c【0.5.4】：新增叠蛋糕扔炸弹功能', 'color:#009a61');
         console.log('%c【0.5.3】：新增AR超未来城市', 'color:#009a61');
         console.log('%c【0.5.2】：修复品牌狂欢城探索物种；新增京东小魔方活动', 'color:#009a61');
         console.log('%c【0.5.1】：修复宠汪汪个别逛会场失败；新增品牌狂欢城活动', 'color:#009a61');
-        console.log('%c【0.5.0】：新增叠蛋糕活动', 'color:#009a61');
+        //console.log('%c【0.5.0】：新增叠蛋糕活动', 'color:#009a61');
         //console.log('%c【0.4.9】：新增宠汪汪自动组队功能', 'color:#009a61');
         //console.log('%c【0.4.8】：合并原作者更新内容；优化所有板块结果显示顺序；完善原作者所有样式及功能；完善宠汪汪邀请用户功能；新增宠汪汪智能喂养选项', 'color:#009a61');
         //console.log('%c【0.4.7】：新增宠汪汪邀请用户功能性测试', 'color:#009a61');

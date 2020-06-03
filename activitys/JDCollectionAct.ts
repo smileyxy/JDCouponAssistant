@@ -1839,7 +1839,7 @@ export default class jdCollectionAct implements Activity {
             }
         }
         if (taskType == carnivalCityTaskEnum.热卖单品 || taskType == carnivalCityTaskEnum.全部) {
-            if (!!singleSku) {
+            if (!!singleSku && singleSku.skuLimitCount < 20) {
                 let joinedCount = +singleSku.skuLimitCount,
                     taskChance = +singleSku.skuList.length;
                 for (let i = 0; i < singleSku.skuList.length; i++) {
@@ -2014,11 +2014,13 @@ export default class jdCollectionAct implements Activity {
             luckyDraw = getNewsInteractionInfoJson.result.lotteryInfo;
 
             for (let i = 0; i < getNewsInteractionInfoJson.result.taskPoolInfo.taskList.length; i++) {
-                switch (getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId) {
-                    case rubiksCubeTaskEnum.关注浏览:
+                switch (true) {
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注浏览:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskName == "浏览并关注店铺":
                         followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
-                    case rubiksCubeTaskEnum.浏览会场:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览会场:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskName == "浏览会场":
                         viewVenue = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
                 }
@@ -2065,7 +2067,7 @@ export default class jdCollectionAct implements Activity {
             if (!!followView) {
                 if (followView.taskStatus == 0) {
                     rubiksCubeTimeoutArray.push(setTimeout(() => {
-                        fetch(`${this.rootURI}followViewChannelInteraction&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId}}`, {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={\"shopId\":${getNewsInteractionInfoJson.result.shopInfoList[0].shopId},\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},"taskType": ${followView.taskId}}`, {
                             method: "GET",
                             credentials: "include"
                         })
