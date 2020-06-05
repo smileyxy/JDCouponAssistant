@@ -40,7 +40,7 @@ let petPin = "",
 let taskTimeoutArray: any[] = [],
     actTimeoutArray: any[] = [],
     helpTimeoutArray: any[] = [];
-const defaultBeanDetection: number = 3600000, //1小时
+const defaultBeanDetection: number = 600000, //10分钟
     defaultFeedSpan: number = 10800000, //3小时
     defaultTaskTiming: string = '06:00',
     defaultTaskDetection: number = 3600000, //1小时
@@ -160,7 +160,7 @@ export default class JdJoy implements Game {
                             <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px 10px 10px;">
                                 <details>
                                     <summary style="outline: 0;">自动换豆</summary>
-                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 3600000}小时。</p>
+                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 60000}分钟。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动喂养</summary>
