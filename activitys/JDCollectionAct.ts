@@ -222,10 +222,9 @@ export default class jdCollectionAct implements Activity {
                                                 <option value="${helpFriendEnum.Smiley}">Smiley</option>
                                                 <option value="${helpFriendEnum.莹子}">莹子</option>
                                                 <option value="${helpFriendEnum.灰哒哒}">灰哒哒</option>
-                                                <option value="${helpFriendEnum.VV}">VV</option>
+                                                <option value="${helpFriendEnum.薇}">薇</option>
                                                 <option value="${helpFriendEnum.SmileyMOM}">SmileyMOM</option>
                                                 <option value="${helpFriendEnum.SmileyDAD}">SmileyDAD</option>
-                                                <option value="${helpFriendEnum.薇}">薇</option>
                                                 <option value="${helpFriendEnum.妈1}">妈1</option>
                                                 <option value="${helpFriendEnum.爸1}">爸1</option>
                                                 <option value="${helpFriendEnum.爸2}">爸2</option>
@@ -254,7 +253,7 @@ export default class jdCollectionAct implements Activity {
                                                 <option value="${cakeBakerPkUserEnum.全部}" selected="selected">全部</option>
                                                 <option value="${cakeBakerPkUserEnum.Smiley战队}">Smiley战队</option>
                                                 <option value="${cakeBakerPkUserEnum.灰哒哒战队}">灰哒哒战队</option>
-                                                <option value="${cakeBakerPkUserEnum.VV战队}">VV战队</option>
+                                                <option value="${cakeBakerPkUserEnum.薇战队}">VV战队</option>
                                                 <option value="${cakeBakerPkUserEnum.琳战队}">琳战队</option>
                                             </select>
                                         </div>
@@ -2670,10 +2669,9 @@ export default class jdCollectionAct implements Activity {
             helpArray.push(helpFriendEnum.Smiley);
             helpArray.push(helpFriendEnum.莹子);
             helpArray.push(helpFriendEnum.灰哒哒);
-            helpArray.push(helpFriendEnum.VV);
+            helpArray.push(helpFriendEnum.薇);
             helpArray.push(helpFriendEnum.SmileyMOM);
             helpArray.push(helpFriendEnum.SmileyDAD);
-            helpArray.push(helpFriendEnum.薇);
             helpArray.push(helpFriendEnum.妈1);
             helpArray.push(helpFriendEnum.爸1);
             helpArray.push(helpFriendEnum.爸2);
@@ -2727,7 +2725,7 @@ export default class jdCollectionAct implements Activity {
             if (taskType == cakeBakerTaskEnum.全部) {
                 helpArray.push(cakeBakerPkUserEnum.Smiley战队);
                 helpArray.push(cakeBakerPkUserEnum.灰哒哒战队);
-                helpArray.push(cakeBakerPkUserEnum.VV战队);
+                helpArray.push(cakeBakerPkUserEnum.薇战队);
                 helpArray.push(cakeBakerPkUserEnum.琳战队);
             }
             else {

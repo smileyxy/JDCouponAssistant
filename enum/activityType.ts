@@ -40,10 +40,9 @@ export enum helpFriendEnum {
     "Smiley" = "Vl4IS9IxFiFRKK03o2z4N00rIdUjYSNNrNbb33xbWRb_MgJ4eQXThFU",
     "莹子" = "eVcnDYMmA_T_sXyfNiPlEL57-66ibK8wr7uotgnPEaR7sw",
     "灰哒哒" = "Vl4ISIdlESABcvxioWaqM92XOHcTMAuojLAG5UwrHWRZ8bl7wN9BWfc",
-    "VV" = "DQlgSddjQyZQI6hb5yPlEATO8fAhWE070jmg08tTsQbzMQ",
+    "薇" = "DQlgSddjQyZQI6hb5yPlEATO8fAhWE070jmg08tTsQbzMQ",
     "SmileyMOM" = "Vl4ISYBhQCJdJqk8oGyrZCQM4VEGK4nJ7ziq_pIXYy8fWKi_F9cQ3L8",
     "SmileyDAD" = "Vl4IOKA8HVAUaP1o9AjALQfhsv00bDScfCZ0m_0srcdO-MwOy9I",
-    "薇" = "DQlgSddjQyZQI6hb5yPlEATO8fAhWE070jmg08tTsQbzMQ",
     "妈1" = "Vl4ISdI0FSJRdKwx8zqgMHmm2blAmnrgTE_UMlqTdZiSCCQgESFDWSs",
     "爸1" = "Vl4IS4Q2RCNQIK9lpD2uZgL7Z0t4DLepXmKPgM_zb8-vj0Za_vOasOk",
     "爸2" = "Vl4IS4NsQXRSdfxioz6qN3Fuzxn9HyaNPO93WKEako4ueByFZKg9iAU",
@@ -59,10 +58,10 @@ export enum helpFriendButtonEnum {
 
 export enum cakeBakerPkUserEnum {
     "全部" = "All",
-    "Smiley战队" = "Vl4IS9IxFiFRKK03o2z4N00rIdUjYSNNrNbb33xbWRb_MgJ4eQXThFU",
-    "灰哒哒战队" = "Vl4ISIdlESABcvxioWaqM92XOHcTMAuojLAG5UwrHWRZ8bl7wN9BWfc",
-    "琳战队" = "Vl4ISYQ3Q3cGca1ipzr7ZDjlPgssxKKN2ohpHJXWlpoFjwGpg8kVqiU",
-    "VV战队" = "DQlgSddjQyZQI6hb5yPlEATO8fAhWE070jmg08tTsQbzMQ"
+    "Smiley战队" = "XUkkFpUhDG0OdMYwozv_YY5SkhEKcO-qgLkW-fbCIbLmH0um0yWFpM2hn4s70ac",
+    "灰哒哒战队" = "XUkkFpUhDG0OdMYz9m_4YMiCzMD6snpC6NEqMjXfQncQfDIvlvDKAKDVNsAMKeM",
+    "薇战队" = "XUkkFpUhDG1VI64ypmmqZrqs-me-8WhFjsddkJ-H3kFhPgwkISQ61C8",
+    "琳战队" = "XUkkFpUhDG0OdMYy9T2qN59sHjBEWkiH3U1A1QhMQa0AsbX_ugsfyxAnB72AiVA"
 }
 
 export enum cakeBakerPkUserButtonEnum {
