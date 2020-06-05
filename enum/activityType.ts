@@ -35,6 +35,41 @@ export enum cakeBakerButtonEnum {
     cakeBakerStop = "取消蛋糕"
 }
 
+export enum helpFriendEnum {
+    "全部" = "All",
+    "Smiley" = "Vl4IS9IxFiFRKK03o2z4N00rIdUjYSNNrNbb33xbWRb_MgJ4eQXThFU",
+    "莹子" = "eVcnDYMmA_T_sXyfNiPlEL57-66ibK8wr7uotgnPEaR7sw",
+    "灰哒哒" = "Vl4ISIdlESABcvxioWaqM92XOHcTMAuojLAG5UwrHWRZ8bl7wN9BWfc",
+    "VV" = "DQlgSddjQyZQI6hb5yPlEATO8fAhWE070jmg08tTsQbzMQ",
+    "SmileyMOM" = "Vl4ISYBhQCJdJqk8oGyrZCQM4VEGK4nJ7ziq_pIXYy8fWKi_F9cQ3L8",
+    "SmileyDAD" = "Vl4IOKA8HVAUaP1o9AjALQfhsv00bDScfCZ0m_0srcdO-MwOy9I",
+    "薇" = "DQlgSddjQyZQI6hb5yPlEATO8fAhWE070jmg08tTsQbzMQ",
+    "妈1" = "Vl4ISdI0FSJRdKwx8zqgMHmm2blAmnrgTE_UMlqTdZiSCCQgESFDWSs",
+    "爸1" = "Vl4IS4Q2RCNQIK9lpD2uZgL7Z0t4DLepXmKPgM_zb8-vj0Za_vOasOk",
+    "爸2" = "Vl4IS4NsQXRSdfxioz6qN3Fuzxn9HyaNPO93WKEako4ueByFZKg9iAU",
+    "妈2" = "Vl4IS4UzQ3VcIv02oDuqN - JOE8IQ7v_EzpgBAORqwTopd4lX6S4K_8s",
+    "小号" = "S14vCaA3MkUSZOhw0TXlLcb9isF7iTW9kzIAn5SiZi3tyd90",
+    "琳" = "Vl4ISYQ3Q3cGca1ipzr7ZDjlPgssxKKN2ohpHJXWlpoFjwGpg8kVqiU"
+}
+
+export enum helpFriendButtonEnum {
+    helpFriendStart = "自动助力",
+    helpFriendStop = "取消助力"
+}
+
+export enum cakeBakerPkUserEnum {
+    "全部" = "All",
+    "Smiley战队" = "Vl4IS9IxFiFRKK03o2z4N00rIdUjYSNNrNbb33xbWRb_MgJ4eQXThFU",
+    "灰哒哒战队" = "Vl4ISIdlESABcvxioWaqM92XOHcTMAuojLAG5UwrHWRZ8bl7wN9BWfc",
+    "琳战队" = "Vl4ISYQ3Q3cGca1ipzr7ZDjlPgssxKKN2ohpHJXWlpoFjwGpg8kVqiU",
+    "VV战队" = "DQlgSddjQyZQI6hb5yPlEATO8fAhWE070jmg08tTsQbzMQ"
+}
+
+export enum cakeBakerPkUserButtonEnum {
+    cakeBakerPkUserStart = "一键战队",
+    cakeBakerPkUserStop = "正在助力"
+}
+
 export enum carnivalCityTaskEnum {
     "全部" = "All",
     "今日主推" = "tPlusShop",

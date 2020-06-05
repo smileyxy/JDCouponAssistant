@@ -9,12 +9,16 @@ import {
     activityType,
     cakeBakerTaskEnum,
     cakeBakerButtonEnum,
+    cakeBakerPkUserEnum,
+    cakeBakerPkUserButtonEnum,
     carnivalCityTaskEnum,
     carnivalCityButtonEnum,
     rubiksCubeTaskEnum,
     rubiksCubeButtonEnum,
     arFutureCityTaskEnum,
-    arFutureCityButtonEnum
+    arFutureCityButtonEnum,
+    helpFriendEnum,
+    helpFriendButtonEnum
 } from '../enum/activityType';
 
 let cakeBakerTiming = "",
@@ -28,15 +32,26 @@ let cakeBakerTiming = "",
     rubiksCubeInterval = 0,
     arFutureCityTiming = "",
     arFutureCitySpan = 0,
-    arFutureCityInterval = 0;
+    arFutureCityInterval = 0,
+    pkUserInviteId = "",
+    helpFriendTiming = "",
+    helpFriendSpan = 0,
+    helpFriendInterval = 0;
 let cakeBakerTimeoutArray: any[] = [],
     carnivalCityTimeoutArray: any[] = [],
     rubiksCubeTimeoutArray: any[] = [],
-    arFutureCityTimeoutArray: any[] = [];
+    arFutureCityTimeoutArray: any[] = [],
+    helpFriendTimeoutArray: any[] = [];
+let cakeBakerMultiTimeoutArray: any[] = [],
+    carnivalCityMultiTimeoutArray: any[] = [],
+    rubiksCubeMultiTimeoutArray: any[] = [],
+    arFutureCityMultiTimeoutArray: any[] = [],
+    helpFriendMultiTimeoutArray: any[] = [];
 let taskTimeout = 0,
     carnivalCityTimeOut = 0,
     rubiksCubeTimeOut = 0,
-    arFutureCityTimeOut = 0;
+    arFutureCityTimeOut = 0,
+    helpFriendTimeOut = 0;
 const defaultCakeBakerTiming: string = '01:00',
     defaultCakeBakerDetection: number = 3600000, //1小时
     defaultCarnivalCityTiming: string = '02:00',
@@ -45,6 +60,8 @@ const defaultCakeBakerTiming: string = '01:00',
     defaultRubiksCubeDetection: number = 3600000, //1小时
     defaultARFutureCityTiming: string = '04:00',
     defaultARFutureCityDetection: number = 3600000, //1小时
+    defaultHelpFriendTiming: string = '05:00',
+    defaultHelpFriendDetection: number = 28800000, //8小时
     defaultMultiPollingDetection: number = 1800000; //30分钟
 
 export default class jdCollectionAct implements Activity {
@@ -193,6 +210,63 @@ export default class jdCollectionAct implements Activity {
                                         <button class="arFutureCityAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动城市</button>
                                     </td>
                                 </tr>`;
+                helpInfoDetail += `<details>
+                                    <summary style="outline: 0;">自动助力</summary>
+                                    <p style="font-size: 12px;">根据所填项一键助力叠蛋糕；任务定时：默认${defaultHelpFriendTiming}之后；检测频率：默认${defaultHelpFriendDetection / 3600000}小时。</p>
+                                </details>`;
+                btnInfoDetail += `<tr> 
+                                    <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
+                                        <div style="width: 24vw;">
+                                            <select id="helpFriendType" style="width: 23.5vw;">
+                                                <option value="${helpFriendEnum.全部}" selected="selected">全部</option>
+                                                <option value="${helpFriendEnum.Smiley}">Smiley</option>
+                                                <option value="${helpFriendEnum.莹子}">莹子</option>
+                                                <option value="${helpFriendEnum.灰哒哒}">灰哒哒</option>
+                                                <option value="${helpFriendEnum.VV}">VV</option>
+                                                <option value="${helpFriendEnum.SmileyMOM}">SmileyMOM</option>
+                                                <option value="${helpFriendEnum.SmileyDAD}">SmileyDAD</option>
+                                                <option value="${helpFriendEnum.薇}">薇</option>
+                                                <option value="${helpFriendEnum.妈1}">妈1</option>
+                                                <option value="${helpFriendEnum.爸1}">爸1</option>
+                                                <option value="${helpFriendEnum.爸2}">爸2</option>
+                                                <option value="${helpFriendEnum.妈2}">妈2</option>
+                                                <option value="${helpFriendEnum.小号}">小号</option>
+                                                <option value="${helpFriendEnum.琳}">琳</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td style="width: 230vw;text-align: -webkit-left">
+                                        <input id="helpFriendTiming" type="time" value="${defaultHelpFriendTiming}" style="width:23.5vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;">
+                                        <input id="helpFriendDetection" style="width:12.8vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "检测频率">
+                                    </td>
+                                    <td style="width: 50vw;text-align: -webkit-left;">
+                                        <button class="helpFriendAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动助力</button>
+                                    </td>
+                                </tr>`;
+                helpInfoDetail += `<details>
+                                    <summary style="outline: 0;">一键战队</summary>
+                                    <p style="font-size: 12px;">根据所填项一键助力叠蛋糕指定战队，如填写指定战队inviteId则只会给指定战队助力。</p>
+                                </details>`;
+                btnInfoDetail += `<tr> 
+                                    <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
+                                        <div style="width: 24vw;">
+                                            <select id="pkUserType" style="width: 23.5vw;">
+                                                <option value="${cakeBakerPkUserEnum.全部}" selected="selected">全部</option>
+                                                <option value="${cakeBakerPkUserEnum.Smiley战队}">Smiley战队</option>
+                                                <option value="${cakeBakerPkUserEnum.灰哒哒战队}">灰哒哒战队</option>
+                                                <option value="${cakeBakerPkUserEnum.VV战队}">VV战队</option>
+                                                <option value="${cakeBakerPkUserEnum.琳战队}">琳战队</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td style="width: 230vw;text-align: -webkit-left">
+                                        <input id="pkUserAssign" style="width:22.5vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "指定战队inviteId">
+                                    </td>
+                                    <td style="width: 50vw;text-align: -webkit-left;">
+                                        <button class="pkUserGetId" style="width: 15vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size:12px;line-height:0;margin-left: -57px;float:left;">获取ID</button>
+                                        <button class="pkUserAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">一键战队</button>
+                                    </td>
+                                </tr>`;
                 break;
         }
         const helpContent = document.createElement("div");
@@ -246,7 +320,7 @@ export default class jdCollectionAct implements Activity {
             const reg = /^[1-9]\d*$/;
             let cakeBakerDetectionInput = document.getElementById('cakeBakerDetection') as HTMLInputElement;
             if (!!cakeBakerDetectionInput.value && !reg.test(cakeBakerDetectionInput.value)) {
-                alert("请检查组队检测频率是否为正整数！");
+                alert("请检查检测频率是否为正整数！");
                 return false;
             }
 
@@ -281,10 +355,10 @@ export default class jdCollectionAct implements Activity {
                     cakeBakerTimeout = setTimeout(() => {
                         if (Config.multiFlag) {
                             CookieManager.cookieArr.map((item: CookieType) => {
-                                setTimeout(() => {
+                                cakeBakerMultiTimeoutArray.push(setTimeout(() => {
                                     CookieHandler.coverCookie(item);
                                     this.cakeBaker(typeSelectOptions.value, item);
-                                }, item.index * defaultMultiPollingDetection);
+                                }, item.index * defaultMultiPollingDetection));
                             });
                         }
                         else {
@@ -298,10 +372,10 @@ export default class jdCollectionAct implements Activity {
                                     clearTimeout(cakeBakerTimeout);
                                     if (Config.multiFlag) {
                                         CookieManager.cookieArr.map((item: CookieType) => {
-                                            setTimeout(() => {
+                                            cakeBakerMultiTimeoutArray.push(setTimeout(() => {
                                                 CookieHandler.coverCookie(item);
                                                 this.cakeBaker(typeSelectOptions.value, item);
-                                            }, item.index * defaultMultiPollingDetection);
+                                            }, item.index * defaultMultiPollingDetection));
                                         });
                                     }
                                     else {
@@ -315,10 +389,10 @@ export default class jdCollectionAct implements Activity {
                                             isTimeOut = false;
                                             if (Config.multiFlag) {
                                                 CookieManager.cookieArr.map((item: CookieType) => {
-                                                    setTimeout(() => {
+                                                    cakeBakerMultiTimeoutArray.push(setTimeout(() => {
                                                         CookieHandler.coverCookie(item);
                                                         this.cakeBaker(typeSelectOptions.value, item);
-                                                    }, item.index * defaultMultiPollingDetection);
+                                                    }, item.index * defaultMultiPollingDetection));
                                                 });
                                             }
                                             else {
@@ -336,6 +410,7 @@ export default class jdCollectionAct implements Activity {
                     clearInterval(cakeBakerInterval);
                     clearTimeout(cakeBakerTimeout);
                     cakeBakerTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    cakeBakerMultiTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动蛋糕！`, false);
                 }
             });
@@ -360,7 +435,7 @@ export default class jdCollectionAct implements Activity {
             const reg = /^[1-9]\d*$/;
             let carnivalCityDetectionInput = document.getElementById('carnivalCityDetection') as HTMLInputElement;
             if (!!carnivalCityDetectionInput.value && !reg.test(carnivalCityDetectionInput.value)) {
-                alert("请检查组队检测频率是否为正整数！");
+                alert("请检查检测频率是否为正整数！");
                 return false;
             }
 
@@ -395,10 +470,10 @@ export default class jdCollectionAct implements Activity {
                     carnivalCityTimeout = setTimeout(() => {
                         if (Config.multiFlag) {
                             CookieManager.cookieArr.map((item: CookieType) => {
-                                setTimeout(() => {
+                                carnivalCityMultiTimeoutArray.push(setTimeout(() => {
                                     CookieHandler.coverCookie(item);
                                     this.carnivalCity(typeSelectOptions.value, item);
-                                }, item.index * defaultMultiPollingDetection);
+                                }, item.index * defaultMultiPollingDetection));
                             });
                         }
                         else {
@@ -412,10 +487,10 @@ export default class jdCollectionAct implements Activity {
                                     clearTimeout(carnivalCityTimeout);
                                     if (Config.multiFlag) {
                                         CookieManager.cookieArr.map((item: CookieType) => {
-                                            setTimeout(() => {
+                                            carnivalCityMultiTimeoutArray.push(setTimeout(() => {
                                                 CookieHandler.coverCookie(item);
                                                 this.carnivalCity(typeSelectOptions.value, item);
-                                            }, item.index * defaultMultiPollingDetection);
+                                            }, item.index * defaultMultiPollingDetection));
                                         });
                                     }
                                     else {
@@ -429,10 +504,10 @@ export default class jdCollectionAct implements Activity {
                                             isTimeOut = false;
                                             if (Config.multiFlag) {
                                                 CookieManager.cookieArr.map((item: CookieType) => {
-                                                    setTimeout(() => {
+                                                    carnivalCityMultiTimeoutArray.push(setTimeout(() => {
                                                         CookieHandler.coverCookie(item);
                                                         this.carnivalCity(typeSelectOptions.value, item);
-                                                    }, item.index * defaultMultiPollingDetection);
+                                                    }, item.index * defaultMultiPollingDetection));
                                                 });
                                             }
                                             else {
@@ -450,6 +525,7 @@ export default class jdCollectionAct implements Activity {
                     clearInterval(carnivalCityInterval);
                     clearTimeout(carnivalCityTimeout);
                     carnivalCityTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    carnivalCityMultiTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动狂欢！`, false);
                 }
             });
@@ -509,10 +585,10 @@ export default class jdCollectionAct implements Activity {
                     rubiksCubeTimeout = setTimeout(() => {
                         if (Config.multiFlag) {
                             CookieManager.cookieArr.map((item: CookieType) => {
-                                setTimeout(() => {
+                                rubiksCubeMultiTimeoutArray.push(setTimeout(() => {
                                     CookieHandler.coverCookie(item);
                                     this.rubiksCube(typeSelectOptions.value, item);
-                                }, item.index * defaultMultiPollingDetection);
+                                }, item.index * defaultMultiPollingDetection));
                             });
                         }
                         else {
@@ -526,10 +602,10 @@ export default class jdCollectionAct implements Activity {
                                     clearTimeout(rubiksCubeTimeout);
                                     if (Config.multiFlag) {
                                         CookieManager.cookieArr.map((item: CookieType) => {
-                                            setTimeout(() => {
+                                            rubiksCubeMultiTimeoutArray.push(setTimeout(() => {
                                                 CookieHandler.coverCookie(item);
                                                 this.rubiksCube(typeSelectOptions.value, item);
-                                            }, item.index * defaultMultiPollingDetection);
+                                            }, item.index * defaultMultiPollingDetection));
                                         });
                                     }
                                     else {
@@ -543,10 +619,10 @@ export default class jdCollectionAct implements Activity {
                                             isTimeOut = false;
                                             if (Config.multiFlag) {
                                                 CookieManager.cookieArr.map((item: CookieType) => {
-                                                    setTimeout(() => {
+                                                    rubiksCubeMultiTimeoutArray.push(setTimeout(() => {
                                                         CookieHandler.coverCookie(item);
                                                         this.rubiksCube(typeSelectOptions.value, item);
-                                                    }, item.index * defaultMultiPollingDetection);
+                                                    }, item.index * defaultMultiPollingDetection));
                                                 });
                                             }
                                             else {
@@ -564,6 +640,7 @@ export default class jdCollectionAct implements Activity {
                     clearInterval(rubiksCubeInterval);
                     clearTimeout(rubiksCubeTimeout);
                     rubiksCubeTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    rubiksCubeMultiTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动魔方！`, false);
                 }
             });
@@ -588,7 +665,7 @@ export default class jdCollectionAct implements Activity {
             const reg = /^[1-9]\d*$/;
             let arFutureCityDetectionInput = document.getElementById('arFutureCityDetection') as HTMLInputElement;
             if (!!arFutureCityDetectionInput.value && !reg.test(arFutureCityDetectionInput.value)) {
-                alert("请检查组队检测频率是否为正整数！");
+                alert("请检查检测频率是否为正整数！");
                 return false;
             }
 
@@ -623,10 +700,10 @@ export default class jdCollectionAct implements Activity {
                     arFutureCityTimeout = setTimeout(() => {
                         if (Config.multiFlag) {
                             CookieManager.cookieArr.map((item: CookieType) => {
-                                setTimeout(() => {
+                                arFutureCityMultiTimeoutArray.push(setTimeout(() => {
                                     CookieHandler.coverCookie(item);
                                     this.arFutureCity(typeSelectOptions.value, item);
-                                }, item.index * defaultMultiPollingDetection);
+                                }, item.index * defaultMultiPollingDetection));
                             });
                         }
                         else {
@@ -640,10 +717,10 @@ export default class jdCollectionAct implements Activity {
                                     clearTimeout(arFutureCityTimeout);
                                     if (Config.multiFlag) {
                                         CookieManager.cookieArr.map((item: CookieType) => {
-                                            setTimeout(() => {
+                                            arFutureCityMultiTimeoutArray.push(setTimeout(() => {
                                                 CookieHandler.coverCookie(item);
                                                 this.arFutureCity(typeSelectOptions.value, item);
-                                            }, item.index * defaultMultiPollingDetection);
+                                            }, item.index * defaultMultiPollingDetection));
                                         });
                                     }
                                     else {
@@ -657,10 +734,10 @@ export default class jdCollectionAct implements Activity {
                                             isTimeOut = false;
                                             if (Config.multiFlag) {
                                                 CookieManager.cookieArr.map((item: CookieType) => {
-                                                    setTimeout(() => {
+                                                    arFutureCityMultiTimeoutArray.push(setTimeout(() => {
                                                         CookieHandler.coverCookie(item);
                                                         this.arFutureCity(typeSelectOptions.value, item);
-                                                    }, item.index * defaultMultiPollingDetection);
+                                                    }, item.index * defaultMultiPollingDetection));
                                                 });
                                             }
                                             else {
@@ -678,8 +755,208 @@ export default class jdCollectionAct implements Activity {
                     clearInterval(arFutureCityInterval);
                     clearTimeout(arFutureCityTimeout);
                     arFutureCityTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    arFutureCityMultiTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动城市！`, false);
                 }
+            });
+        });
+        //获取ID
+        let pkUserGetId = _$('.pkUserGetId') as HTMLButtonElement;
+        pkUserGetId?.addEventListener('click', () => {
+            fetch(`${this.rootURI}cakebaker_pk_brief&body={}&client=wh5&clientVersion=1.0.0`, {
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            })
+                .then((res) => { return res.json() })
+                .then((cakebakerpkbriefJson) => {
+                    if ((cakebakerpkbriefJson.code == 0 || cakebakerpkbriefJson.msg == "调用成功") && cakebakerpkbriefJson.data.success) {
+                        console.log(`您的inviteId：${cakebakerpkbriefJson.data.result.groupPkInfo.groupAssistInviteId}`);
+                        Utils.copyText(cakebakerpkbriefJson.data.result.groupPkInfo.groupAssistInviteId);
+                    }
+                    else {
+                        Utils.debugInfo(consoleEnum.log, cakebakerpkbriefJson);
+                        Utils.outPutLog(this.outputTextarea, `【获取蛋糕战队获取ID失败，请手动刷新或联系作者！】`, false);
+                    }
+                })
+                .catch((error) => {
+                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取蛋糕战队获取ID异常，请刷新后重新尝试或联系作者！】`, false);
+                });
+        });
+        //自动助力
+        let helpFriendAuto = _$('.helpFriendAuto') as HTMLButtonElement;
+        helpFriendAuto?.addEventListener('click', () => {
+            //验证助力任务类型
+            let typeSelect = document.getElementById('helpFriendType') as HTMLSelectElement,
+                typeSelectOptions = typeSelect.options[typeSelect.selectedIndex];
+            if (!typeSelectOptions || !typeSelectOptions.value) {
+                alert("请选择任务类型！");
+                return false;
+            }
+            //验证助力任务定时
+            let helpFriendTimingInput = document.getElementById('helpFriendTiming') as HTMLInputElement;
+            if (!helpFriendTimingInput.value) {
+                alert("请输入正确的任务定时格式！");
+                return false;
+            }
+            //验证助力任务检测频率
+            const reg = /^[1-9]\d*$/;
+            let helpFriendDetectionInput = document.getElementById('helpFriendDetection') as HTMLInputElement;
+            if (!!helpFriendDetectionInput.value && !reg.test(helpFriendDetectionInput.value)) {
+                alert("请检查检测频率是否为正整数！");
+                return false;
+            }
+
+            helpFriendTiming = helpFriendTimingInput.value || defaultHelpFriendTiming;
+
+            if (Config.multiFlag) {
+                helpFriendSpan = ((+helpFriendDetectionInput!.value * 3600000) || defaultHelpFriendDetection) + (defaultMultiPollingDetection * CookieManager.cookieArr.length);
+            }
+            else {
+                helpFriendSpan = ((+helpFriendDetectionInput!.value * 3600000) || defaultHelpFriendDetection);
+            }
+
+            typeSelect.disabled = !typeSelect.disabled;
+            helpFriendTimingInput.disabled = !helpFriendTimingInput.disabled;
+            helpFriendDetectionInput.disabled = !helpFriendDetectionInput.disabled;
+
+            this.getJDTime().then((currentJDTime) => {
+                let firstSpan = 0,
+                    helpFriendTimeout = 0,
+                    isTimeOut = false;
+                let currentJDDate = new Date(+currentJDTime),
+                    timeSplit = helpFriendTiming.split(':'),
+                    timingStamp = new Date(+currentJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                if (helpFriendAuto.innerHTML == helpFriendButtonEnum.helpFriendStart) {
+                    helpFriendAuto.innerHTML = helpFriendButtonEnum.helpFriendStop;
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动助力！`, false);
+
+                    if (currentJDDate.getTime() < timingStamp) {
+                        firstSpan = timingStamp - currentJDDate.getTime();
+                    }
+
+                    helpFriendTimeout = setTimeout(() => {
+                        if (Config.multiFlag) {
+                            CookieManager.cookieArr.map((item: CookieType) => {
+                                helpFriendMultiTimeoutArray.push(setTimeout(() => {
+                                    CookieHandler.coverCookie(item);
+                                    this.helpFriend(typeSelectOptions.value, item);
+                                }, item.index * defaultMultiPollingDetection));
+                            });
+                        }
+                        else {
+                            this.helpFriend(typeSelectOptions.value);
+                        }
+                        helpFriendInterval = setInterval(() => {
+                            this.getJDTime().then((nowJDTime) => {
+                                let nowJDDate = new Date(+nowJDTime),
+                                    nowTimingStamp = new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
+                                if (nowJDDate.getTime() >= nowTimingStamp) {
+                                    clearTimeout(helpFriendTimeout);
+                                    if (Config.multiFlag) {
+                                        CookieManager.cookieArr.map((item: CookieType) => {
+                                            helpFriendMultiTimeoutArray.push(setTimeout(() => {
+                                                CookieHandler.coverCookie(item);
+                                                this.helpFriend(typeSelectOptions.value, item);
+                                            }, item.index * defaultMultiPollingDetection));
+                                        });
+                                    }
+                                    else {
+                                        this.helpFriend(typeSelectOptions.value);
+                                    }
+                                }
+                                else {
+                                    if (!isTimeOut) {
+                                        isTimeOut = true;
+                                        helpFriendTimeout = setTimeout(() => {
+                                            isTimeOut = false;
+                                            if (Config.multiFlag) {
+                                                CookieManager.cookieArr.map((item: CookieType) => {
+                                                    helpFriendMultiTimeoutArray.push(setTimeout(() => {
+                                                        CookieHandler.coverCookie(item);
+                                                        this.helpFriend(typeSelectOptions.value, item);
+                                                    }, item.index * defaultMultiPollingDetection));
+                                                });
+                                            }
+                                            else {
+                                                this.helpFriend(typeSelectOptions.value);
+                                            }
+                                        }, nowTimingStamp - nowJDDate.getTime());
+                                    }
+                                }
+                            });
+                        }, helpFriendSpan);
+                    }, firstSpan);
+                }
+                else {
+                    helpFriendAuto.innerHTML = helpFriendButtonEnum.helpFriendStart;
+                    clearInterval(helpFriendInterval);
+                    clearTimeout(helpFriendTimeout);
+                    helpFriendTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    helpFriendMultiTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动助力！`, false);
+                }
+            });
+        });
+        //一键战队
+        let pkUserAuto = _$('.pkUserAuto') as HTMLButtonElement;
+        pkUserAuto?.addEventListener('click', () => {
+            //验证战队类型
+            let typeSelect = document.getElementById('pkUserType') as HTMLSelectElement,
+                typeSelectOptions = typeSelect.options[typeSelect.selectedIndex];
+            if (!typeSelectOptions || !typeSelectOptions.value) {
+                alert("请选择任务类型！");
+                return false;
+            }
+
+            (pkUserAuto as HTMLButtonElement).disabled = true;
+            pkUserAuto.style.backgroundColor = "darkgray";
+            pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStop;
+
+            let pkUserAssignInput = document.getElementById('pkUserAssign') as HTMLInputElement;
+            pkUserInviteId = pkUserAssignInput!.value;
+
+            typeSelect.disabled = !typeSelect.disabled;
+            pkUserAssignInput.disabled = !pkUserAssignInput.disabled;
+
+            this.getJDTime().then((currentJDTime) => {
+                let currentJDDate = new Date(+currentJDTime);
+
+                Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 一键战队已开始！`, false);
+
+                if (Config.multiFlag) {
+                    let buttonTimeOut = 8000;
+                    CookieManager.cookieArr.map((item: CookieType) => {
+                        buttonTimeOut += item.index * 8000;
+                        setTimeout(() => {
+                            CookieHandler.coverCookie(item);
+                            this.pkUser(typeSelectOptions.value, item);
+                        }, item.index * 8000);
+                    });
+                    setTimeout(() => {
+                        typeSelect.disabled = !typeSelect.disabled;
+                        pkUserAssignInput.disabled = !pkUserAssignInput.disabled;
+                        (pkUserAuto as HTMLButtonElement).disabled = false;
+                        pkUserAuto.style.backgroundColor = "#2196F3";
+                        pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStart;
+                    }, buttonTimeOut);
+                }
+                else {
+                    this.pkUser(typeSelectOptions.value);
+                    setTimeout(() => {
+                        typeSelect.disabled = !typeSelect.disabled;
+                        pkUserAssignInput.disabled = !pkUserAssignInput.disabled;
+                        (pkUserAuto as HTMLButtonElement).disabled = false;
+                        pkUserAuto.style.backgroundColor = "#2196F3";
+                        pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStart;
+                    }, 4000);
+                }
+
+
             });
         });
     }
@@ -1498,68 +1775,68 @@ export default class jdCollectionAct implements Activity {
             }
         }
         if (taskType == cakeBakerTaskEnum.AR吃蛋糕 || taskType == cakeBakerTaskEnum.全部) {
-            if (!!arEatCake && arEatCake.status == 1) {
-                let joinedCount = +arEatCake.times,
-                    taskChance = +arEatCake.maxTimes;
-                for (let j = 0; j < taskChance - joinedCount; j++) {
-                    if (arEatCake.status == 1) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"score\":${arEatCake.maxScore},\"taskId\":${arEatCake.taskId},\"itemId\":\"${arEatCake.simpleRecordInfoVo.itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0&score=${arEatCake.maxScore}`;
-                            fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
-                                method: "POST",
-                                mode: "cors",
-                                credentials: "include",
-                                headers: {
-                                    "Content-Type": "application/x-www-form-urlencoded"
-                                }
-                            })
-                                .then(function (res) { return res.json(); })
-                                .then((cakebakerckCollectScoreJson) => {
-                                    if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
-                                    //    setTimeout(() => {
-                                    //        //postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${arEatCake.simpleRecordInfoVo.taskToken}%22%7D&appid=publicUseApi`;
-                                    //        //fetch(`${this.rootURI}tc_doTask_mongo`, {
-                                    //        let postData = `&body={\"score\":${arEatCake.maxScore},\"taskId\":${arEatCake.taskId},\"itemId\":\"${arEatCake.simpleRecordInfoVo.itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
-                                    //        fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
-                                    //            method: "POST",
-                                    //            mode: "cors",
-                                    //            credentials: "include",
-                                    //            headers: {
-                                    //                "Content-Type": "application/x-www-form-urlencoded"
-                                    //            },
-                                    //            body: postData
-                                    //        })
-                                    //            .then(function (res) { return res.json(); })
-                                    //            .then((tcdoTaskmongoJson) => {
-                                    //                if ((tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") && tcdoTaskmongoJson.data.success) {
-                                    //                    joinedCount++;
-                                    //                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕AR吃蛋糕成功！`, false);
-                                    //                }
-                                    //                else {
-                                    //                    Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
-                                    //                    Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕AR吃蛋糕请求失败，请手动刷新或联系作者！】`, false);
-                                    //                }
-                                    //            })
-                                    //            .catch((error) => {
-                                    //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    //                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕AR吃蛋糕请求异常，请刷新后重新尝试或联系作者！】`, false);
-                                    //            });
-                                    //    }, Utils.random(9000, 10000));
-                                    }
-                                    else {
-                                        Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕AR吃蛋糕领取失败，请手动刷新或联系作者！】`, false);
-                                    }
-                                })
-                                .catch((error) => {
-                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕AR吃蛋糕领取异常，请刷新后重新尝试或联系作者！】`, false);
-                                });
-                        }, taskTimeout));
-                        taskTimeout += Utils.random(11000, 12000);
-                    }
-                }
-            }
+            //if (!!arEatCake && arEatCake.status == 1) {
+            //    let joinedCount = +arEatCake.times,
+            //        taskChance = +arEatCake.maxTimes;
+            //    for (let j = 0; j < taskChance - joinedCount; j++) {
+            //        if (arEatCake.status == 1) {
+            //            cakeBakerTimeoutArray.push(setTimeout(() => {
+            //                let postData = `&body={\"score\":${arEatCake.maxScore},\"taskId\":${arEatCake.taskId},\"itemId\":\"${arEatCake.simpleRecordInfoVo.itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0&score=${arEatCake.maxScore}`;
+            //                fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
+            //                    method: "POST",
+            //                    mode: "cors",
+            //                    credentials: "include",
+            //                    headers: {
+            //                        "Content-Type": "application/x-www-form-urlencoded"
+            //                    }
+            //                })
+            //                    .then(function (res) { return res.json(); })
+            //                    .then((cakebakerckCollectScoreJson) => {
+            //                        if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
+            //                        //    setTimeout(() => {
+            //                        //        //postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${arEatCake.simpleRecordInfoVo.taskToken}%22%7D&appid=publicUseApi`;
+            //                        //        //fetch(`${this.rootURI}tc_doTask_mongo`, {
+            //                        //        let postData = `&body={\"score\":${arEatCake.maxScore},\"taskId\":${arEatCake.taskId},\"itemId\":\"${arEatCake.simpleRecordInfoVo.itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+            //                        //        fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
+            //                        //            method: "POST",
+            //                        //            mode: "cors",
+            //                        //            credentials: "include",
+            //                        //            headers: {
+            //                        //                "Content-Type": "application/x-www-form-urlencoded"
+            //                        //            },
+            //                        //            body: postData
+            //                        //        })
+            //                        //            .then(function (res) { return res.json(); })
+            //                        //            .then((tcdoTaskmongoJson) => {
+            //                        //                if ((tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") && tcdoTaskmongoJson.data.success) {
+            //                        //                    joinedCount++;
+            //                        //                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】蛋糕AR吃蛋糕成功！`, false);
+            //                        //                }
+            //                        //                else {
+            //                        //                    Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
+            //                        //                    Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕AR吃蛋糕请求失败，请手动刷新或联系作者！】`, false);
+            //                        //                }
+            //                        //            })
+            //                        //            .catch((error) => {
+            //                        //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+            //                        //                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕AR吃蛋糕请求异常，请刷新后重新尝试或联系作者！】`, false);
+            //                        //            });
+            //                        //    }, Utils.random(9000, 10000));
+            //                        }
+            //                        else {
+            //                            Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
+            //                            Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕AR吃蛋糕领取失败，请手动刷新或联系作者！】`, false);
+            //                        }
+            //                    })
+            //                    .catch((error) => {
+            //                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+            //                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕AR吃蛋糕领取异常，请刷新后重新尝试或联系作者！】`, false);
+            //                    });
+            //            }, taskTimeout));
+            //            taskTimeout += Utils.random(11000, 12000);
+            //        }
+            //    }
+            //}
         }
         //完成任务2
         if (taskType == cakeBakerTaskEnum.逛店铺 || taskType == cakeBakerTaskEnum.全部) {
@@ -2034,6 +2311,7 @@ export default class jdCollectionAct implements Activity {
             viewVenue: any,
             followView: any;
         let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+        let followViewParam = "";
         //魔方任务信息
         getNewsInteractionInfoJson = await fetch(`${this.rootURI}getNewsInteractionInfo&appid=smfe&body={}`,
             {
@@ -2053,8 +2331,10 @@ export default class jdCollectionAct implements Activity {
             for (let i = 0; i < getNewsInteractionInfoJson.result.taskPoolInfo.taskList.length; i++) {
                 switch (true) {
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注浏览:
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskName == "浏览并关注店铺":
                         followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == +rubiksCubeTaskEnum.关注浏览 + 1:
+                        followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        followViewParam = `\"shopId\":${getNewsInteractionInfoJson.result.shopInfoList[0].shopId},`;
                         break;
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览会场:
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskName == "浏览会场":
@@ -2104,7 +2384,7 @@ export default class jdCollectionAct implements Activity {
             if (!!followView) {
                 if (followView.taskStatus == 0) {
                     rubiksCubeTimeoutArray.push(setTimeout(() => {
-                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},"taskType": ${followView.taskId}}`, {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={${followViewParam}\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},"taskType": ${followView.taskId}}`, {
                             method: "GET",
                             credentials: "include"
                         })
@@ -2377,6 +2657,111 @@ export default class jdCollectionAct implements Activity {
                     arFutureCityTimeOut += Utils.random(10000, 11000);
                 }
             }
+        }
+    }
+    //自动助力
+    async helpFriend(taskType: any, ckObj?: CookieType) {
+        helpFriendTimeOut = 0;
+
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+        let helpArray: string[] = [];
+
+        if (taskType == helpFriendEnum.全部) {
+            helpArray.push(helpFriendEnum.Smiley);
+            helpArray.push(helpFriendEnum.莹子);
+            helpArray.push(helpFriendEnum.灰哒哒);
+            helpArray.push(helpFriendEnum.VV);
+            helpArray.push(helpFriendEnum.SmileyMOM);
+            helpArray.push(helpFriendEnum.SmileyDAD);
+            helpArray.push(helpFriendEnum.薇);
+            helpArray.push(helpFriendEnum.妈1);
+            helpArray.push(helpFriendEnum.爸1);
+            helpArray.push(helpFriendEnum.爸2);
+            helpArray.push(helpFriendEnum.妈2);
+            helpArray.push(helpFriendEnum.小号);
+            helpArray.push(helpFriendEnum.琳);
+        }
+        else {
+            helpArray.push(taskType);
+        }
+
+        for (let i = 0; i < helpArray.length; i++) {
+            helpFriendTimeoutArray.push(setTimeout(() => {
+                let postData = `&body={\"inviteId\":\"${helpArray[i]}\",\"taskId\":\"2\"}&client=wh5&clientVersion=1.0.0`;
+                fetch(`${this.rootURI}cakebaker_collectScore${postData}`, {
+                    method: "POST",
+                    mode: "cors",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    }
+                })
+                    .then(function (res) { return res.json(); })
+                    .then((cakebakerckCollectScoreJson) => {
+                        if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
+                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}蛋糕助力成功！`, false);
+                        }
+                        else {
+                            Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕助力次数不足或失败！】`, false);
+                        }
+                    })
+                    .catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~蛋糕助力异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
+            }, helpFriendTimeOut));
+            helpFriendTimeOut += Utils.random(5000, 6000);
+        }
+    }
+    //一键战队
+    async pkUser(taskType: any, ckObj?: CookieType) {
+        let pkUserTimeOut = 0;
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+        let helpArray: string[] = [];
+
+        if (!!pkUserInviteId) {
+            helpArray.push(pkUserInviteId);
+        }
+        else {
+            if (taskType == cakeBakerTaskEnum.全部) {
+                helpArray.push(cakeBakerPkUserEnum.Smiley战队);
+                helpArray.push(cakeBakerPkUserEnum.灰哒哒战队);
+                helpArray.push(cakeBakerPkUserEnum.VV战队);
+                helpArray.push(cakeBakerPkUserEnum.琳战队);
+            }
+            else {
+                helpArray.push(taskType);
+            }
+        }
+
+        for (let i = 0; i < helpArray.length; i++) {
+            setTimeout(() => {
+                let postData = `&body={\"confirmFlag\":1,\"inviteId\":\"${helpArray[i]}\"}&client=wh5&clientVersion=1.0.0`;
+                fetch(`${this.rootURI}cakebaker_pk_assistGroup${postData}`, {
+                    method: "POST",
+                    mode: "cors",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    }
+                })
+                    .then(function (res) { return res.json(); })
+                    .then((assistGroupJson) => {
+                        if ((assistGroupJson.code == 0 || assistGroupJson.msg == "调用成功") && assistGroupJson.data.success) {
+                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}战队助力成功！`, false);
+                        }
+                        else {
+                            Utils.debugInfo(consoleEnum.log, assistGroupJson);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【战队助力次数不足或失败！】`, false);
+                        }
+                    })
+                    .catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~战队助力异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
+            }, pkUserTimeOut);
+            pkUserTimeOut += 1000;
         }
     }
     //获取京东服务器时间
