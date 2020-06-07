@@ -99,3 +99,26 @@ export enum petCombatEnum {
     participate = "PARTICIPATE",
     notParticipate = "NOT_PARTICIPATE"
 }
+
+export enum petCombatV2ResultEnum {
+    matching = "matching",
+    participate = "participate",
+    notParticipate = "not_participate",
+    unBegin = "unbegin",
+    timeOver = "time_over",
+    raceLose = "race_lose",
+    raceWin = "race_win",
+    unreceive = "unreceive"
+}
+
+export enum petCombatV2TypeEnum {
+    "双人PK赛" = 2,
+    "10人突围赛" = 10,
+    "50人挑战赛" = 50
+}
+
+export enum petCombatV2HelpConfirmEnum {
+    "待确认",
+    "已确认",
+    "已取消"
+}

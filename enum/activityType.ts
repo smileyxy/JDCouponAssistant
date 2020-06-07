@@ -57,11 +57,11 @@ export enum helpFriendButtonEnum {
 }
 
 export enum cakeBakerPkUserEnum {
-    "全部" = "All",
-    "Smiley战队" = "XUkkFpUhDG0OdMYwozv_YY5SkhEKcO-qgLkW-fbCIbLmH0um0yWFpM2hn4s70ac",
-    "灰哒哒战队" = "XUkkFpUhDG0OdMYz9m_4YMiCzMD6snpC6NEqMjXfQncQfDIvlvDKAKDVNsAMKeM",
-    "薇战队" = "XUkkFpUhDG1VI64ypmmqZrqs-me-8WhFjsddkJ-H3kFhPgwkISQ61C8",
-    "琳战队" = "XUkkFpUhDG0OdMYy9T2qN59sHjBEWkiH3U1A1QhMQa0AsbX_ugsfyxAnB72AiVA"
+    "全部" = "All"
+    //"Smiley战队" = "XUkkFpUhDG0OdMYwozv_YY5SkhEKcO-qgLkW-fbCIbLmH0um0yWFpM2hn4s70ac",
+    //"灰哒哒战队" = "XUkkFpUhDG0OdMYz9m_4YMiCzMD6snpC6NEqMjXfQncQfDIvlvDKAKDVNsAMKeM",
+    //"薇战队" = "XUkkFpUhDG1VI64ypmmqZrqs-me-8WhFjsddkJ-H3kFhPgwkISQ61C8",
+    //"琳战队" = "XUkkFpUhDG0OdMYy9T2qN59sHjBEWkiH3U1A1QhMQa0AsbX_ugsfyxAnB72AiVA"
 }
 
 export enum cakeBakerPkUserButtonEnum {
@@ -111,4 +111,10 @@ export enum arFutureCityTaskEnum {
 export enum arFutureCityButtonEnum {
     arFutureCityStart = "自动城市",
     arFutureCityStop = "取消城市"
+}
+
+export enum BmobConfirmEnum {
+    "待确认",
+    "已确认",
+    "已取消"
 }

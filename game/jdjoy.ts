@@ -14,7 +14,10 @@ import {
     petHelpEnum,
     petFriendsStatusEnum,
     petHelpConfirmEnum,
-    petCombatEnum
+    petCombatEnum,
+    petCombatV2ResultEnum,
+    petCombatV2TypeEnum,
+    petCombatV2HelpConfirmEnum
 } from '../enum/gameType';
 
 let petPin = "",
@@ -36,7 +39,8 @@ let petPin = "",
     helpInterval = 0,
     investTreasureInterval = 0,
     allFriends: any[] = [],
-    helpConfirmStatus = petHelpConfirmEnum.待确认;
+    helpConfirmStatus = petHelpConfirmEnum.待确认,
+    combatHelpConfirmStatus = petCombatV2HelpConfirmEnum.待确认;
 let taskTimeoutArray: any[] = [],
     actTimeoutArray: any[] = [],
     helpTimeoutArray: any[] = [];
@@ -46,7 +50,7 @@ const defaultBeanDetection: number = 600000, //10分钟
     defaultTaskDetection: number = 3600000, //1小时
     defaultActDetection: number = 3600000, //1小时
     defaultHelpDetection: number = 14400000, //4小时
-    defaultCombatTiming: string = '09:10',
+    defaultCombatTiming: string = '19:00',
     defaultCombatDetection: number = 3600000; //1小时
 
 export default class JdJoy implements Game {
@@ -277,7 +281,9 @@ export default class JdJoy implements Game {
                                     <td style="width: 80vw;text-align: -webkit-right;vertical-align: middle;">
                                         <div style="width: 24vw;">
                                             <select id="combatType" style="width: 23.5vw;">
-                                                <option value="-1" selected="selected">随机</option>
+                                                <option value="${petCombatV2TypeEnum.双人PK赛}" selected="selected">双人PK赛</option>
+                                                <option value="${petCombatV2TypeEnum["10人突围赛"]}">10人突围赛</option>
+                                                <option value="${petCombatV2TypeEnum["50人挑战赛"]}">50人挑战赛</option>
                                             </select>
                                         </div>
                                     </td>
@@ -694,21 +700,21 @@ export default class JdJoy implements Game {
                     }
 
                     combatTimeout = setTimeout(() => {
-                        this.combat(typeSelectOptions.text, typeSelectOptions.value);
+                        this.combatV2(typeSelectOptions.value);
                         combatInterval = setInterval(() => {
                             this.getJDTime().then((nowJDTime) => {
                                 let nowJDDate = new Date(+nowJDTime),
                                     nowTimingStamp = new Date(+nowJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
                                 if (nowJDDate.getTime() >= nowTimingStamp) {
                                     clearTimeout(combatTimeout);
-                                    this.combat(typeSelectOptions.text, typeSelectOptions.value);
+                                    this.combatV2(typeSelectOptions.value);
                                 }
                                 else {
                                     if (!isTimeOut) {
                                         isTimeOut = true;
                                         combatTimeout = setTimeout(() => {
                                             isTimeOut = false;
-                                            this.combat(typeSelectOptions.text, typeSelectOptions.value);
+                                            this.combatV2(typeSelectOptions.value);
                                         }, nowTimingStamp - nowJDDate.getTime());
                                     }
                                 }
@@ -794,7 +800,7 @@ export default class JdJoy implements Game {
                             getFriendsJson.datas.forEach((item: any) => {
                                 if (!allFriends.some(friend => { return friend.friendPin === item.friendPin })) {
                                     allFriends.push(item);
-                                    combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
+                                    //combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
                                 }
                             });
                         }
@@ -1748,6 +1754,208 @@ export default class JdJoy implements Game {
                 Utils.outPutLog(this.outputTextarea, `【哎呀~获取自己的战队信息异常，请手动刷新或联系作者！】`, false);
             });
     }
+    //组队V2
+    async combatV2(combatType: string): Promise<void> {
+        let maxRetryCount = 5,
+            combatMatchInterval = 0;
+        const myCombatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail/v2?help=false&reqSource=h5`
+        await fetch(myCombatDetailUrl, { credentials: "include" })
+            .then((res) => { return res.json() })
+            .then(async (myCombatDetailJson) => {
+                if (myCombatDetailJson.success) {
+                    //领取奖励
+                    if (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.raceWin) {
+                        const combatReceiveUrl = `https://jdjoy.jd.com/pet/combat/receive`;
+                        await fetch(combatReceiveUrl, { credentials: "include" })
+                            .then((res) => { return res.json() })
+                            .then((combatReceiveJson) => {
+                                if (combatReceiveJson.success) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatReceiveJson.currentTime).toLocaleString()} 成功领取组队奖励！`, false);
+                                }
+                                else {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatReceiveJson.currentTime).toLocaleString()} 已经领取过组队奖励或无奖励！`, false);
+                                }
+
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `【哎呀~领取组队奖励异常，请手动刷新或联系作者！】`, false);
+                            });
+                    }
+                    //开启战队
+                    if (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.notParticipate) {
+                        combatMatchInterval = setInterval(() => {
+                            if (maxRetryCount > 0) {
+                                maxRetryCount--;
+                                const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/match?teamLevel=${combatType}`;
+                                fetch(combatJoinUrl, { credentials: "include" })
+                                    .then((res) => { return res.json() })
+                                    .then(async (matchJson) => {
+                                        if (matchJson.success) {
+                                            switch (matchJson.data.petRaceResult) {
+                                                case petCombatV2ResultEnum.matching:
+                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+matchJson.currentTime).toLocaleString()} 【${petCombatV2TypeEnum[+combatType]}】正在匹配中！`, false);
+                                                    break;
+                                                case petCombatV2ResultEnum.participate:
+                                                    clearInterval(combatMatchInterval);
+                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+matchJson.currentTime).toLocaleString()} 开启【${petCombatV2TypeEnum[+combatType]}】成功！`, false);
+                                                    break;
+                                                default:
+                                                    Utils.debugInfo(consoleEnum.log, matchJson);
+                                                    Utils.outPutLog(this.outputTextarea, `【加入【${petCombatV2TypeEnum[+combatType]}】失败，请手动刷新或联系作者！】！`, false);
+                                                    break;
+                                            }
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `【哎呀~开启【${petCombatV2TypeEnum[+combatType]}】异常，请手动刷新或联系作者！】`, false);
+                                    });
+                            }
+                            else {
+                                clearInterval(combatMatchInterval);
+                            }
+                        }, 5000);
+                    }
+                    //战队补给
+                    else if (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.participate && !!myCombatDetailJson.data.supplyOrder) {
+                        const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/getSupplyInfo?showOrder=${myCombatDetailJson.data.supplyOrder}`;
+                        fetch(combatJoinUrl, { credentials: "include" })
+                            .then((res) => { return res.json() })
+                            .then(async (getSupplyInfoJson) => {
+                                if (getSupplyInfoJson.success && getSupplyInfoJson.data.status == "processing") {
+                                    for (let i = 0; i < getSupplyInfoJson.data.marketList.length; i++) {
+                                        setTimeout(() => {
+                                            let marketData = getSupplyInfoJson.data.marketList[i];
+                                            if (!marketData.status) {
+                                                let postData = `{"showOrder":${getSupplyInfoJson.data.showOrder},"supplyType":"scan_market","taskInfo":"${marketData.marketLinkH5}","reqSource":"h5"}`;
+                                                const supplyUrl = `https://jdjoy.jd.com/pet/combat/supply`;
+                                                fetch(supplyUrl, {
+                                                    method: "POST",
+                                                    mode: "cors",
+                                                    credentials: "include",
+                                                    headers: {
+                                                        "Content-Type": "application/json"
+                                                    },
+                                                    body: postData
+                                                })
+                                                    .then((res) => { return res.json() })
+                                                    .then((supplyJson) => {
+                                                        if (supplyJson.success && supplyJson.data) {
+                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+supplyJson.currentTime).toLocaleString()} 成功获取${getSupplyInfoJson.data.addDistance}km战队补给！`, false);
+                                                        }
+                                                        else {
+                                                            Utils.debugInfo(consoleEnum.log, supplyJson);
+                                                            Utils.outPutLog(this.outputTextarea, `【获取战队补给失败，请手动刷新或联系作者！】！`, false);
+                                                        }
+                                                    })
+                                                    .catch((error) => {
+                                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                        Utils.outPutLog(this.outputTextarea, `【哎呀~获取战队补给异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    });
+                                            }
+                                        }, i * 2000);
+                                    }
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取补给信息异常，请手动刷新或联系作者！】`, false);
+                            });
+                    }
+                    //战队助力
+                    let getData = `?where=${encodeURIComponent(`{ "pin": "${petPin}" }`)}`;
+                    await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, myCombatDetailJson.currentTime) })
+                        .then((res) => { return res.json() })
+                        .then((getCurrentUserJson) => {
+                            if (!!getCurrentUserJson.results) {
+                                if (getCurrentUserJson.results.length > 0) {
+                                    let currentUserData = getCurrentUserJson.results[0];
+                                    if (currentUserData.isBlock) {
+                                        Utils.outPutLog(this.outputTextarea, `【哎呀~做坏事被列入黑名单了，永久失去互助资格！】`, false);
+                                    }
+                                    else if (currentUserData.combatHelpStatus) {
+                                        //助力
+                                        this.combatHelpFriend(myCombatDetailJson.currentTime);
+                                    }
+                                    else {
+                                        //更新
+                                        if (combatHelpConfirmStatus == petCombatV2HelpConfirmEnum.待确认 && confirm("是否再次开启【战队互助】功能？")) {
+                                            combatHelpConfirmStatus = petCombatV2HelpConfirmEnum.已确认;
+                                            let putData = `{ "combatHelpStatus": true }`;
+                                            fetch(`${Config.BmobHost + Config.BmobUserInfoUrl}/${currentUserData.objectId}`, {
+                                                method: "PUT",
+                                                headers: Utils.getHeaders(`${Config.BmobUserInfoUrl}/${currentUserData.objectId}`, myCombatDetailJson.currentTime),
+                                                body: putData
+                                            }).then((res) => { return res.json() })
+                                                .then((updateCurrentUserJson) => {
+                                                    if (!!updateCurrentUserJson.updatedAt) {
+                                                        //助力
+                                                        this.combatHelpFriend(myCombatDetailJson.currentTime);
+                                                    }
+                                                    else {
+                                                        Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
+                                                        Utils.outPutLog(this.outputTextarea, `【再次开启战队互助功能失败，请手动刷新或联系作者！】`, false);
+                                                    }
+                                                }).catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~再次开启战队互助功能异常，请刷新后重新尝试或联系作者！】`, false);
+                                                });
+                                        }
+                                        else {
+                                            combatHelpConfirmStatus = petCombatV2HelpConfirmEnum.已取消;
+                                            Utils.outPutLog(this.outputTextarea, `【您已主动取消战队互助功能！】`, false);
+                                        }
+                                    }
+                                }
+                                else {
+                                    //新增
+                                    if (combatHelpConfirmStatus == petCombatV2HelpConfirmEnum.待确认 && confirm("确定后将记录您的PIN码并开启【战队互助】功能，取消则不记录您的PIN码并暂停【战队互助】功能。")) {
+                                        combatHelpConfirmStatus = petCombatV2HelpConfirmEnum.已确认;
+                                        let postData = `{ "pin": "${petPin}", "combatHelpStatus": true }`;
+                                        fetch(Config.BmobHost + Config.BmobUserInfoUrl, {
+                                            method: "POST",
+                                            headers: Utils.getHeaders(Config.BmobUserInfoUrl, myCombatDetailJson.currentTime),
+                                            body: postData
+                                        }).then((res) => { return res.json() })
+                                            .then((addCurrentUserJson) => {
+                                                if (!!addCurrentUserJson.objectId) {
+                                                    //助力
+                                                    this.combatHelpFriend(myCombatDetailJson.currentTime);
+                                                }
+                                                else {
+                                                    Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
+                                                    Utils.outPutLog(this.outputTextarea, `【记录用户请求失败，请手动刷新或联系作者！】`, false);
+                                                }
+                                            }).catch((error) => {
+                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                Utils.outPutLog(this.outputTextarea, `【哎呀~记录用户异常，请刷新后重新尝试或联系作者！】`, false);
+                                            });
+                                    }
+                                    else {
+                                        combatHelpConfirmStatus = petCombatV2HelpConfirmEnum.已取消;
+                                        Utils.outPutLog(this.outputTextarea, `【您已主动取消战队互助功能！】`, false);
+                                    }
+                                }
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, getCurrentUserJson);
+                                Utils.outPutLog(this.outputTextarea, `【获取当前用户信息记录请求失败，请手动刷新或联系作者！】`, false);
+                            }
+                        }).catch((error) => {
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `【哎呀~获取当前用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }
+                else {
+                    Utils.outPutLog(this.outputTextarea, `【获取自己的战队信息失败，请手动刷新或联系作者！】`, false);
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取自己的战队信息异常，请手动刷新或联系作者！】`, false);
+            });
+    }
     //戳泡泡
     bulbble(enterRoomJson: any): void {
         let bubbleFloatTime = +enterRoomJson.data.bubbleFloatTime * 1000;
@@ -1808,7 +2016,7 @@ export default class JdJoy implements Game {
                                                         Utils.outPutLog(this.outputTextarea, `${new Date(+currentTime).toLocaleString()} 帮助【${enterRoomJson.data.needHelpUserNickName || item.pin}】助力成功！`, false);
                                                     }
                                                     else {
-                                                        Utils.outPutLog(this.outputTextarea, `【${enterRoomJson.data.needHelpUserNickName || enterRoomJson.data.pin}】重复助力或助力失败`, false);
+                                                        Utils.outPutLog(this.outputTextarea, `【${enterRoomJson.data.needHelpUserNickName || item.pin}】重复助力或助力失败`, false);
                                                     }
                                                     //记录明细
                                                     let postData = `{ "pin": { "__type": "Pointer", "className": "UserInfo", "objectId": "${item.objectId}" }, "help_pin": "${item.pin}", "help_status": "${helpFriendJson.errorCode}", "remark": "${helpFriendJson.errorMessage ?? ""}", "ip_address": "${await (await this.getIpAddress()).toString()}" }`;
@@ -1842,6 +2050,76 @@ export default class JdJoy implements Game {
                                 }).catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
                                     Utils.outPutLog(this.outputTextarea, `【哎呀~获取好友首页信息异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    });
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, getOtherUserJson);
+                    Utils.outPutLog(this.outputTextarea, !getOtherUserJson.results ? `【获取其他用户信息记录请求失败，请手动刷新或联系作者！】` : `【暂时没有可以帮您助力的用户】`, false);
+                }
+            }).catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取其他用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+    }
+    //战队互助
+    async combatHelpFriend(currentTime: any): Promise<void> {
+        let getData = `?where=${encodeURIComponent(`{ "pin": { "$ne": "${petPin}" }}`)}`;
+        await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, currentTime) })
+            .then((res) => { return res.json() })
+            .then((getOtherUserJson) => {
+                if (!!getOtherUserJson.results && getOtherUserJson.results.length > 0) {
+                    getOtherUserJson.results.forEach(async (item: any) => {
+                        if (item.combatHelpStatus && !item.isBlock) {
+                            const combatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail/v2?help=true&inviterPin=${item.pin}&shareSource=weapp&inviteTime=${await (await this.getJDTime()).toString()}&reqSource=weapp&openId=`;
+                            await fetch(combatDetailUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then(async (combatDetailJson) => {
+                                    if (combatDetailJson.success) {
+                                        if (combatDetailJson.data.petRaceResult == petTaskReceiveStatusEnum.canHelp || combatDetailJson.data.helpStatus == petTaskReceiveStatusEnum.cardExpire) {
+                                            const combatHelpFriendUrl = `https://jdjoy.jd.com/pet/combat/help?friendPin=${item.pin}`;
+                                            await fetch(combatHelpFriendUrl, { credentials: "include" })
+                                                .then((res) => { return res.json() })
+                                                .then(async (combatHelpFriendJson) => {
+                                                    if (combatHelpFriendJson.success && combatHelpFriendJson.errorCode != petTaskErrorCodeEnum.helpFull) {
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date(+currentTime).toLocaleString()} 帮助【${combatDetailJson.data.friendNickName || item.pin}】战队助力成功！`, false);
+                                                    }
+                                                    else {
+                                                        Utils.outPutLog(this.outputTextarea, `【${combatDetailJson.data.friendNickName || item.pin}】战队重复助力或助力失败`, false);
+                                                    }
+                                                    //记录明细
+                                                    let postData = `{ "pin": { "__type": "Pointer", "className": "UserInfo", "objectId": "${item.objectId}" }, "help_pin": "${item.pin}", "help_status": "${combatHelpFriendJson.errorCode}", "remark": "${combatHelpFriendJson.errorMessage ?? ""}", "ip_address": "${await (await this.getIpAddress()).toString()}" }`;
+                                                    fetch(Config.BmobHost + Config.BmobCombatHelpFriendInfoUrl, {
+                                                        method: "POST",
+                                                        headers: Utils.getHeaders(Config.BmobCombatHelpFriendInfoUrl, currentTime),
+                                                        body: postData
+                                                    }).then((res) => { return res.json() })
+                                                        .then((addHelpInfoJson) => {
+                                                            if (!!addHelpInfoJson.objectId) {
+
+                                                            }
+                                                            else {
+                                                                //Utils.debugInfo(consoleEnum.log, addHelpInfoJson);
+                                                                //Utils.outPutLog(this.outputTextarea, `【记录助力结果请求失败，请手动刷新或联系作者！】`, false);
+                                                            }
+                                                        }).catch((error) => {
+                                                            //Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                            //Utils.outPutLog(this.outputTextarea, `【哎呀~记录助力结果异常，请刷新后重新尝试或联系作者！】`, false);
+                                                        });
+                                                }).catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~战队助力异常，请刷新后重新尝试或联系作者！】`, false);
+                                                });
+                                        }
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, combatDetailJson);
+                                        Utils.outPutLog(this.outputTextarea, `【获取好友战队首页信息请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                }).catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取好友战队首页信息异常，请刷新后重新尝试或联系作者！】`, false);
                                 });
                         }
                     });

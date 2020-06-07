@@ -1,6 +1,6 @@
 export default class Config {
     static title: string = "京东领券助手";
-    static version: string = "v0.5.7";
+    static version: string = "v0.5.9";
     static author: string = "krapnik";
     static edit: string = "smileyxy";
 
@@ -27,6 +27,9 @@ export default class Config {
     static BmobHost: string = "https://api2.bmob.cn";
     static BmobUserInfoUrl: string = "/1/classes/UserInfo";
     static BmobHelpFriendInfoUrl: string = "/1/classes/HelpFriendInfo";
+    static BmobCombatHelpFriendInfoUrl: string = "/1/classes/CombatHelpFriendInfo";
+
+    static BmobActUserInfoUrl: string = "/1/classes/ActUserInfo";
 
     static multiFlag: boolean = false;
     static importFlag: boolean = false;

@@ -18,7 +18,8 @@ import {
     arFutureCityTaskEnum,
     arFutureCityButtonEnum,
     helpFriendEnum,
-    helpFriendButtonEnum
+    helpFriendButtonEnum,
+    BmobConfirmEnum
 } from '../enum/activityType';
 
 let cakeBakerTiming = "",
@@ -33,10 +34,11 @@ let cakeBakerTiming = "",
     arFutureCityTiming = "",
     arFutureCitySpan = 0,
     arFutureCityInterval = 0,
-    pkUserInviteId = "",
     helpFriendTiming = "",
     helpFriendSpan = 0,
-    helpFriendInterval = 0;
+    helpFriendInterval = 0,
+    bmobConfirmStatus = BmobConfirmEnum.待确认,
+    allFriends: any[] = [];
 let cakeBakerTimeoutArray: any[] = [],
     carnivalCityTimeoutArray: any[] = [],
     rubiksCubeTimeoutArray: any[] = [],
@@ -247,23 +249,19 @@ export default class jdCollectionAct implements Activity {
                                     <p style="font-size: 12px;">根据所填项一键助力叠蛋糕指定战队，如填写指定战队inviteId则只会给指定战队助力。</p>
                                 </details>`;
                 btnInfoDetail += `<tr> 
-                                    <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
+                                    <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;padding-top: 10px;">
                                         <div style="width: 24vw;">
                                             <select id="pkUserType" style="width: 23.5vw;">
                                                 <option value="${cakeBakerPkUserEnum.全部}" selected="selected">全部</option>
-                                                <option value="${cakeBakerPkUserEnum.Smiley战队}">Smiley战队</option>
-                                                <option value="${cakeBakerPkUserEnum.灰哒哒战队}">灰哒哒战队</option>
-                                                <option value="${cakeBakerPkUserEnum.薇战队}">VV战队</option>
-                                                <option value="${cakeBakerPkUserEnum.琳战队}">琳战队</option>
                                             </select>
                                         </div>
                                     </td>
-                                    <td style="width: 230vw;text-align: -webkit-left">
-                                        <input id="pkUserAssign" style="width:22.5vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "指定战队inviteId">
-                                    </td>
-                                    <td style="width: 50vw;text-align: -webkit-left;">
-                                        <button class="pkUserGetId" style="width: 15vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size:12px;line-height:0;margin-left: -57px;float:left;">获取ID</button>
-                                        <button class="pkUserAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">一键战队</button>
+                                    <td style="width: 280vw;text-align: -webkit-left;">
+                                        <div style="display: flex;position: absolute;">
+                                            <button class="pkUserRefresh" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:10px 0 0 -8px;display:block;font-size:12px;line-height:0;">刷新战队</button>
+                                            <button class="pkUserJoin" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:10px 0 0 5px;display:block;font-size:12px;line-height:0;">加入/更新</button>
+                                            <button class="pkUserAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:10px 0 0 5px;display:block;font-size: 12px;line-height: 0;">一键战队</button>
+                                        </div>
                                     </td>
                                 </tr>`;
                 break;
@@ -759,32 +757,25 @@ export default class jdCollectionAct implements Activity {
                 }
             });
         });
-        //获取ID
-        let pkUserGetId = _$('.pkUserGetId') as HTMLButtonElement;
-        pkUserGetId?.addEventListener('click', () => {
-            fetch(`${this.rootURI}cakebaker_pk_brief&body={}&client=wh5&clientVersion=1.0.0`, {
-                method: "POST",
-                mode: "cors",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                }
-            })
-                .then((res) => { return res.json() })
-                .then((cakebakerpkbriefJson) => {
-                    if ((cakebakerpkbriefJson.code == 0 || cakebakerpkbriefJson.msg == "调用成功") && cakebakerpkbriefJson.data.success) {
-                        console.log(`您的inviteId：${cakebakerpkbriefJson.data.result.groupPkInfo.groupAssistInviteId}`);
-                        Utils.copyText(cakebakerpkbriefJson.data.result.groupPkInfo.groupAssistInviteId);
-                    }
-                    else {
-                        Utils.debugInfo(consoleEnum.log, cakebakerpkbriefJson);
-                        Utils.outPutLog(this.outputTextarea, `【获取蛋糕战队获取ID失败，请手动刷新或联系作者！】`, false);
-                    }
-                })
-                .catch((error) => {
-                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取蛋糕战队获取ID异常，请刷新后重新尝试或联系作者！】`, false);
+        //战队刷新
+        let pkUserRefresh = _$('.pkUserRefresh') as HTMLButtonElement;
+        pkUserRefresh?.addEventListener('click', async () => {
+            await this.refreshPK();
+        });
+        //加入/更新战队互助
+        let pkUserJoin = _$('.pkUserJoin') as HTMLButtonElement;
+        pkUserJoin?.addEventListener('click', async () => {
+            if (Config.multiFlag) {
+                CookieManager.cookieArr.map((item: CookieType) => {
+                    helpFriendMultiTimeoutArray.push(setTimeout(() => {
+                        CookieHandler.coverCookie(item);
+                        this.pkJoin(item);
+                    }, item.index * defaultMultiPollingDetection));
                 });
+            }
+            else {
+                await this.pkJoin();
+            }
         });
         //自动助力
         let helpFriendAuto = _$('.helpFriendAuto') as HTMLButtonElement;
@@ -912,15 +903,15 @@ export default class jdCollectionAct implements Activity {
                 return false;
             }
 
+            (pkUserRefresh as HTMLButtonElement).disabled = true;
+            pkUserRefresh.style.backgroundColor = "darkgray";
+            (pkUserJoin as HTMLButtonElement).disabled = true;
+            pkUserJoin.style.backgroundColor = "darkgray";
             (pkUserAuto as HTMLButtonElement).disabled = true;
             pkUserAuto.style.backgroundColor = "darkgray";
             pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStop;
 
-            let pkUserAssignInput = document.getElementById('pkUserAssign') as HTMLInputElement;
-            pkUserInviteId = pkUserAssignInput!.value;
-
             typeSelect.disabled = !typeSelect.disabled;
-            pkUserAssignInput.disabled = !pkUserAssignInput.disabled;
 
             this.getJDTime().then((currentJDTime) => {
                 let currentJDDate = new Date(+currentJDTime);
@@ -933,22 +924,28 @@ export default class jdCollectionAct implements Activity {
                         buttonTimeOut += item.index * 8000;
                         setTimeout(() => {
                             CookieHandler.coverCookie(item);
-                            this.pkUser(typeSelectOptions.value, item);
+                            this.pkUserHelp(typeSelectOptions.value, item);
                         }, item.index * 8000);
                     });
                     setTimeout(() => {
                         typeSelect.disabled = !typeSelect.disabled;
-                        pkUserAssignInput.disabled = !pkUserAssignInput.disabled;
+                        (pkUserRefresh as HTMLButtonElement).disabled = false;
+                        pkUserRefresh.style.backgroundColor = "#2196F3";
+                        (pkUserJoin as HTMLButtonElement).disabled = false;
+                        pkUserJoin.style.backgroundColor = "#2196F3";
                         (pkUserAuto as HTMLButtonElement).disabled = false;
                         pkUserAuto.style.backgroundColor = "#2196F3";
                         pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStart;
                     }, buttonTimeOut);
                 }
                 else {
-                    this.pkUser(typeSelectOptions.value);
+                    this.pkUserHelp(typeSelectOptions.value);
                     setTimeout(() => {
                         typeSelect.disabled = !typeSelect.disabled;
-                        pkUserAssignInput.disabled = !pkUserAssignInput.disabled;
+                        (pkUserRefresh as HTMLButtonElement).disabled = false;
+                        pkUserRefresh.style.backgroundColor = "#2196F3";
+                        (pkUserJoin as HTMLButtonElement).disabled = false;
+                        pkUserJoin.style.backgroundColor = "#2196F3";
                         (pkUserAuto as HTMLButtonElement).disabled = false;
                         pkUserAuto.style.backgroundColor = "#2196F3";
                         pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStart;
@@ -1005,7 +1002,7 @@ export default class jdCollectionAct implements Activity {
             })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~获取蛋糕首页信息异常，请刷新后重新尝试或联系作者！】`, false);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取蛋糕首页信息异常，请刷新后重新尝试或联系作者！】`, false);
             });
 
         if (!secretp) { return false; }
@@ -2712,25 +2709,185 @@ export default class jdCollectionAct implements Activity {
             helpFriendTimeOut += Utils.random(5000, 6000);
         }
     }
-    //一键战队
-    async pkUser(taskType: any, ckObj?: CookieType) {
-        let pkUserTimeOut = 0;
-        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
-        let helpArray: string[] = [];
+    //刷新战队
+    async refreshPK() {
+        let pkUserType = document.getElementById('pkUserType');
+        let nowJDTime = await (await this.getJDTime()).toString();
+        //清空好友
+        allFriends.splice(0);
+        pkUserType!.innerHTML = "";
+        pkUserType!.innerHTML += `<option value="${cakeBakerPkUserEnum.全部}" selected="selected">全部</option>`;
 
-        if (!!pkUserInviteId) {
-            helpArray.push(pkUserInviteId);
+        await fetch(Config.BmobHost + Config.BmobActUserInfoUrl, { headers: Utils.getHeaders(Config.BmobActUserInfoUrl, nowJDTime) })
+            .then((res) => { return res.json() })
+            .then((getAllUserJson) => {
+                if (!!getAllUserJson.results && getAllUserJson.results.length > 0) {
+                    getAllUserJson.results.forEach((item: any) => {
+                        if (item.combatHelpStatus && !item.isBlock) {
+                                if (!allFriends.some(friend => { return friend.pin === item.pin })) {
+                                    allFriends.push(item);
+                                    pkUserType!.innerHTML += `<option value="${item.PKInviteId}">${item.name}</option>`;
+                                }
+                        }
+                    });
+
+                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 刷新战队列表成功！`, false);
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, getAllUserJson);
+                    Utils.outPutLog(this.outputTextarea, !getAllUserJson.results ? `【获取所有战队信息记录请求失败，请手动刷新或联系作者！】` : `【暂时没有可以助力的战队】`, false);
+                }
+            }).catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取所有战队信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+    }
+    //加入/更新战队互助
+    async pkJoin(ckObj?: CookieType) {
+        let secretp = '',
+            name = '',
+            inviteId = '';
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "",
+            nowJDTime = await (await this.getJDTime()).toString();
+        //蛋糕首页信息
+        await fetch(`${this.rootURI}cakebaker_getHomeData&client=wh5&clientVersion=1.0.0`, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        })
+            .then((res) => { return res.json() })
+            .then((cakebakergetHomeDataJson) => {
+                if ((cakebakergetHomeDataJson.code == 0 || cakebakergetHomeDataJson.msg == "调用成功") && cakebakergetHomeDataJson.data.success) {
+                    secretp = cakebakergetHomeDataJson.data.result.cakeBakerInfo.secretp;
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, cakebakergetHomeDataJson);
+                    Utils.outPutLog(this.outputTextarea, `${nick}【获取蛋糕首页信息失败，请手动刷新或联系作者！】`, false);
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取蛋糕首页信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        //蛋糕战队信息
+        await fetch(`${this.rootURI}cakebaker_pk_brief&body={}&client=wh5&clientVersion=1.0.0`, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        })
+            .then((res) => { return res.json() })
+            .then((cakebakerpkbriefJson) => {
+                if ((cakebakerpkbriefJson.code == 0 || cakebakerpkbriefJson.msg == "调用成功") && cakebakerpkbriefJson.data.success) {
+                    name = cakebakerpkbriefJson.data.result.groupInfo.groupName;
+                    inviteId = cakebakerpkbriefJson.data.result.groupPkInfo.groupAssistInviteId;
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, cakebakerpkbriefJson);
+                    Utils.outPutLog(this.outputTextarea, `${nick}【获取蛋糕战队信息失败，请手动刷新或联系作者！】`, false);
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取蛋糕战队信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+
+        let getData = `?where=${encodeURIComponent(`{ "pin": "${secretp}" }`)}`;
+        await fetch(Config.BmobHost + Config.BmobActUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobActUserInfoUrl, nowJDTime) })
+            .then((res) => { return res.json() })
+            .then(async (getCurrentUserJson) => {
+                if (!!getCurrentUserJson.results) {
+                    if (getCurrentUserJson.results.length > 0) {
+                        let currentUserData = getCurrentUserJson.results[0];
+                        //更新
+                        if (bmobConfirmStatus == BmobConfirmEnum.已确认 || currentUserData.combatHelpStatus || (bmobConfirmStatus == BmobConfirmEnum.待确认 && confirm("是否再次开启【蛋糕战队互助】功能？"))) {
+                            bmobConfirmStatus = BmobConfirmEnum.已确认;
+                            let putData = `{"name": "${name}", "combatHelpStatus": true, "PKInviteId": "${inviteId}" }`;
+                            await fetch(`${Config.BmobHost + Config.BmobActUserInfoUrl}/${currentUserData.objectId}`, {
+                                method: "PUT",
+                                headers: Utils.getHeaders(`${Config.BmobActUserInfoUrl}/${currentUserData.objectId}`, nowJDTime),
+                                body: putData
+                            }).then((res) => { return res.json() })
+                                .then((updateCurrentUserJson) => {
+                                    if (!!updateCurrentUserJson.updatedAt) {
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}战队互助ID更新成功！`, false);
+                                        //刷新战队
+                                        this.refreshPK();
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【再次开启蛋糕战队互助功能失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                }).catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~再次开启蛋糕战队互助功能异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                        else {
+                            bmobConfirmStatus = BmobConfirmEnum.已取消;
+                            Utils.outPutLog(this.outputTextarea, `${nick}【您已主动取消蛋糕战队互助功能！】`, false);
+                        }
+                    }
+                    else {
+                        //新增
+                        if (bmobConfirmStatus == BmobConfirmEnum.已确认 || (bmobConfirmStatus == BmobConfirmEnum.待确认 && confirm("确定后将记录您的PIN码并开启【蛋糕战队互助】功能，取消则不记录您的PIN码并暂停【蛋糕战队互助】功能。"))) {
+                            bmobConfirmStatus = BmobConfirmEnum.已确认;
+                            let postData = `{ "pin": "${secretp}", "name": "${name}", "combatHelpStatus": true, "PKInviteId": "${inviteId}" }`;
+                            await fetch(Config.BmobHost + Config.BmobActUserInfoUrl, {
+                                method: "POST",
+                                headers: Utils.getHeaders(Config.BmobActUserInfoUrl, nowJDTime),
+                                body: postData
+                            }).then((res) => { return res.json() })
+                                .then((addCurrentUserJson) => {
+                                    if (!!addCurrentUserJson.objectId) {
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}加入战队互助成功！`, false);
+                                        //刷新战队
+                                        this.refreshPK();
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【记录用户请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                }).catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~记录用户异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                        else {
+                            bmobConfirmStatus = BmobConfirmEnum.已取消;
+                            Utils.outPutLog(this.outputTextarea, `${nick}【您已主动取消战队互助功能！】`, false);
+                        }
+                    }
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, getCurrentUserJson);
+                    Utils.outPutLog(this.outputTextarea, `${nick}【获取当前用户信息记录请求失败，请手动刷新或联系作者！】`, false);
+                }
+            }).catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取当前用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+    }
+    //一键战队助力
+    async pkUserHelp(taskType: any, ckObj?: CookieType) {
+        await this.refreshPK();
+
+        let pkUserTimeOut = 0;
+        let helpArray: any[] = [];
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : ""
+
+        if (taskType == cakeBakerTaskEnum.全部) {
+            allFriends.forEach((item: any) => {
+                helpArray.push(item.PKInviteId)
+            })
         }
         else {
-            if (taskType == cakeBakerTaskEnum.全部) {
-                helpArray.push(cakeBakerPkUserEnum.Smiley战队);
-                helpArray.push(cakeBakerPkUserEnum.灰哒哒战队);
-                helpArray.push(cakeBakerPkUserEnum.薇战队);
-                helpArray.push(cakeBakerPkUserEnum.琳战队);
-            }
-            else {
-                helpArray.push(taskType);
-            }
+            helpArray.push(taskType);
         }
 
         for (let i = 0; i < helpArray.length; i++) {
