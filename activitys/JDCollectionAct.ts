@@ -771,7 +771,7 @@ export default class jdCollectionAct implements Activity {
                     helpFriendMultiTimeoutArray.push(setTimeout(() => {
                         CookieHandler.coverCookie(item);
                         this.pkJoin(item);
-                    }, item.index * defaultMultiPollingDetection));
+                    }, item.index * 5000));
                 });
             }
             else {
