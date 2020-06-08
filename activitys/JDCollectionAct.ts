@@ -940,7 +940,7 @@ export default class jdCollectionAct implements Activity {
                         (pkUserAuto as HTMLButtonElement).disabled = false;
                         pkUserAuto.style.backgroundColor = "#2196F3";
                         pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStart;
-                    }, pkUserTimeOut);
+                    }, buttonTimeOut);
                 }
                 else {
                     await this.pkUserHelp(typeSelectOptions.value);
