@@ -1764,7 +1764,7 @@ export default class JdJoy implements Game {
             .then(async (myCombatDetailJson) => {
                 if (myCombatDetailJson.success) {
                     //领取奖励
-                    if (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.raceWin) {
+                    if (+myCombatDetailJson.data.winCoin > 0 && (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.raceWin || myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.unreceive)) {
                         const combatReceiveUrl = `https://jdjoy.jd.com/pet/combat/receive`;
                         await fetch(combatReceiveUrl, { credentials: "include" })
                             .then((res) => { return res.json() })
@@ -1784,11 +1784,11 @@ export default class JdJoy implements Game {
                     }
                     //开启战队
                     if (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.notParticipate) {
-                        combatMatchInterval = setInterval(() => {
+                        combatMatchInterval = setInterval(async () => {
                             if (maxRetryCount > 0) {
                                 maxRetryCount--;
                                 const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/match?teamLevel=${combatType}`;
-                                fetch(combatJoinUrl, { credentials: "include" })
+                                await fetch(combatJoinUrl, { credentials: "include" })
                                     .then((res) => { return res.json() })
                                     .then(async (matchJson) => {
                                         if (matchJson.success) {
@@ -1799,6 +1799,7 @@ export default class JdJoy implements Game {
                                                 case petCombatV2ResultEnum.participate:
                                                     clearInterval(combatMatchInterval);
                                                     Utils.outPutLog(this.outputTextarea, `${new Date(+matchJson.currentTime).toLocaleString()} 开启【${petCombatV2TypeEnum[+combatType]}】成功！`, false);
+                                                    this.combatSupply(myCombatDetailJson.data.supplyOrder);
                                                     break;
                                                 default:
                                                     Utils.debugInfo(consoleEnum.log, matchJson);
@@ -1818,50 +1819,8 @@ export default class JdJoy implements Game {
                         }, 5000);
                     }
                     //战队补给
-                    else if (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.participate && !!myCombatDetailJson.data.supplyOrder) {
-                        const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/getSupplyInfo?showOrder=${myCombatDetailJson.data.supplyOrder}`;
-                        fetch(combatJoinUrl, { credentials: "include" })
-                            .then((res) => { return res.json() })
-                            .then(async (getSupplyInfoJson) => {
-                                if (getSupplyInfoJson.success && getSupplyInfoJson.data.status == "processing") {
-                                    for (let i = 0; i < getSupplyInfoJson.data.marketList.length; i++) {
-                                        setTimeout(() => {
-                                            let marketData = getSupplyInfoJson.data.marketList[i];
-                                            if (!marketData.status) {
-                                                let postData = `{"showOrder":${getSupplyInfoJson.data.showOrder},"supplyType":"scan_market","taskInfo":"${marketData.marketLinkH5}","reqSource":"h5"}`;
-                                                const supplyUrl = `https://jdjoy.jd.com/pet/combat/supply`;
-                                                fetch(supplyUrl, {
-                                                    method: "POST",
-                                                    mode: "cors",
-                                                    credentials: "include",
-                                                    headers: {
-                                                        "Content-Type": "application/json"
-                                                    },
-                                                    body: postData
-                                                })
-                                                    .then((res) => { return res.json() })
-                                                    .then((supplyJson) => {
-                                                        if (supplyJson.success && supplyJson.data) {
-                                                            Utils.outPutLog(this.outputTextarea, `${new Date(+supplyJson.currentTime).toLocaleString()} 成功获取${getSupplyInfoJson.data.addDistance}km战队补给！`, false);
-                                                        }
-                                                        else {
-                                                            Utils.debugInfo(consoleEnum.log, supplyJson);
-                                                            Utils.outPutLog(this.outputTextarea, `【获取战队补给失败，请手动刷新或联系作者！】！`, false);
-                                                        }
-                                                    })
-                                                    .catch((error) => {
-                                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                        Utils.outPutLog(this.outputTextarea, `【哎呀~获取战队补给异常，请刷新后重新尝试或联系作者！】`, false);
-                                                    });
-                                            }
-                                        }, i * 2000);
-                                    }
-                                }
-                            })
-                            .catch((error) => {
-                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取补给信息异常，请手动刷新或联系作者！】`, false);
-                            });
+                    if (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.participate && !!myCombatDetailJson.data.supplyOrder) {
+                        await this.combatSupply(myCombatDetailJson.data.supplyOrder);
                     }
                     //战队助力
                     let getData = `?where=${encodeURIComponent(`{ "pin": "${petPin}" }`)}`;
@@ -2061,6 +2020,52 @@ export default class JdJoy implements Game {
             }).catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
                 Utils.outPutLog(this.outputTextarea, `【哎呀~获取其他用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+    }
+    //战队补给
+    async combatSupply(supplyOrder: string): Promise<void> {
+        const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/getSupplyInfo?showOrder=${supplyOrder}`;
+        await fetch(combatJoinUrl, { credentials: "include" })
+            .then((res) => { return res.json() })
+            .then(async (getSupplyInfoJson) => {
+                if (getSupplyInfoJson.success && getSupplyInfoJson.data.status == "processing") {
+                    for (let i = 0; i < getSupplyInfoJson.data.marketList.length; i++) {
+                        setTimeout(() => {
+                            let marketData = getSupplyInfoJson.data.marketList[i];
+                            if (!marketData.status) {
+                                let postData = `{"showOrder":${getSupplyInfoJson.data.showOrder},"supplyType":"scan_market","taskInfo":"${marketData.marketLinkH5}","reqSource":"h5"}`;
+                                const supplyUrl = `https://jdjoy.jd.com/pet/combat/supply`;
+                                fetch(supplyUrl, {
+                                    method: "POST",
+                                    mode: "cors",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: postData
+                                })
+                                    .then((res) => { return res.json() })
+                                    .then((supplyJson) => {
+                                        if (supplyJson.success && supplyJson.data) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+supplyJson.currentTime).toLocaleString()} 成功获取${getSupplyInfoJson.data.addDistance}km战队补给！`, false);
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, supplyJson);
+                                            Utils.outPutLog(this.outputTextarea, `【获取战队补给失败，请手动刷新或联系作者！】！`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `【哎呀~获取战队补给异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            }
+                        }, i * 2000);
+                    }
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取补给信息异常，请手动刷新或联系作者！】`, false);
             });
     }
     //战队互助

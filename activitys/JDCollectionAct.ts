@@ -53,7 +53,8 @@ let taskTimeout = 0,
     carnivalCityTimeOut = 0,
     rubiksCubeTimeOut = 0,
     arFutureCityTimeOut = 0,
-    helpFriendTimeOut = 0;
+    helpFriendTimeOut = 0,
+    pkUserTimeOut = 0;
 const defaultCakeBakerTiming: string = '01:00',
     defaultCakeBakerDetection: number = 3600000, //1小时
     defaultCarnivalCityTiming: string = '02:00',
@@ -903,6 +904,8 @@ export default class jdCollectionAct implements Activity {
                 return false;
             }
 
+            pkUserTimeOut = 0;
+
             (pkUserRefresh as HTMLButtonElement).disabled = true;
             pkUserRefresh.style.backgroundColor = "darkgray";
             (pkUserJoin as HTMLButtonElement).disabled = true;
@@ -913,7 +916,7 @@ export default class jdCollectionAct implements Activity {
 
             typeSelect.disabled = !typeSelect.disabled;
 
-            this.getJDTime().then((currentJDTime) => {
+            this.getJDTime().then(async (currentJDTime) => {
                 let currentJDDate = new Date(+currentJDTime);
 
                 Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 一键战队已开始！`, false);
@@ -921,12 +924,13 @@ export default class jdCollectionAct implements Activity {
                 if (Config.multiFlag) {
                     let buttonTimeOut = 8000;
                     CookieManager.cookieArr.map((item: CookieType) => {
-                        buttonTimeOut += item.index * 8000;
+                        buttonTimeOut += 8000;
                         setTimeout(() => {
                             CookieHandler.coverCookie(item);
                             this.pkUserHelp(typeSelectOptions.value, item);
                         }, item.index * 8000);
                     });
+
                     setTimeout(() => {
                         typeSelect.disabled = !typeSelect.disabled;
                         (pkUserRefresh as HTMLButtonElement).disabled = false;
@@ -936,10 +940,10 @@ export default class jdCollectionAct implements Activity {
                         (pkUserAuto as HTMLButtonElement).disabled = false;
                         pkUserAuto.style.backgroundColor = "#2196F3";
                         pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStart;
-                    }, buttonTimeOut);
+                    }, pkUserTimeOut);
                 }
                 else {
-                    this.pkUserHelp(typeSelectOptions.value);
+                    await this.pkUserHelp(typeSelectOptions.value);
                     setTimeout(() => {
                         typeSelect.disabled = !typeSelect.disabled;
                         (pkUserRefresh as HTMLButtonElement).disabled = false;
@@ -949,10 +953,8 @@ export default class jdCollectionAct implements Activity {
                         (pkUserAuto as HTMLButtonElement).disabled = false;
                         pkUserAuto.style.backgroundColor = "#2196F3";
                         pkUserAuto.innerHTML = cakeBakerPkUserButtonEnum.cakeBakerPkUserStart;
-                    }, 4000);
+                    }, pkUserTimeOut);
                 }
-
-
             });
         });
     }
@@ -2640,6 +2642,9 @@ export default class jdCollectionAct implements Activity {
                                 if (arCityRedEnvelopeJson.code == 0 && arCityRedEnvelopeJson.rc == 200) {
                                     Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}城市红包雨获得京豆${arCityRedEnvelopeJson.rv.beans ?? 0}！`, false);
                                 }
+                                else if (arCityRedEnvelopeJson.code == 0 && arCityRedEnvelopeJson.rc == 204) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}城市红包雨${arCityRedEnvelopeJson.rv ?? "未中奖"}！`, false);
+                                }
                                 else {
                                     Utils.debugInfo(consoleEnum.log, arCityRedEnvelopeJson);
                                     Utils.outPutLog(this.outputTextarea, `${nick}【城市城市红包雨失败，请手动刷新或联系作者！】`, false);
@@ -2877,7 +2882,6 @@ export default class jdCollectionAct implements Activity {
     async pkUserHelp(taskType: any, ckObj?: CookieType) {
         await this.refreshPK();
 
-        let pkUserTimeOut = 0;
         let helpArray: any[] = [];
         let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : ""
 
