@@ -121,6 +121,7 @@ export default class jdCollectionAct implements Activity {
                                                 <option value="${cakeBakerTaskEnum.逛校园会场}">逛校园会场</option>
                                                 <option value="${cakeBakerTaskEnum.加购商品}">加购商品</option>
                                                 <option value="${cakeBakerTaskEnum.AR吃蛋糕}">AR吃蛋糕</option>
+                                                <option value="${cakeBakerTaskEnum.开通会员}">开通会员</option>
                                                 <option value="${cakeBakerTaskEnum.逛店铺}">逛店铺</option>
                                                 <option value="${cakeBakerTaskEnum.扔炸弹}">扔炸弹</option>
                                             </select>
@@ -980,6 +981,7 @@ export default class jdCollectionAct implements Activity {
             shoppingCampusVenue: any,
             addProduct: any,
             arEatCake: any,
+            brandMembers: any,
             browseShop: any;
         let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
         //蛋糕首页信息
@@ -1080,6 +1082,9 @@ export default class jdCollectionAct implements Activity {
                         break;
                     case cakeBakerTaskEnum.AR吃蛋糕:
                         arEatCake = getTaskDetailJson.data.result.taskVos[i];
+                        break;
+                    case cakeBakerTaskEnum.开通会员:
+                        brandMembers = getTaskDetailJson.data.result.taskVos[i];
                         break;
                 }
             }
@@ -1835,6 +1840,61 @@ export default class jdCollectionAct implements Activity {
             //        }
             //    }
             //}
+        }
+        if (taskType == cakeBakerTaskEnum.开通会员 || taskType == cakeBakerTaskEnum.全部) {
+            if (!!brandMembers && brandMembers.status == 1) {
+                let joinedCount = +brandMembers.times,
+                    taskChance = +brandMembers.maxTimes;
+                for (let j = 0; j < brandMembers.shoppingActivityVos.length; j++) {
+                    if (brandMembers.shoppingActivityVos[j].status == 1) {
+                        cakeBakerTimeoutArray.push(setTimeout(() => {
+                            new Promise(async (resolve, reject) => {
+                                const jdShopMemberUrl = `https://api.m.jd.com/client.action?appid=jd_shop_member&functionId=bindWithVender&body=${encodeURIComponent(`{"venderId":"${brandMembers.shoppingActivityVos[j].copy1}","shopId":"${brandMembers.shoppingActivityVos[j].copy1}","bindByVerifyCodeFlag":1,"registerExtend":{},"writeChildFlag":0,"channel":4032}`)}&client=H5&clientVersion=8.5.6&uuid=88888`;
+                                await fj.fetchJsonp(jdShopMemberUrl)
+                                    .then(function (response) {
+                                        return response.json();
+                                    })
+                                    .then((res) => {
+                                        //if (res.code == 0 && res.errMsg == "success") {
+
+                                        //}
+                                        //else {
+                                        //    Utils.outPutLog(this.outputTextarea, `【叠蛋糕开通会员失败，请手动刷新或联系作者！】`, false);
+                                        //}
+                                    }).catch((error) => {
+                                        //Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        //Utils.outPutLog(this.outputTextarea, `【哎呀~叠蛋糕开通会员异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                                let postData = `&body={"venderId":"${brandMembers.shoppingActivityVos[j].copy1}","itemId":"${brandMembers.shoppingActivityVos[j].itemId}"}&client=wh5&clientVersion=1.0.0`;
+                                await fetch(`${this.rootURI}cakebaker_taskBigBrandAward${postData}`, {
+                                    method: "POST",
+                                    mode: "cors",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/x-www-form-urlencoded"
+                                    }
+                                })
+                                    .then(function (res) { return res.json(); })
+                                    .then((taskBigBrandAwardJson) => {
+                                        if ((taskBigBrandAwardJson.code == 0 || taskBigBrandAwardJson.msg == "调用成功") && taskBigBrandAwardJson.data.success) {
+                                            joinedCount++;
+                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】叠蛋糕开通会员获得${taskBigBrandAwardJson.data.result.score}金币！`, false);
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, taskBigBrandAwardJson);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【获取叠蛋糕开通会员金币失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取叠蛋糕开通会员金币异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            });
+                        }, taskTimeout));
+                        taskTimeout += Utils.random(11000, 12000);
+                    }
+                }
+            }
         }
         //完成任务2
         if (taskType == cakeBakerTaskEnum.逛店铺 || taskType == cakeBakerTaskEnum.全部) {

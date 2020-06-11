@@ -26,6 +26,7 @@ export enum cakeBakerTaskEnum {
     "逛校园会场" = 25,
     "加购商品" = 101,
     "AR吃蛋糕" = 34,
+    "开通会员" = 42,
     "逛店铺" = "taskVos",
     "扔炸弹" = "cakeBomb"
 }
