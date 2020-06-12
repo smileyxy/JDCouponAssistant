@@ -2767,7 +2767,7 @@ export default class jdCollectionAct implements Activity {
                             Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}蛋糕助力成功！`, false);
                         }
                         else {
-                            if (cakebakerckCollectScoreJson.data.bizCode == -8 || cakebakerckCollectScoreJson.data.bizCode == -11 || cakebakerckCollectScoreJson.data.bizCode == -12) {
+                            if (cakebakerckCollectScoreJson.data.bizCode == -8 || cakebakerckCollectScoreJson.data.bizCode == -9 || cakebakerckCollectScoreJson.data.bizCode == -11 || cakebakerckCollectScoreJson.data.bizCode == -12) {
 
                             }
                             else {
