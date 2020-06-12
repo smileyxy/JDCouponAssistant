@@ -107,7 +107,7 @@ export default class jdCollectionAct implements Activity {
                                         <div style="width: 24vw;">
                                             <select id="cakeBakerType" style="width: 23.5vw;">
                                                 <option value="${cakeBakerTaskEnum.全部}" selected="selected">全部</option>
-                                                <option value="${cakeBakerTaskEnum.叠蛋糕}">小精灵</option>
+                                                <option value="${cakeBakerTaskEnum.叠蛋糕}">叠蛋糕</option>
                                                 <option value="${cakeBakerTaskEnum.小精灵}">小精灵</option>
                                                 <option value="${cakeBakerTaskEnum.签到}">签到</option>
                                                 <option value="${cakeBakerTaskEnum.逛主会场}">逛主会场</option>
@@ -1107,8 +1107,9 @@ export default class jdCollectionAct implements Activity {
                 let joinedCount = +elf.times,
                     taskChance = +elf.maxTimes;
                 for (let j = 0; j < taskChance - joinedCount; j++) {
-                    cakeBakerTimeoutArray.push(setTimeout(() => {
-                        let postData = `&body={\"taskId\":${elf.taskId},\"itemId\":\"${elf.simpleRecordInfoVo.itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
+                    cakeBakerTimeoutArray.push(setTimeout(async () => {
+                        //let postData = `&body={\"taskId\":${elf.taskId},\"itemId\":\"${elf.simpleRecordInfoVo.itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
+                        let postData = `&body={\"taskId\":35,\"itemId\":\"1\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                         fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                             method: "POST",
                             mode: "cors",
@@ -1141,8 +1142,8 @@ export default class jdCollectionAct implements Activity {
             if (!!signIn && signIn.status == 1) {
                 let joinedCount = +signIn.times,
                     taskChance = +signIn.maxTimes;
-                cakeBakerTimeoutArray.push(setTimeout(() => {
-                    let postData = `&body={\"taskId\":${signIn.taskId},\"itemId\":\"${signIn.simpleRecordInfoVo.itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
+                cakeBakerTimeoutArray.push(setTimeout(async () => {
+                    let postData = `&body={\"taskId\":${signIn.taskId},\"itemId\":\"${signIn.simpleRecordInfoVo.itemId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                     fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                         method: "POST",
                         mode: "cors",
@@ -1176,8 +1177,8 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +shoppingMain.maxTimes;
                 for (let j = 0; j < shoppingMain.shoppingActivityVos.length; j++) {
                     if (shoppingMain.shoppingActivityVos[j].status == 1) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${shoppingMain.taskId},\"itemId\":\"${shoppingMain.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
+                            let postData = `&body={\"taskId\":${shoppingMain.taskId},\"itemId\":\"${shoppingMain.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1245,18 +1246,22 @@ export default class jdCollectionAct implements Activity {
                         }
                     })
                         .then(function (res) { return res.json(); })
-                        .then((cakebakerckCollectScoreJson) => {
+                        .then(async (cakebakerckCollectScoreJson) => {
                             if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
                                 submitTimeout = 0;
+                                let nowJdDate = await (await this.getJDTime()).toString(),
+                                    nonceStr = this.getNonceStr(10),
+                                    token = this.getToken();
                                 for (let k = 0; k < cakebakerckCollectScoreJson.data.result.viewProductVos.length; k++) {
                                     if (cakebakerckCollectScoreJson.data.result.viewProductVos[k].status == 1) {
                                         let joinedCount = +cakebakerckCollectScoreJson.data.result.viewProductVos[k].times,
                                             taskChance = +cakebakerckCollectScoreJson.data.result.viewProductVos[k].maxTimes;
                                         for (let l = 0; l < cakebakerckCollectScoreJson.data.result.viewProductVos[k].productInfoVos.length; l++) {
                                             if (cakebakerckCollectScoreJson.data.result.viewProductVos[k].productInfoVos[l].status == 1) {
-                                                setTimeout(() => {
+                                                setTimeout(async () => {
                                                     if (joinedCount < taskChance) {
-                                                        postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.viewProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.viewProductVos[k].productInfoVos[l].itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
+                                                        //postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.viewProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.viewProductVos[k].productInfoVos[l].itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
+                                                        postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.viewProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.viewProductVos[k].productInfoVos[l].itemId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                                                         fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                                             method: "POST",
                                                             mode: "cors",
@@ -1282,7 +1287,7 @@ export default class jdCollectionAct implements Activity {
                                                             });
                                                     }
                                                 }, submitTimeout);
-                                                submitTimeout += Utils.random(3000, 5000);
+                                                submitTimeout += Utils.random(9000, 10000);
                                             }
                                         }
                                     }
@@ -1307,8 +1312,8 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +viewGame1.maxTimes;
                 for (let j = 0; j < viewGame1.shoppingActivityVos.length; j++) {
                     if (viewGame1.shoppingActivityVos[j].status == 1) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${viewGame1.taskId},\"itemId\":\"${viewGame1.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
+                            let postData = `&body={\"taskId\":${viewGame1.taskId},\"itemId\":\"${viewGame1.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1369,8 +1374,8 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +viewGame2.maxTimes;
                 for (let j = 0; j < viewGame2.shoppingActivityVos.length; j++) {
                     if (viewGame2.shoppingActivityVos[j].status == 1) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${viewGame2.taskId},\"itemId\":\"${viewGame2.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
+                            let postData = `&body={\"taskId\":${viewGame2.taskId},\"itemId\":\"${viewGame2.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1406,8 +1411,8 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +viewChannel.maxTimes;
                 for (let j = 0; j < viewChannel.shoppingActivityVos.length; j++) {
                     if (viewChannel.shoppingActivityVos[j].status == 1) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${viewChannel.taskId},\"itemId\":\"${viewChannel.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
+                            let postData = `&body={\"taskId\":${viewChannel.taskId},\"itemId\":\"${viewChannel.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1468,9 +1473,9 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +viewVenue.maxTimes;
                 for (let j = 0; j < viewVenue.shoppingActivityVos.length; j++) {
                     if (viewVenue.shoppingActivityVos[j].status == 1) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
                             if (joinedCount < taskChance) {
-                                let postData = `&body={\"taskId\":${viewVenue.taskId},\"itemId\":\"${viewVenue.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                                let postData = `&body={\"taskId\":${viewVenue.taskId},\"itemId\":\"${viewVenue.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                                 fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                     method: "POST",
                                     mode: "cors",
@@ -1532,8 +1537,8 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +shoppingFinance.maxTimes;
                 for (let j = 0; j < shoppingFinance.shoppingActivityVos.length; j++) {
                     if (shoppingFinance.shoppingActivityVos[j].status == 1 && joinedCount < taskChance) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${shoppingFinance.taskId},\"itemId\":\"${shoppingFinance.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
+                            let postData = `&body={\"taskId\":${shoppingFinance.taskId},\"itemId\":\"${shoppingFinance.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1594,8 +1599,8 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +shoppingBrandBirthday.maxTimes;
                 for (let j = 0; j < shoppingBrandBirthday.shoppingActivityVos.length; j++) {
                     if (shoppingBrandBirthday.shoppingActivityVos[j].status == 1 && joinedCount < taskChance) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${shoppingBrandBirthday.taskId},\"itemId\":\"${shoppingBrandBirthday.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
+                            let postData = `&body={\"taskId\":${shoppingBrandBirthday.taskId},\"itemId\":\"${shoppingBrandBirthday.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1656,8 +1661,8 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +shoppingCampusVenue.maxTimes;
                 for (let j = 0; j < shoppingCampusVenue.shoppingActivityVos.length; j++) {
                     if (shoppingCampusVenue.shoppingActivityVos[j].status == 1 && joinedCount < taskChance) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${shoppingCampusVenue.taskId},\"itemId\":\"${shoppingCampusVenue.shoppingActivityVos[j].advId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
+                            let postData = `&body={\"taskId\":${shoppingCampusVenue.taskId},\"itemId\":\"${shoppingCampusVenue.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1734,9 +1739,9 @@ export default class jdCollectionAct implements Activity {
                                             taskChance = +cakebakerckCollectScoreJson.data.result.addProductVos[k].maxTimes;
                                         for (let l = 0; l < cakebakerckCollectScoreJson.data.result.addProductVos[k].productInfoVos.length; l++) {
                                             if (cakebakerckCollectScoreJson.data.result.addProductVos[k].productInfoVos[l].status == 1) {
-                                                setTimeout(() => {
+                                                setTimeout(async () => {
                                                     if (joinedCount < taskChance) {
-                                                        postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.addProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.addProductVos[k].productInfoVos[l].itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
+                                                        postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.addProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.addProductVos[k].productInfoVos[l].itemId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                                                         fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                                             method: "POST",
                                                             mode: "cors",
@@ -1903,8 +1908,8 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +browseShop.maxTimes;
                 for (let j = 0; j < browseShop.browseShopVo.length; j++) {
                     if (browseShop.browseShopVo[j].status == 1) {
-                        cakeBakerTimeoutArray.push(setTimeout(() => {
-                            let postData = `&body={\"taskId\":${browseShop.taskId},\"itemId\":\"${browseShop.browseShopVo[j].itemId}\",\"safeStr\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                        cakeBakerTimeoutArray.push(setTimeout(async () => {
+                            let postData = `&body={\"taskId\":${browseShop.taskId},\"itemId\":\"${browseShop.browseShopVo[j].itemId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -2982,6 +2987,73 @@ export default class jdCollectionAct implements Activity {
             }, pkUserTimeOut);
             pkUserTimeOut += 1000;
         }
+    }
+    //获取请求安全密钥
+    async getSafeStr(secretp: string): Promise<string> {
+        let nowJdDate = await(await this.getJDTime()).toString(),
+            nonceStr = this.getNonceStr(10),
+            token = this.getToken();
+        return `{\\\"is_trust\\\":true,\\\"sign\\\":\\\"${this.getSign(nowJdDate, nonceStr, token)}\\\",\\\"fpb\\\":\\\"${this.getCookie("shshshfpb")}\\\",\\\"time\\\":${nowJdDate},\\\"encrypt\\\":3,\\\"nonstr\\\":\\\"${nonceStr}\\\",\\\"info\\\":\\\"\\\",\\\"token\\\":\\\"${token}\\\",\\\"secretp\\\":\\\"${secretp}\\\",\\\"uid\\\":\\\"ee9a4e872b8043c8c6d550fbdc636823e2096324\\\"}`;
+    }
+    //获取cookie
+    getCookie(key: string): string {
+        var t, r = new RegExp("(^| )" + key + "=([^;]*)(;|$)");
+        return (t = document.cookie.match(r)) ? unescape(t[2]) : ""
+    }
+    //获取Token
+    getToken(): string {
+        var e = this.getCookie("pwdt_id") || this.getCookie("pin") || ""
+            , t = decodeURIComponent(e);
+        return Utils.md5Encrypt(t).toString().toLowerCase();
+    }
+    //获取nonstr
+    getNonceStr(places: number): string {
+        for (var t = "", r = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"], i = r.length - 1, n = 0; n < places; n++)
+            t += r[Math.round(Math.random() * i)];
+        return t
+    }
+    //获取Sign
+    getSign(nowJdDate: string, nonceStr: string, token: string): string {
+        let encryptSignStr = `&token=${token}&time=${nowJdDate}&nonce_str=${nonceStr}&key=${this.getKey(nonceStr, nowJdDate)}&is_trust=true`;
+        return Utils.sha1Encrypt(encryptSignStr).toString().toUpperCase();
+    }
+    //获取Key
+    getKey(nonceStr: string, nowJdDate: string): string {
+        let nonceStrSlice = nonceStr.slice(0, 5)
+            , nowJdDateSlice = String(nowJdDate).slice(-5);
+        return this.minusByByte(nonceStrSlice, nowJdDateSlice);
+    }
+    getLastAscii(param: any): string {
+        var t = param.charCodeAt(0).toString();
+        return t[t.length - 1]
+    }
+    toAscii(param: any): any {
+        var t = "";
+        for (var r in param) {
+            var i = param[r];
+            if (/[a-zA-Z]/.test(i))
+                t += this.getLastAscii(i);
+            else
+                t += i
+        }
+        return t
+    }
+    add0(param1: string, param2: number): string {
+        return (Array(param2).join("0") + param1).slice(-param2)
+    }
+    minusByByte(nonceStr: string, nowJdDate: string): string {
+        var r = nonceStr.length
+            , i = nowJdDate.length
+            , n = Math.max(r, i)
+            , a = this.toAscii(nonceStr)
+            , o = this.toAscii(nowJdDate)
+            , f = ""
+            , s = 0;
+        for (r !== i && (a = this.add0(a, n),
+            o = this.add0(o, n)); s < n;)
+            f += Math.abs(a[s] - o[s]),
+                s++;
+        return f
     }
     //获取京东服务器时间
     getJDTime(): Promise<number> {

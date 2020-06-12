@@ -983,7 +983,7 @@ export default class JdJoy implements Game {
                                 scanMarketData = hPetTaskConfigJson.datas[i];
                                 break;
                             case petTaskEnum.邀请用户:
-                                inviteUserData = hPetTaskConfigJson.datas[i];
+                                //inviteUserData = hPetTaskConfigJson.datas[i];
                                 break;
                         }
                     }
@@ -1967,6 +1967,7 @@ export default class JdJoy implements Game {
                                 .then(async (enterRoomJson) => {
                                     if (enterRoomJson.success) {
                                         if (enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.canHelp || enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.cardExpire) {
+                                            //const addUserUrl = `https://draw.jdfcloud.com//api/user/addUser?code=081zHm7A0JqZZb1kxm5A0cbn7A0zHm7M&source=UNKNOWN&type=&appId=wxccb5c536b0ecd1bf`;
                                             const helpFriendUrl = `https://jdjoy.jd.com/pet/helpFriend?friendPin=${item.pin}`;
                                             await fetch(helpFriendUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
