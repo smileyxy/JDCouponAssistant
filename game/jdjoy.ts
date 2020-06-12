@@ -983,7 +983,7 @@ export default class JdJoy implements Game {
                                 scanMarketData = hPetTaskConfigJson.datas[i];
                                 break;
                             case petTaskEnum.邀请用户:
-                                //inviteUserData = hPetTaskConfigJson.datas[i];
+                                inviteUserData = hPetTaskConfigJson.datas[i];
                                 break;
                         }
                     }
@@ -1295,112 +1295,112 @@ export default class JdJoy implements Game {
                         }
                     }
                     if (taskType == petTaskEnum.邀请用户 || taskType == petTaskEnum.全部) {
-                        if (!!inviteUserData && inviteUserData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
-                            //领取狗粮
-                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=InviteUser`;
-                            await fetch(getFoodUrl, { credentials: "include" })
-                                .then((res) => { return res.json() })
-                                .then((getFoodJson) => {
-                                    if (getFoodJson.success) {
-                                        if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 成功领取${getFoodJson.data}g助力狗粮！`, false);
-                                        }
-                                        else {
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 没有可以领取的助力狗粮了！`, false);
-                                        }
-                                    }
-                                    else {
-                                        Utils.debugInfo(consoleEnum.log, getFoodJson);
-                                        Utils.outPutLog(this.outputTextarea, `【领取助力狗粮请求失败，请手动刷新或联系作者！】`, false);
-                                    }
-                                }).catch((error) => {
-                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~领取助力狗粮异常，请刷新后重新尝试或联系作者！】`, false);
-                                });
-                        }
+                        //if (!!inviteUserData && inviteUserData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
+                        //    //领取狗粮
+                        //    const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=InviteUser`;
+                        //    await fetch(getFoodUrl, { credentials: "include" })
+                        //        .then((res) => { return res.json() })
+                        //        .then((getFoodJson) => {
+                        //            if (getFoodJson.success) {
+                        //                if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
+                        //                    Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 成功领取${getFoodJson.data}g助力狗粮！`, false);
+                        //                }
+                        //                else {
+                        //                    Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 没有可以领取的助力狗粮了！`, false);
+                        //                }
+                        //            }
+                        //            else {
+                        //                Utils.debugInfo(consoleEnum.log, getFoodJson);
+                        //                Utils.outPutLog(this.outputTextarea, `【领取助力狗粮请求失败，请手动刷新或联系作者！】`, false);
+                        //            }
+                        //        }).catch((error) => {
+                        //            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        //            Utils.outPutLog(this.outputTextarea, `【哎呀~领取助力狗粮异常，请刷新后重新尝试或联系作者！】`, false);
+                        //        });
+                        //}
 
-                        let getData = `?where=${encodeURIComponent(`{ "pin": "${petPin}" }`)}`;
-                        await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime) })
-                            .then((res) => { return res.json() })
-                            .then((getCurrentUserJson) => {
-                                if (!!getCurrentUserJson.results) {
-                                    if (getCurrentUserJson.results.length > 0) {
-                                        let currentUserData = getCurrentUserJson.results[0];
-                                        if (currentUserData.isBlock) {
-                                            Utils.outPutLog(this.outputTextarea, `【哎呀~做坏事被列入黑名单了，永久失去互助资格！】`, false);
-                                        }
-                                        else if (currentUserData.helpStatus) {
-                                            //助力
-                                            this.helpFriend(hPetTaskConfigJson.currentTime);
-                                        }
-                                        else {
-                                            //更新
-                                            if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("是否再次开启【邀请用户】功能？")) {
-                                                helpConfirmStatus = petHelpConfirmEnum.已确认;
-                                                let putData = `{ "helpStatus": true }`;
-                                                fetch(`${Config.BmobHost + Config.BmobUserInfoUrl}/${currentUserData.objectId}`, {
-                                                    method: "PUT",
-                                                    headers: Utils.getHeaders(`${Config.BmobUserInfoUrl}/${currentUserData.objectId}`, hPetTaskConfigJson.currentTime),
-                                                    body: putData
-                                                }).then((res) => { return res.json() })
-                                                    .then((updateCurrentUserJson) => {
-                                                        if (!!updateCurrentUserJson.updatedAt) {
-                                                            //助力
-                                                            this.helpFriend(hPetTaskConfigJson.currentTime);
-                                                        }
-                                                        else {
-                                                            Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
-                                                            Utils.outPutLog(this.outputTextarea, `【再次开启互助功能失败，请手动刷新或联系作者！】`, false);
-                                                        }
-                                                    }).catch((error) => {
-                                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                        Utils.outPutLog(this.outputTextarea, `【哎呀~再次开启互助功能异常，请刷新后重新尝试或联系作者！】`, false);
-                                                    });
-                                            }
-                                            else {
-                                                helpConfirmStatus = petHelpConfirmEnum.已取消;
-                                                Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
-                                            }
-                                        }
-                                    }
-                                    else {
-                                        //新增
-                                        if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("确定后将记录您的PIN码并开启【邀请用户】功能，取消则不记录您的PIN码并暂停【邀请用户】功能。")) {
-                                            helpConfirmStatus = petHelpConfirmEnum.已确认;
-                                            let postData = `{ "pin": "${petPin}", "helpStatus": true }`;
-                                            fetch(Config.BmobHost + Config.BmobUserInfoUrl, {
-                                                method: "POST",
-                                                headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime),
-                                                body: postData
-                                            }).then((res) => { return res.json() })
-                                                .then((addCurrentUserJson) => {
-                                                    if (!!addCurrentUserJson.objectId) {
-                                                        //助力
-                                                        this.helpFriend(hPetTaskConfigJson.currentTime);
-                                                    }
-                                                    else {
-                                                        Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
-                                                        Utils.outPutLog(this.outputTextarea, `【记录用户请求失败，请手动刷新或联系作者！】`, false);
-                                                    }
-                                                }).catch((error) => {
-                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~记录用户异常，请刷新后重新尝试或联系作者！】`, false);
-                                                });
-                                        }
-                                        else {
-                                            helpConfirmStatus = petHelpConfirmEnum.已取消;
-                                            Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
-                                        }
-                                    }
-                                }
-                                else {
-                                    Utils.debugInfo(consoleEnum.log, getCurrentUserJson);
-                                    Utils.outPutLog(this.outputTextarea, `【获取当前用户信息记录请求失败，请手动刷新或联系作者！】`, false);
-                                }
-                            }).catch((error) => {
-                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取当前用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
-                            });
+                        //let getData = `?where=${encodeURIComponent(`{ "pin": "${petPin}" }`)}`;
+                        //await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime) })
+                        //    .then((res) => { return res.json() })
+                        //    .then((getCurrentUserJson) => {
+                        //        if (!!getCurrentUserJson.results) {
+                        //            if (getCurrentUserJson.results.length > 0) {
+                        //                let currentUserData = getCurrentUserJson.results[0];
+                        //                if (currentUserData.isBlock) {
+                        //                    Utils.outPutLog(this.outputTextarea, `【哎呀~做坏事被列入黑名单了，永久失去互助资格！】`, false);
+                        //                }
+                        //                else if (currentUserData.helpStatus) {
+                        //                    //助力
+                        //                    this.helpFriend(hPetTaskConfigJson.currentTime);
+                        //                }
+                        //                else {
+                        //                    //更新
+                        //                    if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("是否再次开启【邀请用户】功能？")) {
+                        //                        helpConfirmStatus = petHelpConfirmEnum.已确认;
+                        //                        let putData = `{ "helpStatus": true }`;
+                        //                        fetch(`${Config.BmobHost + Config.BmobUserInfoUrl}/${currentUserData.objectId}`, {
+                        //                            method: "PUT",
+                        //                            headers: Utils.getHeaders(`${Config.BmobUserInfoUrl}/${currentUserData.objectId}`, hPetTaskConfigJson.currentTime),
+                        //                            body: putData
+                        //                        }).then((res) => { return res.json() })
+                        //                            .then((updateCurrentUserJson) => {
+                        //                                if (!!updateCurrentUserJson.updatedAt) {
+                        //                                    //助力
+                        //                                    this.helpFriend(hPetTaskConfigJson.currentTime);
+                        //                                }
+                        //                                else {
+                        //                                    Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
+                        //                                    Utils.outPutLog(this.outputTextarea, `【再次开启互助功能失败，请手动刷新或联系作者！】`, false);
+                        //                                }
+                        //                            }).catch((error) => {
+                        //                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        //                                Utils.outPutLog(this.outputTextarea, `【哎呀~再次开启互助功能异常，请刷新后重新尝试或联系作者！】`, false);
+                        //                            });
+                        //                    }
+                        //                    else {
+                        //                        helpConfirmStatus = petHelpConfirmEnum.已取消;
+                        //                        Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
+                        //                    }
+                        //                }
+                        //            }
+                        //            else {
+                        //                //新增
+                        //                if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("确定后将记录您的PIN码并开启【邀请用户】功能，取消则不记录您的PIN码并暂停【邀请用户】功能。")) {
+                        //                    helpConfirmStatus = petHelpConfirmEnum.已确认;
+                        //                    let postData = `{ "pin": "${petPin}", "helpStatus": true }`;
+                        //                    fetch(Config.BmobHost + Config.BmobUserInfoUrl, {
+                        //                        method: "POST",
+                        //                        headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime),
+                        //                        body: postData
+                        //                    }).then((res) => { return res.json() })
+                        //                        .then((addCurrentUserJson) => {
+                        //                            if (!!addCurrentUserJson.objectId) {
+                        //                                //助力
+                        //                                this.helpFriend(hPetTaskConfigJson.currentTime);
+                        //                            }
+                        //                            else {
+                        //                                Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
+                        //                                Utils.outPutLog(this.outputTextarea, `【记录用户请求失败，请手动刷新或联系作者！】`, false);
+                        //                            }
+                        //                        }).catch((error) => {
+                        //                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        //                            Utils.outPutLog(this.outputTextarea, `【哎呀~记录用户异常，请刷新后重新尝试或联系作者！】`, false);
+                        //                        });
+                        //                }
+                        //                else {
+                        //                    helpConfirmStatus = petHelpConfirmEnum.已取消;
+                        //                    Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
+                        //                }
+                        //            }
+                        //        }
+                        //        else {
+                        //            Utils.debugInfo(consoleEnum.log, getCurrentUserJson);
+                        //            Utils.outPutLog(this.outputTextarea, `【获取当前用户信息记录请求失败，请手动刷新或联系作者！】`, false);
+                        //        }
+                        //    }).catch((error) => {
+                        //        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        //        Utils.outPutLog(this.outputTextarea, `【哎呀~获取当前用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+                        //    });
                     }
                 }
                 else {

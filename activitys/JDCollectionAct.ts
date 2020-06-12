@@ -1313,7 +1313,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < viewGame1.shoppingActivityVos.length; j++) {
                     if (viewGame1.shoppingActivityVos[j].status == 1) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${viewGame1.taskId},\"itemId\":\"${viewGame1.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${viewGame1.taskId},\"itemId\":\"${viewGame1.shoppingActivityVos[j].advId}\",\"safeStr\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}cakebaker_ckCollectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
