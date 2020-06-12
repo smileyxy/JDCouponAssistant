@@ -2767,8 +2767,13 @@ export default class jdCollectionAct implements Activity {
                             Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}蛋糕助力成功！`, false);
                         }
                         else {
-                            Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                            Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕助力次数不足或失败！】`, false);
+                            if (cakebakerckCollectScoreJson.data.bizCode == -8 || cakebakerckCollectScoreJson.data.bizCode == -11 || cakebakerckCollectScoreJson.data.bizCode == -12) {
+
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【蛋糕助力次数不足或失败！】`, false);
+                            }
                         }
                     })
                     .catch((error) => {
