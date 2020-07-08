@@ -429,11 +429,6 @@ export default class JdJoy implements Game {
                             this.exchange();
                         }, defaultBeanDetection);
                     }, firstSpan);
-
-                    this.exchange();
-                    beanInterval = setInterval(() => {
-                        this.exchange();
-                    }, defaultBeanDetection);
                 }
                 else {
                     autoBean.innerHTML = petButtonEnum.autoBeanStart;
