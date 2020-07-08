@@ -44,7 +44,7 @@ let petPin = "",
 let taskTimeoutArray: any[] = [],
     actTimeoutArray: any[] = [],
     helpTimeoutArray: any[] = [];
-const defaultBeanDetection: number = 600000, //10分钟
+const defaultBeanDetection: number = 3600000, //1小时
     defaultFeedSpan: number = 10800000, //3小时
     defaultTaskTiming: string = '06:00',
     defaultTaskDetection: number = 3600000, //1小时
@@ -164,7 +164,7 @@ export default class JdJoy implements Game {
                             <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px 10px 10px;">
                                 <details>
                                     <summary style="outline: 0;">自动换豆</summary>
-                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 60000}分钟。</p>
+                                    <p style="font-size: 12px;">积分足够且有库存时，自动换取所在等级区的京豆；检测频率：默认${defaultBeanDetection / 3600000}小时，整点触发。</p>
                                 </details>
                                 <details>
                                     <summary style="outline: 0;">自动喂养</summary>
@@ -415,10 +415,20 @@ export default class JdJoy implements Game {
         const autoBean = _$('.autoBean');
         autoBean!.addEventListener('click', () => {
             this.getJDTime().then((currentJDTime) => {
+                let autoBeanTimeout = 0;
                 let currentJDDate = new Date(+currentJDTime);
                 if (autoBean.innerHTML == petButtonEnum.autoBeanStart) {
                     autoBean.innerHTML = petButtonEnum.autoBeanStop;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动换豆！`, false);
+
+                    let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000 + Utils.random(60000, 120000);
+
+                    autoBeanTimeout = setTimeout(() => {
+                        this.exchange();
+                        beanInterval = setInterval(() => {
+                            this.exchange();
+                        }, defaultBeanDetection);
+                    }, firstSpan);
 
                     this.exchange();
                     beanInterval = setInterval(() => {
@@ -428,6 +438,7 @@ export default class JdJoy implements Game {
                 else {
                     autoBean.innerHTML = petButtonEnum.autoBeanStart;
                     clearInterval(beanInterval);
+                    clearTimeout(autoBeanTimeout);
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动换豆！`, false);
                 }
             });
@@ -854,49 +865,52 @@ export default class JdJoy implements Game {
             .then((res) => { return res.json() })
             .then(async (getExchangeRewardsJson) => {
                 if (getExchangeRewardsJson.success) {
-                    let exchangeReward: any,
-                        totalScore: number = 0;
-                    getExchangeRewardsJson.datas.forEach((dataItem: any) => {
-                        if (dataItem.petLevel >= (dataItem.rewardLevel * levelSpan - levelSpan + 1) && dataItem.petLevel <= (dataItem.rewardLevel * levelSpan)) {
-                            totalScore = dataItem.score;
-                            exchangeReward = dataItem.rewardDetailVOS.find((rewardItem: any) => {
-                                return rewardItem.rewardType == 3 && rewardItem.rewardName.indexOf('京豆') >= 0 && rewardItem.leftStock > 0
-                            });
-                        }
-                    });
-
-                    if (!!exchangeReward) {
-                        let exchangeQuantity = Math.floor(totalScore / exchangeReward.petScore);
-
-                        for (let i = 0; i < exchangeQuantity; i++) {
-                            let postData = `{"id":"${exchangeReward.id}"}`;
-                            const petExchangeUrl = `https://jdjoy.jd.com/pet/exchange`;
-                            await fetch(petExchangeUrl, {
-                                method: "POST",
-                                mode: "cors",
-                                credentials: "include",
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: postData
-                            })
-                                .then((res) => { return res.json() })
-                                .then((petExchangeJson) => {
-                                    if (petExchangeJson.success) {
-                                        Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} 京豆兑换成功！`, false);
-                                    }
-                                    else {
-                                        Utils.debugInfo(consoleEnum.log, petExchangeJson);
-                                        Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
-                                    }
-                                })
-                                .catch((error) => {
-                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
+                    if (!getExchangeRewardsJson.datas[0].todayExchanged) {
+                        let exchangeReward: any,
+                            totalScore: number = 0;
+                        getExchangeRewardsJson.datas.forEach((dataItem: any) => {
+                            if (dataItem.petLevel >= (dataItem.rewardLevel * levelSpan - levelSpan + 1) && dataItem.petLevel <= (dataItem.rewardLevel * levelSpan)) {
+                                totalScore = dataItem.score;
+                                exchangeReward = dataItem.rewardDetailVOS.find((rewardItem: any) => {
+                                    return rewardItem.rewardType == 3 && rewardItem.rewardName.indexOf('京豆') >= 0 && rewardItem.leftStock > 0
                                 });
-                        }
+                            }
+                        });
 
-                        this.info(false);
+                        if (!!exchangeReward) {
+                            //let exchangeQuantity = Math.floor(totalScore / exchangeReward.petScore);
+                            let exchangeQuantity = 1;
+
+                            for (let i = 0; i < exchangeQuantity; i++) {
+                                let postData = `{"id":"${exchangeReward.id}"}`;
+                                const petExchangeUrl = `https://jdjoy.jd.com/pet/exchange`;
+                                await fetch(petExchangeUrl, {
+                                    method: "POST",
+                                    mode: "cors",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: postData
+                                })
+                                    .then((res) => { return res.json() })
+                                    .then((petExchangeJson) => {
+                                        if (petExchangeJson.success) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} 京豆兑换成功！`, false);
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, petExchangeJson);
+                                            Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            }
+
+                            this.info(false);
+                        }
                     }
                 }
                 else {
