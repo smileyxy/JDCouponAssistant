@@ -874,7 +874,7 @@ export default class JdJoy implements Game {
 
                         if (!!exchangeReward) {
                             //let exchangeQuantity = Math.floor(totalScore / exchangeReward.petScore);
-                            let exchangeQuantity = 1;
+                            let exchangeQuantity = Math.floor(totalScore / exchangeReward.petScore) > 0 ? 1 : 0;
 
                             for (let i = 0; i < exchangeQuantity; i++) {
                                 let postData = `{"id":"${exchangeReward.id}"}`;
