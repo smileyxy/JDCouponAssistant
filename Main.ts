@@ -246,7 +246,6 @@ function buildTitle() {
     container.setAttribute("style", "border: 1px solid #000;margin: 10px 0;padding: 5px;margin: 5px;");
     title.innerHTML = `<h1 style="font-weight:700">${Config.title} ${Config.version}</h1>
                         <h3>author:${Config.author}</h3>
-                        <h3>edit:${Config.edit}</h3>
                         <div style="display: flex;flex-direction: row;justify-content: center;">
                         <iframe src="https://ghbtns.com/github-btn.html?user=krapnikkk&repo=JDCouponAssistant&type=star&count=true" frameborder="0" scrolling="0" width="90px" height="21px"></iframe>
                         <a href="tencent://message/?uin=708873725Menu=yes" target="_blank" title="发起QQ聊天"><img src="http://bizapp.qq.com/webimg/01_online.gif" alt="QQ" style="margin:0px;"></a>
@@ -756,13 +755,14 @@ function copyRights() {
     console.clear();
     if (window.console) {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
-        console.log('%c本插件仅供学习交流使用\n作者:krapnik \ngithub:https://github.com/krapnikkk/JDCouponAssistant', 'color:#009a61');
+        console.log('%c本插件仅供学习交流使用\n作者:smileyxy', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.6.2】：更新宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.6.1】：优化宠汪汪自动换豆逻辑', 'color:#009a61');
         console.log('%c【0.6.0】：修复叠蛋糕任务失效，请求时增加4个加密参数', 'color:#009a61');
         console.log('%c【0.5.9】：优化并修复叠蛋糕一键战队功能', 'color:#009a61');
         console.log('%c【0.5.8】：修复宠汪汪战队功能', 'color:#009a61');
-        console.log('%c【0.5.7】：新增叠蛋糕战队互助功能；新增叠蛋糕金币互助功能；新增618活动多账号功能', 'color:#009a61');
+        //console.log('%c【0.5.7】：新增叠蛋糕战队互助功能；新增叠蛋糕金币互助功能；新增618活动多账号功能', 'color:#009a61');
         //console.log('%c【0.5.6】：新增品牌狂欢城看精选直播功能', 'color:#009a61');
         //console.log('%c【0.5.5】：修复京东小魔方任务失效；修复品牌狂欢城热卖单品BUG', 'color:#009a61');
         //console.log('%c【0.5.4】：新增叠蛋糕扔炸弹功能', 'color:#009a61');
@@ -790,7 +790,7 @@ function copyRights() {
         //console.log('%c【0.3.2】：合并原作者更新内容', 'color:#009a61');
         //console.log('%c【0.3.1】：小白信用领券结果细化；优化页面操作逻辑；规范请求及返回信息显示顺序', 'color:#009a61');
         //console.log('%c【0.3.0】：新增重复次数（重复频率同刷新频率）；修复定时领取点击后无法取消；更改部分文案', 'color:#009a61');
-        console.log('%c本版本非原版，请支持原作者:krapnik', 'color:#ef5035; font-size:16px;');
+        //console.log('%c本版本非原版，请支持原作者:krapnik', 'color:#ef5035; font-size:16px;');
         console.groupEnd();
     }
 }

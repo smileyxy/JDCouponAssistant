@@ -1,8 +1,8 @@
 export default class Config {
     static title: string = "京东领券助手";
-    static version: string = "v0.6.1";
-    static author: string = "krapnik";
-    static edit: string = "smileyxy";
+    static version: string = "v0.6.2";
+    static author: string = "smileyxy";
+    //static edit: string = "smileyxy";
 
     static timingFlag: boolean = false;
     static UAFlag: boolean = false;

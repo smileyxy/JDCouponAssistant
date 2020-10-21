@@ -421,12 +421,12 @@ export default class JdJoy implements Game {
                     autoBean.innerHTML = petButtonEnum.autoBeanStop;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动换豆！`, false);
 
-                    let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000 + Utils.random(60000, 120000);
+                    let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000 + Utils.random(10000, 30000);
 
                     autoBeanTimeout = setTimeout(() => {
-                        this.exchange();
+                        this.newExchange();
                         beanInterval = setInterval(() => {
-                            this.exchange();
+                            this.newExchange();
                         }, defaultBeanDetection);
                     }, firstSpan);
                 }
@@ -910,6 +910,61 @@ export default class JdJoy implements Game {
                 }
                 else {
                     Utils.debugInfo(consoleEnum.log, getExchangeRewardsJson);
+                    Utils.outPutLog(this.outputTextarea, `【获取积分兑换信息失败，请手动刷新或联系作者！】`, false);
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `【哎呀~获取积分兑换信息异常，请手动刷新或联系作者！】`, false);
+            });
+    }
+    //兑换（新）
+    async newExchange(): Promise<void> {
+        const getHomeInfoUrl = 'https://jdjoy.jd.com/gift/getHomeInfo';
+        await fetch(getHomeInfoUrl, { credentials: "include" })
+            .then((res) => { return res.json() })
+            .then(async (getHomeInfoJson) => {
+                if (getHomeInfoJson.success && getHomeInfoJson.data) {
+                    if (getHomeInfoJson.data.levelSaleInfos && getHomeInfoJson.data.levelSaleInfos.giftSaleInfos) {
+                        let exchangeGift: any;
+
+                        exchangeGift = getHomeInfoJson.data.levelSaleInfos.giftSaleInfos.find((giftItem: any) => {
+                            return giftItem.giftType == "jd_bean" && getHomeInfoJson.data.coin >= giftItem.salePrice && giftItem.leftStock > 0
+                        });
+
+                        if (!!exchangeGift) {
+                            let postData = `{"orderSource": "pet", "saleInfoId":${exchangeGift.id}}`;
+                            const petExchangeUrl = `https://jdjoy.jd.com/gift/exchange`;
+                            await fetch(petExchangeUrl, {
+                                method: "POST",
+                                mode: "cors",
+                                credentials: "include",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: postData
+                            })
+                                .then((res) => { return res.json() })
+                                .then((petExchangeJson) => {
+                                    if (petExchangeJson.success && petExchangeJson.errorCode == "success") {
+                                        Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} 京豆兑换成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, petExchangeJson);
+                                        Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+
+                            this.info(false);
+                        }
+                    }
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, getHomeInfoJson);
                     Utils.outPutLog(this.outputTextarea, `【获取积分兑换信息失败，请手动刷新或联系作者！】`, false);
                 }
             })
