@@ -243,7 +243,7 @@ function buildTitle() {
     document.body.style.backgroundColor = "#ffffff";
     document.body.style.textAlign = "center";
     document.body.style.maxWidth = "100vw";
-    container.setAttribute("style", "border: 1px solid #000;margin: 10px 0;padding: 5px;margin: 5px;");
+    container.setAttribute("style", "border: 1px solid #000;margin: 10px 0;padding: 5px;margin: 5px;background: #ffff;");
     title.innerHTML = `<h1 style="font-weight:700">${Config.title} ${Config.version}</h1>
                         <h3>author:${Config.author}</h3>
                         <div style="display: flex;flex-direction: row;justify-content: center;">
@@ -272,9 +272,8 @@ function buildActivity() {
     const activityArea: HTMLDivElement = document.createElement("div");
     activityArea.setAttribute("style", "border: 1px solid #000;margin:10px 0");
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>活动推荐</h3>
-    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://bunearth.m.jd.com/babelDiy/Zeus/3xAU77DgiPoDvHdbXUZb95a7u71X/index.html?babelChannel=dgmf#/Call" target="_blank">叠红包</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/QzjyrF2MpMcB5yq9zwaNpwspZWx/index.html?babelChannel=ttt6#/home" target="_blank">品牌狂欢城</a></p>
-    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/BDBYCXZDUYYWOHUGDJUK/3ir78c82wkBTA4kwtuAUb3F1T5ej/index.html" target="_blank">京东小魔方</a></p>`;
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/WgmkHMiiV1JUtcrZAUZTbL3hQss/index.html" target="_blank">京东小魔方</a></p>`;
     container.append(activityArea);
 }
 
@@ -557,7 +556,7 @@ function getEntryType(): couponType | activityType | goodsType | gameType {
     if (Config.locationHref.includes("h5.m.jd.com")) {
         if (Config.locationHref.includes("QzjyrF2MpMcB5yq9zwaNpwspZWx")) {
             type = activityType.carnivalCity;
-        } else if (Config.locationHref.includes("3ir78c82wkBTA4kwtuAUb3F1T5ej")) {
+        } else if (Config.locationHref.includes("WgmkHMiiV1JUtcrZAUZTbL3hQss")) {
             type = activityType.rubiksCube;
         }
     }
@@ -636,8 +635,8 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
             coupon = new Exchange({ "itemId": itemId }, container, outputTextArea);
             break;
         case activityType.cakeBaker:
-            activity = new JDCollectionAct({ "switchType": activityType.cakeBaker}, container, outputTextArea);
-             Config.UAFlag = true;
+            activity = new JDCollectionAct({ "switchType": activityType.cakeBaker }, container, outputTextArea);
+            Config.UAFlag = true;
             break;
         case activityType.carnivalCity:
             activity = new JDCollectionAct({ "switchType": activityType.carnivalCity }, container, outputTextArea);
@@ -757,11 +756,12 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:smileyxy', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.6.3】：更新京东小魔方，优化宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.6.2】：更新宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.6.1】：优化宠汪汪自动换豆逻辑', 'color:#009a61');
         console.log('%c【0.6.0】：修复叠蛋糕任务失效，请求时增加4个加密参数', 'color:#009a61');
         console.log('%c【0.5.9】：优化并修复叠蛋糕一键战队功能', 'color:#009a61');
-        console.log('%c【0.5.8】：修复宠汪汪战队功能', 'color:#009a61');
+        //console.log('%c【0.5.8】：修复宠汪汪战队功能', 'color:#009a61');
         //console.log('%c【0.5.7】：新增叠蛋糕战队互助功能；新增叠蛋糕金币互助功能；新增618活动多账号功能', 'color:#009a61');
         //console.log('%c【0.5.6】：新增品牌狂欢城看精选直播功能', 'color:#009a61');
         //console.log('%c【0.5.5】：修复京东小魔方任务失效；修复品牌狂欢城热卖单品BUG', 'color:#009a61');

@@ -89,9 +89,12 @@ export enum carnivalCityButtonEnum {
 
 export enum rubiksCubeTaskEnum {
     "全部" = "All",
-    "浏览新品" = "taskSkuInfo",
-    "关注浏览" = 6,
-    "浏览会场" = 9,
+    "浏览商品" = 1002,
+    "关注店铺" = 1003,
+    "浏览新品会场" = 1004,
+    "关注频道任务" = 1001,
+    "浏览大促会场" = 1006,
+    "灵活配置" = 1007,
     "抽奖" = "luckyDraw"
 }
 

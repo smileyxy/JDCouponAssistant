@@ -421,7 +421,7 @@ export default class JdJoy implements Game {
                     autoBean.innerHTML = petButtonEnum.autoBeanStop;
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动换豆！`, false);
 
-                    let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000 + Utils.random(10000, 30000);
+                    let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000 + Utils.random(0, 10000);
 
                     autoBeanTimeout = setTimeout(() => {
                         this.newExchange();
@@ -946,13 +946,13 @@ export default class JdJoy implements Game {
                             })
                                 .then((res) => { return res.json() })
                                 .then((petExchangeJson) => {
-                                    if (petExchangeJson.success && petExchangeJson.errorCode == "success") {
+                                    if (petExchangeJson.success && petExchangeJson.errorCode == "buy_success") {
                                         Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} 京豆兑换成功！`, false);
                                     }
-                                    else {
-                                        Utils.debugInfo(consoleEnum.log, petExchangeJson);
-                                        Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
-                                    }
+                                    //else {
+                                    //    Utils.debugInfo(consoleEnum.log, petExchangeJson);
+                                    //    Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
+                                    //}
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);

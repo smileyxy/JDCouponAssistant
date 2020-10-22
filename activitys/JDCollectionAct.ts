@@ -83,7 +83,7 @@ export default class jdCollectionAct implements Activity {
 
         document.body.style.fontSize = "18px";
         document.body.style.fontFamily = "auto";
-
+        
         Config.debug = true;
     }
 
@@ -98,6 +98,8 @@ export default class jdCollectionAct implements Activity {
         let btnInfoDetail = '';
         switch (this.params.switchType) {
             case activityType.cakeBaker:
+            case activityType.carnivalCity:
+            case activityType.rubiksCube:
                 helpInfoDetail = `<details>
                                       <summary style="outline: 0;">自动蛋糕</summary>
                                       <p style="font-size: 12px;">根据所填项每天完成叠蛋糕任务；任务定时：默认${defaultCakeBakerTiming}之后；检测频率：默认${defaultCakeBakerDetection / 3600000}小时。</p>
@@ -174,10 +176,6 @@ export default class jdCollectionAct implements Activity {
                                         <div style="width: 24vw;">
                                             <select id="rubiksCubeType" style="width: 23.5vw;">
                                                 <option value="${rubiksCubeTaskEnum.全部}" selected="selected">全部</option>
-                                                <option value="${rubiksCubeTaskEnum.浏览新品}">浏览新品</option>
-                                                <option value="${rubiksCubeTaskEnum.关注浏览}">关注浏览</option>
-                                                <option value="${rubiksCubeTaskEnum.浏览会场}">浏览会场</option>
-                                                <option value="${rubiksCubeTaskEnum.抽奖}">抽奖</option>
                                             </select>
                                         </div>
                                     </td>
@@ -2369,14 +2367,17 @@ export default class jdCollectionAct implements Activity {
         rubiksCubeTimeOut = 0;
 
         let getNewsInteractionInfoJson: any;
-        let luckyDraw: any,
-            taskSkuInfo: any,
-            viewVenue: any,
-            followView: any;
+        let viewProduct: any,
+            attentionStore: any,
+            viewBrowse: any,
+            attentionChannel: any,
+            viewLargePresses: any,
+            flexibleConfig: any,
+            luckyDraw: any;
         let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
-        let followViewParam = "";
         //魔方任务信息
-        getNewsInteractionInfoJson = await fetch(`${this.rootURI}getNewsInteractionInfo&appid=smfe&body={}`,
+        let getNewsInteractionInfoUrl = `${this.rootURI}getNewsInteractionInfo&body={"sign":2}&appid=content_ecology&clientVersion=1.0.0&client=wh5&uuid=15949688930951357890831`;
+        getNewsInteractionInfoJson = await fetch(`${getNewsInteractionInfoUrl}`,
             {
                 method: "GET",
                 credentials: "include"
@@ -2388,21 +2389,21 @@ export default class jdCollectionAct implements Activity {
             });
         //任务分组
         if (getNewsInteractionInfoJson.result.code == 0 || getNewsInteractionInfoJson.result.toast == "响应成功") {
-            taskSkuInfo = getNewsInteractionInfoJson.result.taskSkuInfo;
             luckyDraw = getNewsInteractionInfoJson.result.lotteryInfo;
-
             for (let i = 0; i < getNewsInteractionInfoJson.result.taskPoolInfo.taskList.length; i++) {
                 switch (true) {
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注浏览:
-                        followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == +rubiksCubeTaskEnum.关注浏览 + 1:
-                        followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
-                        followViewParam = `\"shopId\":${getNewsInteractionInfoJson.result.shopInfoList[0].shopId},`;
-                        break;
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览会场:
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskName == "浏览会场":
-                        viewVenue = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
-                        break;
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览商品:
+                        viewProduct = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注店铺:
+                        attentionStore = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览新品会场:
+                        viewBrowse = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注频道任务:
+                        attentionChannel = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览大促会场:
+                        viewLargePresses = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.灵活配置:
+                        flexibleConfig = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                 }
             }
         }
@@ -2410,120 +2411,191 @@ export default class jdCollectionAct implements Activity {
             Utils.debugInfo(consoleEnum.log, getNewsInteractionInfoJson);
             Utils.outPutLog(this.outputTextarea, `${nick}【获取魔方任务信息请求失败，请手动刷新或联系作者！】`, false);
         }
-        //完成任务
-        if (taskType == rubiksCubeTaskEnum.浏览新品 || taskType == rubiksCubeTaskEnum.全部) {
-            if (!!taskSkuInfo) {
-                let joinedCount = +getNewsInteractionInfoJson.result.taskSkuNum,
-                    taskChance = +taskSkuInfo.length;
-                for (let i = 0; i < taskChance; i++) {
-                    if (taskSkuInfo[i].browseStatus == 0) {
-                        rubiksCubeTimeoutArray.push(setTimeout(() => {
-                            fetch(`${this.rootURI}viewNewsInteractionSkus&appid=smfe&body={\"sku\":\"${taskSkuInfo[i].skuId}\",\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId}}`, {
-                                method: "GET",
-                                credentials: "include"
-                            })
-                                .then(function (res) { return res.json(); })
-                                .then((viewNewsInteractionSkusJson) => {
-                                    if (viewNewsInteractionSkusJson.result.code == 0) {
-                                        joinedCount++;
-                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】魔方浏览新品成功！`, false);
-                                    }
-                                    else {
-                                        Utils.debugInfo(consoleEnum.log, viewNewsInteractionSkusJson);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览新品失败，请手动刷新或联系作者！】`, false);
-                                    }
-                                })
-                                .catch((error) => {
-                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览新品异常，请刷新后重新尝试或联系作者！】`, false);
-                                });
-                        }, rubiksCubeTimeOut));
-                        rubiksCubeTimeOut += Utils.random(2000, 3000);
-                    }
-                }
-            }
-        }
-        if (taskType == rubiksCubeTaskEnum.关注浏览 || taskType == rubiksCubeTaskEnum.全部) {
-            if (!!followView) {
-                if (followView.taskStatus == 0) {
+        //浏览商品
+        if (!!viewProduct && viewProduct.taskStatus == 0) {
+            for (let j = 0; j < viewProduct.pointSkuInfoList.length; j++) {
+                let taskInfo = viewProduct.pointSkuInfoList[j];
+                if (taskInfo.hasView == 0) {
                     rubiksCubeTimeoutArray.push(setTimeout(() => {
-                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={${followViewParam}\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},"taskType": ${followView.taskId}}`, {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=content_ecology&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"sku\": ${taskInfo.skuId},\"taskType\": ${viewProduct.taskId},\"sign\":2}`, {
                             method: "GET",
                             credentials: "include"
                         })
                             .then(function (res) { return res.json(); })
-                            .then((followViewChannelInteractionJson) => {
-                                if (followViewChannelInteractionJson.result.code == 0) {
-                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方浏览关注成功！`, false);
+                            .then((resultJson) => {
+                                if (resultJson.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方${viewProduct.taskName}成功！`, false);
                                 }
                                 else {
-                                    Utils.debugInfo(consoleEnum.log, followViewChannelInteractionJson);
-                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览关注失败，请手动刷新或联系作者！】`, false);
+                                    Utils.debugInfo(consoleEnum.log, resultJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方${viewProduct.taskName}失败，请手动刷新或联系作者！】`, false);
                                 }
                             })
                             .catch((error) => {
                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览关注异常，请刷新后重新尝试或联系作者！】`, false);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方${viewProduct.taskName}异常，请刷新后重新尝试或联系作者！】`, false);
                             });
                     }, rubiksCubeTimeOut));
-                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                    rubiksCubeTimeOut += Utils.random(15000, 20000);
                 }
             }
         }
-        if (taskType == rubiksCubeTaskEnum.浏览会场 || taskType == rubiksCubeTaskEnum.全部) {
-            if (!!viewVenue) {
-                if (viewVenue.taskStatus == 0) {
+        //关注店铺
+        if (!!attentionStore && attentionStore.taskStatus == 0) {
+            for (let j = 0; j < attentionStore.shopInfoList.length; j++) {
+                let taskInfo = attentionStore.shopInfoList[j];
+                if (taskInfo.hasView == 0) {
                     rubiksCubeTimeoutArray.push(setTimeout(() => {
-                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"taskType\":9}`, {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=content_ecology&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"shopId\": ${taskInfo.shopId},\"taskType\": ${attentionStore.taskId},\"sign\":2}`, {
                             method: "GET",
                             credentials: "include"
                         })
                             .then(function (res) { return res.json(); })
-                            .then((executeInteractionTaskJson) => {
-                                if (executeInteractionTaskJson.result.code == 0) {
-                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方浏览会场成功！`, false);
+                            .then((resultJson) => {
+                                if (resultJson.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方${attentionStore.taskName}成功！`, false);
                                 }
                                 else {
-                                    Utils.debugInfo(consoleEnum.log, executeInteractionTaskJson);
-                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览会场失败，请手动刷新或联系作者！】`, false);
+                                    Utils.debugInfo(consoleEnum.log, resultJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方${attentionStore.taskName}失败，请手动刷新或联系作者！】`, false);
                                 }
                             })
                             .catch((error) => {
                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览会场异常，请刷新后重新尝试或联系作者！】`, false);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方${attentionStore.taskName}异常，请刷新后重新尝试或联系作者！】`, false);
                             });
                     }, rubiksCubeTimeOut));
-                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                    rubiksCubeTimeOut += Utils.random(15000, 20000);
                 }
             }
         }
-        if (taskType == rubiksCubeTaskEnum.抽奖 || taskType == rubiksCubeTaskEnum.全部) {
-            if (!!luckyDraw) {
-                let luckyDrawCount = +luckyDraw.lotteryNum;
-                for (let i = 0; i < luckyDrawCount; i++) {
+        //浏览新品会场
+        if (!!viewBrowse && viewBrowse.taskStatus == 0) {
+            rubiksCubeTimeoutArray.push(setTimeout(() => {
+                fetch(`${this.rootURI}executeInteractionTask&appid=content_ecology&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"taskType\": ${viewBrowse.taskId},\"sign\":2}`, {
+                    method: "GET",
+                    credentials: "include"
+                })
+                    .then(function (res) { return res.json(); })
+                    .then((resultJson) => {
+                        if (resultJson.result.code == 0) {
+                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方${viewBrowse.taskName}成功！`, false);
+                        }
+                        else {
+                            Utils.debugInfo(consoleEnum.log, resultJson);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【魔方${viewBrowse.taskName}失败，请手动刷新或联系作者！】`, false);
+                        }
+                    })
+                    .catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方${viewBrowse.taskName}异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
+            }, rubiksCubeTimeOut));
+            rubiksCubeTimeOut += Utils.random(15000, 20000);
+        }
+        //关注频道任务
+        if (!!attentionChannel && attentionChannel.taskStatus == 0) {
+            rubiksCubeTimeoutArray.push(setTimeout(() => {
+                fetch(`${this.rootURI}executeInteractionTask&appid=content_ecology&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"taskType\": ${attentionChannel.taskId},\"sign\":2}`, {
+                    method: "GET",
+                    credentials: "include"
+                })
+                    .then(function (res) { return res.json(); })
+                    .then((resultJson) => {
+                        if (resultJson.result.code == 0) {
+                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方${attentionChannel.taskName}成功！`, false);
+                        }
+                        else {
+                            Utils.debugInfo(consoleEnum.log, resultJson);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【魔方${attentionChannel.taskName}失败，请手动刷新或联系作者！】`, false);
+                        }
+                    })
+                    .catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方${attentionChannel.taskName}异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
+            }, rubiksCubeTimeOut));
+            rubiksCubeTimeOut += Utils.random(15000, 20000);
+        }
+        //浏览大促会场
+        if (!!viewLargePresses && viewLargePresses.taskStatus == 0) {
+            rubiksCubeTimeoutArray.push(setTimeout(() => {
+                fetch(`${this.rootURI}executeInteractionTask&appid=content_ecology&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"taskType\": ${viewLargePresses.taskId},\"sign\":2}`, {
+                    method: "GET",
+                    credentials: "include"
+                })
+                    .then(function (res) { return res.json(); })
+                    .then((resultJson) => {
+                        if (resultJson.result.code == 0) {
+                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方${viewLargePresses.taskName}成功！`, false);
+                        }
+                        else {
+                            Utils.debugInfo(consoleEnum.log, resultJson);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【魔方${viewLargePresses.taskName}失败，请手动刷新或联系作者！】`, false);
+                        }
+                    })
+                    .catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方${viewLargePresses.taskName}异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
+            }, rubiksCubeTimeOut));
+            rubiksCubeTimeOut += Utils.random(15000, 20000);
+        }
+        //灵活配置
+        if (!!flexibleConfig && flexibleConfig.taskStatus == 0) {
+            for (let j = 0; j < flexibleConfig.flexibleInfoList.length; j++) {
+                let taskInfo = flexibleConfig.flexibleInfoList[j];
+                if (taskInfo.hasView == 0) {
                     rubiksCubeTimeoutArray.push(setTimeout(() => {
-                        fetch(`${this.rootURI}getNewsInteractionLotteryInfo&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId}}`, {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=content_ecology&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"advertId\": ${taskInfo.advertId},\"taskType\": ${flexibleConfig.taskId},\"sign\":2}`, {
                             method: "GET",
                             credentials: "include"
                         })
-                            .then(function (res) { return res.text(); })
-                            .then((getNewsInteractionLotteryInfoJson) => {
-                                let data = JSON.parse(getNewsInteractionLotteryInfoJson);
-                                if (data.result.code == 0) {
-                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方抽奖获得${data.result.lotteryInfo?.name ?? "空气"}${data.result.lotteryInfo?.quantity ?? ""}！`, false);
+                            .then(function (res) { return res.json(); })
+                            .then((resultJson) => {
+                                if (resultJson.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方${flexibleConfig.taskName}成功！`, false);
                                 }
                                 else {
-                                    Utils.debugInfo(consoleEnum.log, getNewsInteractionLotteryInfoJson);
-                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方抽奖失败，请手动刷新或联系作者！】`, false);
+                                    Utils.debugInfo(consoleEnum.log, resultJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方${flexibleConfig.taskName}失败，请手动刷新或联系作者！】`, false);
                                 }
                             })
                             .catch((error) => {
                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方抽奖异常，请刷新后重新尝试或联系作者！】`, false);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方${flexibleConfig.taskName}异常，请刷新后重新尝试或联系作者！】`, false);
                             });
                     }, rubiksCubeTimeOut));
-                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                    rubiksCubeTimeOut += Utils.random(15000, 20000);
                 }
+            }
+        }
+        //抽奖
+        if (!!luckyDraw) {
+            let luckyDrawCount = +luckyDraw.lotteryNum;
+            for (let i = 0; i < luckyDrawCount; i++) {
+                rubiksCubeTimeoutArray.push(setTimeout(() => {
+                    fetch(`${this.rootURI}getNewsInteractionLotteryInfo&appid=content_ecology&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"sign\":2}`, {
+                        method: "GET",
+                        credentials: "include"
+                    })
+                        .then(function (res) { return res.text(); })
+                        .then((getNewsInteractionLotteryInfoJson) => {
+                            let data = JSON.parse(getNewsInteractionLotteryInfoJson);
+                            if (data.result.code == 0) {
+                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方抽奖获得${data.result.lotteryInfo?.name ?? "空气"}${data.result.lotteryInfo?.quantity ?? ""}！`, false);
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, getNewsInteractionLotteryInfoJson);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【魔方抽奖失败，请手动刷新或联系作者！】`, false);
+                            }
+                        })
+                        .catch((error) => {
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方抽奖异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }, rubiksCubeTimeOut));
+                rubiksCubeTimeOut += Utils.random(2000, 3000);
             }
         }
     }
