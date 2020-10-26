@@ -1,6 +1,6 @@
 export default class Config {
     static title: string = "京东领券助手";
-    static version: string = "v0.6.3";
+    static version: string = "v0.6.4";
     static author: string = "smileyxy";
     //static edit: string = "smileyxy";
 
@@ -29,6 +29,7 @@ export default class Config {
     static BmobHelpFriendInfoUrl: string = "/1/classes/HelpFriendInfo";
     static BmobCombatHelpFriendInfoUrl: string = "/1/classes/CombatHelpFriendInfo";
 
+    static BmobActHelpInfoUrl: string = "/1/classes/ActHelpInfo";
     static BmobActUserInfoUrl: string = "/1/classes/ActUserInfo";
 
     static multiFlag: boolean = false;

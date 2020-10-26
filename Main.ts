@@ -39,8 +39,8 @@ import { gameType } from "./enum/gameType";
 import CookieManager from "./cookie/CookieManager";
 import { CookieHandler } from "./cookie/CookieHandler";
 import BTGoose from "./game/btgoose";
-import MoneyTree from "./game/moneyTree";
 import { consoleEnum } from './enum/commonType';
+import Daily from './game/daily';
 
 let coupon: Coupon,
     goods: Goods,
@@ -70,6 +70,9 @@ const container: HTMLDivElement = document.createElement("div"),
     //提鹅TextArea
     btgooseOutputTextArea: HTMLTextAreaElement = document.createElement("textarea"),
     btgooseOutputTextAreaDiv: HTMLDivElement = document.createElement("div"),
+    //日常中心TextArea
+    dailyOutputTextArea: HTMLTextAreaElement = document.createElement("textarea"),
+    dailyOutputTextAreaDiv: HTMLDivElement = document.createElement("div"),
     loginMsgDiv: HTMLDivElement = document.createElement("div");
 
 let getLoginMsg = function (res: any) {
@@ -144,7 +147,19 @@ function buildOutput() {
     btgooseOutputTextAreaDiv.append(btgooseOutputTextArea);
     btgooseOutputTextAreaDiv.append(btgooseClearOutLogBtn);
     operateAreaDiv.append(btgooseOutputTextAreaDiv);
-
+    //初始化活动中心TextArea
+    dailyOutputTextAreaDiv.style.display = "none";
+    dailyOutputTextArea.setAttribute("style", "width: 90vw;height: 40vw;border: 1px solid #868686;border-radius: 10px;overflow-y: scroll;margin:5px auto;");
+    dailyOutputTextArea.setAttribute("disabled", "disabled");
+    let dailyClearOutLogBtn: HTMLButtonElement = document.createElement("button");
+    dailyClearOutLogBtn.innerHTML = "清空活动中心日志";
+    dailyClearOutLogBtn.setAttribute("style", "width: 35vw;height: 30px;background-color: #2196F3;border-radius: 5px;border: 0;color: #fff;margin: 5px auto;display: block;font-size: 14px;line-height: 0;");
+    dailyClearOutLogBtn.addEventListener("click", () => {
+        dailyOutputTextArea.value = "";
+    })
+    dailyOutputTextAreaDiv.append(dailyOutputTextArea);
+    dailyOutputTextAreaDiv.append(dailyClearOutLogBtn);
+    operateAreaDiv.append(dailyOutputTextAreaDiv);
 }
 
 function buildTimerControl() {
@@ -272,6 +287,7 @@ function buildActivity() {
     const activityArea: HTMLDivElement = document.createElement("div");
     activityArea.setAttribute("style", "border: 1px solid #000;margin:10px 0");
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>活动推荐</h3>
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://wbbny.m.jd.com/babelDiy/Zeus/4SJUHwGdUQYgg94PFzjZZbGZRjDd/index.html" target="_blank">全民营业</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/QzjyrF2MpMcB5yq9zwaNpwspZWx/index.html?babelChannel=ttt6#/home" target="_blank">品牌狂欢城</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/WgmkHMiiV1JUtcrZAUZTbL3hQss/index.html" target="_blank">京东小魔方</a></p>`;
     container.append(activityArea);
@@ -331,7 +347,7 @@ function buildSensorArea() {
     <li class="jdjoy" style="padding: 4px;">宠汪汪</li>
     <li class="pig" style="padding: 4px;">养猪猪</li>
     <li class="goose" style="padding: 4px;">提鹅</li>
-    <li class="moneyTree" style="padding: 4px;">金果树</li>
+    <li class="dailyCenter" style="padding: 4px;">日常中心</li>
     <li class="signInCenter" style="padding: 4px;">签到中心</li>
     </ul>
     <hr style="margin: 10px;"><div class="activityExtensionDiv"></div>`;
@@ -429,6 +445,7 @@ function buildSensorArea() {
             jdjoyOutputTextArea.parentElement!.style.display = "none";
             cloudpigOutputTextArea.parentElement!.style.display = "block";
             btgooseOutputTextArea.parentElement!.style.display = "none";
+            dailyOutputTextArea.parentElement!.style.display = "none";
         }
         else if (target.getAttribute("class") == "goose") {
             if (!gameMap.BTGoose) {
@@ -442,6 +459,7 @@ function buildSensorArea() {
             jdjoyOutputTextArea.parentElement!.style.display = "none";
             cloudpigOutputTextArea.parentElement!.style.display = "none";
             btgooseOutputTextArea.parentElement!.style.display = "block";
+            dailyOutputTextArea.parentElement!.style.display = "none";
         }
         else if (target.getAttribute("class") == "jdjoy") {
             if (!gameMap.JdJoy) {
@@ -455,20 +473,21 @@ function buildSensorArea() {
             jdjoyOutputTextArea.parentElement!.style.display = "block";
             cloudpigOutputTextArea.parentElement!.style.display = "none";
             btgooseOutputTextArea.parentElement!.style.display = "none";
+            dailyOutputTextArea.parentElement!.style.display = "none";
         }
-        else if (target.getAttribute("class") == "moneyTree") {
+        else if (target.getAttribute("class") == "dailyCenter") {
+            if (!gameMap.Daily) {
+                gameMap.Daily = new Daily(null, activityExtensionDiv, dailyOutputTextArea);
+                gameMap.Daily.get();
+            } else {
+                gameMap.Daily.content.style.display = "block";
+            }
+
             outputTextArea.parentElement!.style.display = "none";
             jdjoyOutputTextArea.parentElement!.style.display = "none";
             cloudpigOutputTextArea.parentElement!.style.display = "none";
             btgooseOutputTextArea.parentElement!.style.display = "none";
-
-            alert("该功能正在开发中，晚点再来吧~");
-            // if (!gameMap.MoneyTree) {
-            //     gameMap.MoneyTree = new MoneyTree(null, activityExtensionDiv, outputTextArea);
-            //     gameMap.MoneyTree.get();
-            // }else{
-            //     gameMap.MoneyTree.content.style.display = "block";
-            // }
+            dailyOutputTextArea.parentElement!.style.display = "block";
         }
         else {
             //outputTextArea.parentElement!.parentElement!.style.display = "none";
@@ -476,6 +495,7 @@ function buildSensorArea() {
             jdjoyOutputTextArea.parentElement!.style.display = "none";
             cloudpigOutputTextArea.parentElement!.style.display = "none";
             btgooseOutputTextArea.parentElement!.style.display = "none";
+            dailyOutputTextArea.parentElement!.style.display = "none";
 
             alert("该功能正在开发中，晚点再来吧~");
         }
@@ -558,6 +578,11 @@ function getEntryType(): couponType | activityType | goodsType | gameType {
             type = activityType.carnivalCity;
         } else if (Config.locationHref.includes("WgmkHMiiV1JUtcrZAUZTbL3hQss")) {
             type = activityType.rubiksCube;
+        }
+    }
+    if (Config.locationHref.includes("wbbny.m.jd.com")) {
+        if (Config.locationHref.includes("4SJUHwGdUQYgg94PFzjZZbGZRjDd")) {
+            type = activityType.allBusiness;
         }
     }
     if (Config.locationHref.includes("palace")) {
@@ -645,6 +670,10 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
         case activityType.rubiksCube:
             activity = new JDCollectionAct({ "switchType": activityType.rubiksCube }, container, outputTextArea);
              Config.UAFlag = true;
+            break;
+        case activityType.allBusiness:
+            activity = new JDCollectionAct({ "switchType": activityType.allBusiness }, container, outputTextArea);
+            Config.UAFlag = true;
             break;
         // case activityType.monsterNian:
         //     activity = new MonsterNian(null, container, outputTextArea);
@@ -756,6 +785,7 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:smileyxy', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.6.4】：新增全民营业活动', 'color:#009a61');
         console.log('%c【0.6.3】：更新京东小魔方，优化宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.6.2】：更新宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.6.1】：优化宠汪汪自动换豆逻辑', 'color:#009a61');

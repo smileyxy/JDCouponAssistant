@@ -7,33 +7,45 @@ export enum activityType {
     cakeBaker = "cakeBaker",
     carnivalCity = "carnivalCity",
     rubiksCube = "rubiksCube",
-    arFutureCity = "arFutureCity"
+    arFutureCity = "arFutureCity",
+    allBusiness = "allBusiness",
 }
 
 export enum cakeBakerTaskEnum {
     "全部" = "All",
-    "叠蛋糕" = "foldCake",
-    "小精灵" = 35,
+    "营业" = "foldCake",
+    "收取金币" = "produce",
+    "小精灵" = 24,
     "签到" = 1,
     "逛主会场" = 3,
     "去逛商品" = 100,
-    "浏览游戏1" = 18,
-    "浏览游戏2" = 29,
+    "浏览游戏1" = 14,
+    "浏览游戏2" = 15,
     "浏览频道" = 19,
-    "浏览会场" = 4,
+    "浏览会场" = 9,
     "逛金融主会场" = 26,
     "逛品牌庆生" = 11,
-    "逛校园会场" = 25,
+    "逛预售会场" = 16,
     "加购商品" = 101,
-    "AR吃蛋糕" = 34,
-    "开通会员" = 42,
+    "AR游戏" = 34,
+    "开通会员" = 4,
+    "营业版图" = "myShop",
     "逛店铺" = "taskVos",
     "扔炸弹" = "cakeBomb"
 }
 
+export enum cakeBakerSubtaskEnum {
+    "全部" = "All",
+    "签到" = 1,
+    "浏览任务1" = 2,
+    "浏览任务2" = 3,
+    "浏览任务3" = 4,
+    "浏览任务4" = 5
+}
+
 export enum cakeBakerButtonEnum {
-    cakeBakerStart = "自动蛋糕",
-    cakeBakerStop = "取消蛋糕"
+    cakeBakerStart = "自动营业",
+    cakeBakerStop = "取消营业"
 }
 
 export enum helpFriendEnum {

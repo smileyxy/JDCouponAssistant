@@ -23,8 +23,8 @@ gulp.task("default", () => {
             presets: ['es2015']
             ,compact: false
         }))
-        //.pipe(uglify({ mangle: { toplevel: true } }))
-        .pipe(uglify())
-        .pipe(obfuscate())
+        .pipe(uglify({ mangle: { toplevel: true } }))
+        //.pipe(uglify())
+        //.pipe(obfuscate())
         .pipe(gulp.dest('dist'))
 });

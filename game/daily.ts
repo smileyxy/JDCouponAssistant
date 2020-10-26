@@ -4,17 +4,19 @@ import Config from "../config/config";
 import { CookieType, CookieHandler } from "../cookie/CookieHandler";
 import CookieManager from "../cookie/CookieManager";
 
+let cakeBakerTiming = "";
+let cakeBakerTimeoutArray: any[] = [];
+let cakeBakerMultiTimeoutArray: any[] = [];
+let taskTimeout = 0;
+const defaultCakeBakerTiming: string = '01:00',
+    defaultCakeBakerDetection: number = 3600000; //1小时
 
-export default class MoneyTree implements Game {
-    rootURI: string = "https://ms.jr.jd.com/gw/generic/uc/h5/m/";
-    baseReqData: Object = { "sharePin":"","shareType":1,"source":2, "riskDeviceInfo": "{}" };
-    // baseReqData: Object = { "source": 0, "channelLV": "yqs", "riskDeviceParam": "{\"fp\":\"\",\"eid\":\"\",\"sdkToken\":\"\",\"sid\":\"\"}" };
-    // {"source":0,"skuId":"1001003004","channelLV":"yqs","riskDeviceParam":"{\"eid\":\"\",\"fp\":\"\",\"token\":\"\"}"}
-    data: any = [];
-    timer: number = 1000;
-    container: HTMLDivElement;
+export default class Daily implements Game {
+    baseReqData: string = "https://api.m.jd.com/client.action?functionId=";
+    rootURI: string = "https://api.m.jd.com/client.action?functionId=";
     params: any;
-    taskToken: string = "";
+    data: any;
+    container: HTMLDivElement;
     outputTextarea: HTMLTextAreaElement;
     content: HTMLDivElement;
     constructor(params: any, containerDiv: HTMLDivElement, outputTextarea: HTMLTextAreaElement) {
@@ -22,9 +24,72 @@ export default class MoneyTree implements Game {
         this.container = containerDiv;
         this.outputTextarea = outputTextarea;
         this.content = document.createElement("div");
+
+        document.body.style.fontSize = "18px";
+        document.body.style.fontFamily = "auto";
+
+        Config.debug = true;
     }
+
     get(): void {
+        this.page();
         this.list();
+    }
+
+    page(): void {
+        //使用帮助
+        let helpInfoDetail = '';
+        let btnInfoDetail = '';
+
+        helpInfoDetail = `<details>
+                                      <summary style="outline: 0;">自动种树</summary>
+                                      <p style="font-size: 12px;">根据所填项每天完成种摇钱树任务；任务定时：默认${defaultCakeBakerTiming}之后；检测频率：默认${defaultCakeBakerDetection / 3600000}小时。</p>
+                                  </details>`;
+        btnInfoDetail = `<tr> 
+                                    <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
+                                        <div style="width: 24vw;">
+                                            <select id="cakeBakerType" style="width: 23.5vw;">
+                                                <option value="全部" selected="selected">全部</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td style="width: 230vw;text-align: -webkit-left">
+                                        <input id="cakeBakerTiming" type="time" value="${defaultCakeBakerTiming}" style="width:23.5vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;">
+                                        <input id="cakeBakerDetection" style="width:12.8vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "检测频率">
+                                    </td>
+                                    <td style="width: 50vw;text-align: -webkit-left;">
+                                        <button class="cakeBakerAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动营业</button>
+                                    </td>
+                                </tr>`;
+
+        const helpContent = document.createElement("div");
+        helpContent.id = 'usingHelp';
+        let helpInfo = `
+                        <div style="border-top: 1px solid #000;font-weight:bold;line-height: 1.6;">
+                            <div>
+                                <h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>使用帮助</h3>
+                            </div>
+                            <div style="display: inline-block;font-size: 14px;color: #FF69B4;margin: auto 10px 10px 10px;">
+                                ${helpInfoDetail}
+                            </div>
+                        </div>`;
+        helpContent.innerHTML = helpInfo;
+        this.content.appendChild(helpContent);
+        //功能按键
+        const btnContent = document.createElement("div");
+        btnContent.id = 'functionButton';
+        let btnInfo = `
+                        <div style="border-top: 1px solid #000;font-weight:bold;line-height: 1.6;">
+                            <div>
+                                <h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>功能按键</h3>
+                            </div>
+                            <table style="font-size: 12px;padding-left: 4px;margin-bottom: 10px;">
+                                ${btnInfoDetail}
+                            </table>
+                        </div>`;
+        btnContent.innerHTML = btnInfo;
+        this.content.appendChild(btnContent);
+        this.container.appendChild(this.content);
     }
 
     openBoxFlag: boolean = false;
