@@ -20,7 +20,8 @@ import {
     helpFriendEnum,
     helpFriendButtonEnum,
     BmobConfirmEnum,
-    cakeBakerSubtaskEnum
+    cakeBakerSubtaskEnum,
+    timeMachineTaskEnum
 } from '../enum/activityType';
 
 let cakeBakerTiming = "",
@@ -56,7 +57,8 @@ let taskTimeout = 0,
     rubiksCubeTimeOut = 0,
     arFutureCityTimeOut = 0,
     helpFriendTimeOut = 0,
-    pkUserTimeOut = 0;
+    pkUserTimeOut = 0,
+    coinTimeOut = 0;
 let groupSecretp = '';
 const defaultCakeBakerTiming: string = '01:00',
     defaultCakeBakerDetection: number = 600000, //10分钟
@@ -120,22 +122,14 @@ export default class jdCollectionAct implements Activity {
                                     </td>
                                 </tr>`;
         helpInfoDetail += `<details>
-                                    <summary style="outline: 0;">自动狂欢</summary>
-                                    <p style="font-size: 12px;">根据所填项每天完成品牌狂欢城任务；任务定时：默认${defaultCarnivalCityTiming}之后；检测频率：默认${defaultCarnivalCityDetection / 3600000}小时。</p>
+                                    <summary style="outline: 0;">自动时光</summary>
+                                    <p style="font-size: 12px;">根据所填项每天完成热爱时光机任务；任务定时：默认${defaultCarnivalCityTiming}之后；检测频率：默认${defaultCarnivalCityDetection / 3600000}小时。</p>
                                 </details>`;
         btnInfoDetail += `<tr> 
                                     <td style="width: 80vw;text-align: -webkit-left;vertical-align: middle;">
                                         <div style="width: 24vw;">
                                             <select id="carnivalCityType" style="width: 23.5vw;">
                                                 <option value="${carnivalCityTaskEnum.全部}" selected="selected">全部</option>
-                                                <option value="${carnivalCityTaskEnum.今日主推}">今日主推</option>
-                                                <option value="${carnivalCityTaskEnum.今日大牌}">今日大牌</option>
-                                                <option value="${carnivalCityTaskEnum.今日精选}">今日精选</option>
-                                                <option value="${carnivalCityTaskEnum.热卖单品}">热卖单品</option>
-                                                <option value="${carnivalCityTaskEnum.精选会场}">精选会场</option>
-                                                <option value="${carnivalCityTaskEnum.精选直播}">精选直播</option>
-                                                <option value="${carnivalCityTaskEnum.开通会员}">开通会员</option>
-                                                <option value="${carnivalCityTaskEnum.探索物种}">探索物种</option>
                                             </select>
                                         </div>
                                     </td>
@@ -144,7 +138,7 @@ export default class jdCollectionAct implements Activity {
                                         <input id="carnivalCityDetection" style="width:12.8vw;height: 3vh;font-size:12px;border: solid 1px #000;border-radius: 5px;margin: 10px auto;display: inline;" placeholder = "检测频率">
                                     </td>
                                     <td style="width: 50vw;text-align: -webkit-left;">
-                                        <button class="carnivalCityAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动狂欢</button>
+                                        <button class="carnivalCityAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:5px;display:block;font-size: 12px;line-height: 0;">自动时光</button>
                                     </td>
                                 </tr>`;
         helpInfoDetail += `<details>
@@ -226,7 +220,7 @@ export default class jdCollectionAct implements Activity {
                                     </td>
                                     <td style="width: 280vw;text-align: -webkit-left;">
                                         <div style="display: flex;position: absolute;">
-                                            <button class="pkUserRefresh" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:10px 0 0 -8px;display:block;font-size:12px;line-height:0;">刷新战队</button>
+                                            <button class="pkUserRefresh" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:10px 0 0 -8px;display:block;font-size:12px;line-height:0;">一键偷币</button>
                                             <button class="pkUserJoin" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:10px 0 0 5px;display:block;font-size:12px;line-height:0;">加入/更新</button>
                                             <button class="pkUserAuto" style="width: 21vw;height:3vh;background-color: #2196F3;border-radius: 5px;border: 0;color:#fff;margin:10px 0 0 5px;display:block;font-size: 12px;line-height: 0;">一键战队</button>
                                         </div>
@@ -378,7 +372,7 @@ export default class jdCollectionAct implements Activity {
                 }
             });
         });
-        //自动狂欢
+        //自动时光
         let carnivalCityAuto = _$('.carnivalCityAuto') as HTMLButtonElement;
         carnivalCityAuto?.addEventListener('click', () => {
             //验证狂欢任务类型
@@ -424,7 +418,7 @@ export default class jdCollectionAct implements Activity {
                     timingStamp = new Date(+currentJDTime).setHours(+timeSplit[0], +timeSplit[1], 0, 0);
                 if (carnivalCityAuto.innerHTML == carnivalCityButtonEnum.carnivalCityStart) {
                     carnivalCityAuto.innerHTML = carnivalCityButtonEnum.carnivalCityStop;
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动狂欢！`, false);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动时光！`, false);
 
                     if (currentJDDate.getTime() < timingStamp) {
                         firstSpan = timingStamp - currentJDDate.getTime();
@@ -435,12 +429,12 @@ export default class jdCollectionAct implements Activity {
                             CookieManager.cookieArr.map((item: CookieType) => {
                                 carnivalCityMultiTimeoutArray.push(setTimeout(() => {
                                     CookieHandler.coverCookie(item);
-                                    this.carnivalCity(typeSelectOptions.value, item);
+                                    this.timeMachine(typeSelectOptions.value, item);
                                 }, item.index * defaultMultiPollingDetection));
                             });
                         }
                         else {
-                            this.carnivalCity(typeSelectOptions.value);
+                            this.timeMachine(typeSelectOptions.value);
                         }
                         carnivalCityInterval = setInterval(() => {
                             this.getJDTime().then((nowJDTime) => {
@@ -452,12 +446,12 @@ export default class jdCollectionAct implements Activity {
                                         CookieManager.cookieArr.map((item: CookieType) => {
                                             carnivalCityMultiTimeoutArray.push(setTimeout(() => {
                                                 CookieHandler.coverCookie(item);
-                                                this.carnivalCity(typeSelectOptions.value, item);
+                                                this.timeMachine(typeSelectOptions.value, item);
                                             }, item.index * defaultMultiPollingDetection));
                                         });
                                     }
                                     else {
-                                        this.carnivalCity(typeSelectOptions.value);
+                                        this.timeMachine(typeSelectOptions.value);
                                     }
                                 }
                                 else {
@@ -469,12 +463,12 @@ export default class jdCollectionAct implements Activity {
                                                 CookieManager.cookieArr.map((item: CookieType) => {
                                                     carnivalCityMultiTimeoutArray.push(setTimeout(() => {
                                                         CookieHandler.coverCookie(item);
-                                                        this.carnivalCity(typeSelectOptions.value, item);
+                                                        this.timeMachine(typeSelectOptions.value, item);
                                                     }, item.index * defaultMultiPollingDetection));
                                                 });
                                             }
                                             else {
-                                                this.carnivalCity(typeSelectOptions.value);
+                                                this.timeMachine(typeSelectOptions.value);
                                             }
                                         }, nowTimingStamp - nowJDDate.getTime());
                                     }
@@ -489,7 +483,7 @@ export default class jdCollectionAct implements Activity {
                     clearTimeout(carnivalCityTimeout);
                     carnivalCityTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
                     carnivalCityMultiTimeoutArray.forEach((timeout) => { clearTimeout(timeout); });
-                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动狂欢！`, false);
+                    Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已关闭自动时光！`, false);
                 }
             });
         });
@@ -723,10 +717,20 @@ export default class jdCollectionAct implements Activity {
                 }
             });
         });
-        //战队刷新
+        //一键偷币
         let pkUserRefresh = _$('.pkUserRefresh') as HTMLButtonElement;
         pkUserRefresh?.addEventListener('click', async () => {
-            await this.refreshPK();
+            if (Config.multiFlag) {
+                CookieManager.cookieArr.map((item: CookieType) => {
+                    helpFriendMultiTimeoutArray.push(setTimeout(() => {
+                        CookieHandler.coverCookie(item);
+                        this.coin(item);
+                    }, item.index * 300000));
+                });
+            }
+            else {
+                await this.coin();
+            }
         });
         //加入/更新战队互助
         let pkUserJoin = _$('.pkUserJoin') as HTMLButtonElement;
@@ -2257,6 +2261,178 @@ export default class jdCollectionAct implements Activity {
             //}, taskTimeout));
         }
     }
+    //热爱时光机
+    async timeMachine(taskType: any, ckObj?: CookieType) {
+        carnivalCityTimeOut = 0;
+        let getHomeJson: any,
+            getTaskJson: any,
+            energyCount = 0,
+            nowJDTime = await (await this.getJDTime()).toString();
+        let sid = 'd5fa160b292874b8d51051318e8b00dw';
+        let uuid = 'ee9a4e872b8043c8c6d550fbdc636823e2096324';
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+        //狂欢时光机首页信息
+        getHomeJson = await fetch(`${this.rootURI}bc_getHome&appid=publicUseApi&body={"lat":"31.390275","lng":"121.237254"}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+            {
+                method: "GET",
+                credentials: "include"
+            })
+            .then(function (res) { return res.json(); })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取狂欢时光机首页信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        //狂欢时光机任务信息
+        getTaskJson = await fetch(`${this.rootURI}bc_taskList&appid=publicUseApi&body={}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+            {
+                method: "GET",
+                credentials: "include"
+            })
+            .then(function (res) { return res.json(); })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取狂欢时光机任务信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        if ((getHomeJson.code == 0 || getHomeJson.msg == "调用成功") && getHomeJson.data.success) {
+            //逛同城附近好店
+            let joinedCount = getHomeJson.data.result.homeAdvertVO.nearbyShopProgress.split('/')[0],
+                taskChance = getHomeJson.data.result.homeAdvertVO.nearbyShopProgress.split('/')[1];
+            let pendingTask = getHomeJson.data.result.homeAdvertVO.nearbyShopList.filter((item: any) => { return item.isCompleted == 0 }).splice(0, taskChance - joinedCount);
+            for (let i = 0; i < pendingTask.length; i++) {
+                carnivalCityTimeoutArray.push(setTimeout(() => {
+                    let param = (pendingTask ? `,"storeId":"${pendingTask[i].storeid}"` : "");
+                    fetch(`${this.rootURI}bc_doTask&appid=publicUseApi&body={"taskType":4,"storeId":"${pendingTask[i].storeid}","storeType":2}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                        {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                        .then(function (res) { return res.json(); })
+                        .then((bcDoTask) => {
+                            if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
+                                joinedCount++;
+                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】逛同城附近好店成功！`, false);
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, bcDoTask);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【逛同城附近好店失败，请手动刷新或联系作者！】`, false);
+                            }
+                        })
+                        .catch((error) => {
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~逛同城附近好店异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }, carnivalCityTimeOut));
+                carnivalCityTimeOut += Utils.random(2000, 3000);
+            }
+            //收集能量球
+            if (getHomeJson.data.result.energyBallStatus == 1) {
+                carnivalCityTimeoutArray.push(setTimeout(() => {
+                    fetch(`${this.rootURI}bc_collectEnergyBall&appid=publicUseApi&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                        {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                        .then(function (res) { return res.json(); })
+                        .then((bcCollectEnergyBall) => {
+                            if ((bcCollectEnergyBall.code == 0 || bcCollectEnergyBall.msg == "调用成功") && bcCollectEnergyBall.data.success) {
+                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}收集能量球成功！`, false);
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, bcCollectEnergyBall);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【收集能量球失败，请手动刷新或联系作者！】`, false);
+                            }
+                        })
+                        .catch((error) => {
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~收集能量球异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }, carnivalCityTimeOut));
+                carnivalCityTimeOut += Utils.random(2000, 3000);
+            }
+        }
+        if ((getTaskJson.code == 0 || getTaskJson.msg == "调用成功") && getTaskJson.data.success) {
+            for (let i = 0; i < getTaskJson.data.result.taskList.length; i++) {
+                let pendingTask: any;
+                let task = getTaskJson.data.result.taskList[i];
+                if (task.isCompleted == 0) {
+                    let joinedCount = task.doTimes,
+                        taskChance = task.timesLimit;
+                    if ((getHomeJson.code == 0 || getHomeJson.msg == "调用成功") && getHomeJson.data.success) {
+                        energyCount = Math.floor(getHomeJson.data.result.energy / 900);
+                        switch (task.taskType) {
+                            case timeMachineTaskEnum["逛“超级”品牌店铺"]:
+                                pendingTask = getHomeJson.data.result.homeAdvertVO.plusAdvertList.filter((item: any) => { return item.isCompleted == 0 }).splice(0, taskChance - joinedCount);
+                                break;
+                            case timeMachineTaskEnum["逛“大牌”品牌店铺"]:
+                                pendingTask = getHomeJson.data.result.homeAdvertVO.t1AdvertList.filter((item: any) => { return item.isCompleted == 0 }).splice(0, taskChance - joinedCount);
+                                break;
+                            case timeMachineTaskEnum.逛同城附近好店:
+                                joinedCount = getHomeJson.data.result.homeAdvertVOnearbyShopProgress.split('/')[0];
+                                taskChance = getHomeJson.data.result.homeAdvertVOnearbyShopProgress.split('/')[1];
+                                pendingTask = getHomeJson.data.result.homeAdvertVO.nearbyShopList.filter((item: any) => { return item.isCompleted == 0 }).splice(0, taskChance - joinedCount);
+                                break;
+                            case timeMachineTaskEnum.邀请好友一起玩:
+                                joinedCount = 0;
+                                taskChance = 0;
+                                break;
+                        }
+                        //完成任务
+                        for (let j = 0; j < (pendingTask ? pendingTask.length : taskChance - joinedCount); j++) {
+                            carnivalCityTimeoutArray.push(setTimeout(() => {
+                                let param = (pendingTask ? `,"shopId":"${pendingTask[j].comments0}"` : "");
+                                fetch(`${this.rootURI}bc_doTask&appid=publicUseApi&body={"taskType":${task.taskType}${param}}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                                    {
+                                        method: "GET",
+                                        credentials: "include"
+                                    })
+                                    .then(function (res) { return res.json(); })
+                                    .then((bcDoTask) => {
+                                        if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
+                                            joinedCount++;
+                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】${task.mainTitle}成功！`, false);
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, bcDoTask);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【${task.mainTitle}失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~${task.mainTitle}异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            }, carnivalCityTimeOut));
+                            carnivalCityTimeOut += Utils.random(2000, 3000);
+                        }
+                        //寻找碎片
+                        for (let j = 0; j < energyCount; j++) {
+                            carnivalCityTimeoutArray.push(setTimeout(() => {
+                                fetch(`${this.rootURI}bc_fragmentCharge&appid=publicUseApi&body={}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                                    {
+                                        method: "GET",
+                                        credentials: "include"
+                                    })
+                                    .then(function (res) { return res.json(); })
+                                    .then((bcFragmentCharge) => {
+                                        if ((bcFragmentCharge.code == 0 || bcFragmentCharge.msg == "调用成功") && bcFragmentCharge.data.success) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}寻找碎片成功！`, false);
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, bcFragmentCharge);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【寻找碎片失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~寻找碎片异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                            }, carnivalCityTimeOut));
+                            carnivalCityTimeOut += Utils.random(2000, 3000);
+                        }
+                    }
+                }
+            }
+        }
+    }
     //品牌狂欢城任务
     async carnivalCity(taskType: any, ckObj?: CookieType) {
         carnivalCityTimeOut = 0;
@@ -2609,6 +2785,7 @@ export default class jdCollectionAct implements Activity {
             attentionStore: any,
             viewBrowse: any,
             attentionChannel: any,
+            viewLive: any,
             viewLargePresses: any,
             flexibleConfig: any,
             luckyDraw: any;
@@ -2632,16 +2809,25 @@ export default class jdCollectionAct implements Activity {
                 switch (true) {
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览商品:
                         viewProduct = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注店铺:
                         attentionStore = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览新品会场:
                         viewBrowse = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注频道任务:
                         attentionChannel = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览直播会场:
+                        viewLive = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览大促会场:
                         viewLargePresses = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.灵活配置:
                         flexibleConfig = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
                 }
             }
         }
@@ -2751,6 +2937,30 @@ export default class jdCollectionAct implements Activity {
                     .catch((error) => {
                         Utils.debugInfo(consoleEnum.error, 'request failed', error);
                         Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方${attentionChannel.taskName}异常，请刷新后重新尝试或联系作者！】`, false);
+                    });
+            }, rubiksCubeTimeOut));
+            rubiksCubeTimeOut += Utils.random(15000, 20000);
+        }
+        //浏览直播会场
+        if (!!viewLive && viewLive.taskStatus == 0) {
+            rubiksCubeTimeoutArray.push(setTimeout(() => {
+                fetch(`${this.rootURI}executeInteractionTask&appid=content_ecology&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"taskType\": ${viewLive.taskId},\"sign\":2}`, {
+                    method: "GET",
+                    credentials: "include"
+                })
+                    .then(function (res) { return res.json(); })
+                    .then((resultJson) => {
+                        if (resultJson.result.code == 0) {
+                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方${viewLive.taskName}成功！`, false);
+                        }
+                        else {
+                            Utils.debugInfo(consoleEnum.log, resultJson);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【魔方${viewLive.taskName}失败，请手动刷新或联系作者！】`, false);
+                        }
+                    })
+                    .catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方${viewLive.taskName}异常，请刷新后重新尝试或联系作者！】`, false);
                     });
             }, rubiksCubeTimeOut));
             rubiksCubeTimeOut += Utils.random(15000, 20000);
@@ -3212,6 +3422,87 @@ export default class jdCollectionAct implements Activity {
             }).catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
                 Utils.outPutLog(this.outputTextarea, `【哎呀~获取所有互助信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+    }
+    //一键偷币
+    async coin(ckObj?: CookieType) {
+        coinTimeOut = 0;
+        let secretp = '',
+            nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+        //营业首页信息
+        await fetch(`${this.rootURI}stall_getHomeData&client=wh5&clientVersion=1.0.0`, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        })
+            .then((res) => { return res.json() })
+            .then((cakebakergetHomeDataJson) => {
+                if ((cakebakergetHomeDataJson.code == 0 || cakebakergetHomeDataJson.msg == "调用成功") && cakebakergetHomeDataJson.data.success) {
+                    secretp = cakebakergetHomeDataJson.data.result.homeMainInfo.secretp;
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, cakebakergetHomeDataJson);
+                    Utils.outPutLog(this.outputTextarea, `${nick}【获取营业首页信息失败，请手动刷新或联系作者！】`, false);
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取营业首页信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        //获取偷币列表
+        await fetch(`${this.rootURI}stall_pk_getStealForms&client=wh5&clientVersion=1.0.0`, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        })
+            .then((res) => { return res.json() })
+            .then((stallpkgetStealForms) => {
+                if ((stallpkgetStealForms.code == 0 || stallpkgetStealForms.msg == "调用成功") && stallpkgetStealForms.data.success) {
+                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}开始抢币！`, false);
+                    let stealGroups = stallpkgetStealForms.data.result.stealGroups;
+                    for (let i = 0; i < stealGroups.length; i++) {
+                        setTimeout(async () => {
+                            let postData = `&body={\"stealId\":"${stealGroups[i].id}",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                            fetch(`${this.rootURI}stall_pk_doSteal${postData}`, {
+                                method: "POST",
+                                mode: "cors",
+                                credentials: "include",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded"
+                                }
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((stallpkdoStealJson) => {
+                                    if (stallpkdoStealJson.code == 0 || stallpkdoStealJson.msg == "调用成功") {
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}${stallpkdoStealJson.data.bizMsg}！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, stallpkdoStealJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【营业偷金币失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业偷金币异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }, coinTimeOut);
+                        coinTimeOut += Utils.random(3000, 4000);
+                    }
+                }
+                else {
+                    Utils.debugInfo(consoleEnum.log, stallpkgetStealForms);
+                    Utils.outPutLog(this.outputTextarea, `${nick}【获取偷币列表失败，请手动刷新或联系作者！】`, false);
+                }
+            })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取偷币列表异常，请刷新后重新尝试或联系作者！】`, false);
             });
     }
     //刷新战队

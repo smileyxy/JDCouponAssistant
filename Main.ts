@@ -785,6 +785,7 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:smileyxy', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.6.5】：新增热爱时光机', 'color:#009a61');
         console.log('%c【0.6.4】：新增全民营业活动', 'color:#009a61');
         console.log('%c【0.6.3】：更新京东小魔方，优化宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.6.2】：更新宠汪汪自动换豆', 'color:#009a61');

@@ -95,8 +95,19 @@ export enum carnivalCityTaskEnum {
 }
 
 export enum carnivalCityButtonEnum {
-    carnivalCityStart = "自动狂欢",
-    carnivalCityStop = "取消狂欢"
+    carnivalCityStart = "自动时光",
+    carnivalCityStop = "取消时光"
+}
+
+export enum timeMachineTaskEnum {
+    "全部" = "All",
+    "逛“超级”品牌店铺" = 1,
+    "逛“大牌”品牌店铺" = 2,
+    "逛“精选”品牌店铺" = 3,
+    "逛同城附近好店" = 4,
+    "逛11.11精选会场" = 5,
+    "体验AR热爱空间" = 6,
+    "邀请好友一起玩" = 8
 }
 
 export enum rubiksCubeTaskEnum {
@@ -105,6 +116,7 @@ export enum rubiksCubeTaskEnum {
     "关注店铺" = 1003,
     "浏览新品会场" = 1004,
     "关注频道任务" = 1001,
+    "浏览直播会场" = 1005,
     "浏览大促会场" = 1006,
     "灵活配置" = 1007,
     "抽奖" = "luckyDraw"
