@@ -21,7 +21,8 @@ import {
     helpFriendButtonEnum,
     BmobConfirmEnum,
     cakeBakerSubtaskEnum,
-    timeMachineTaskEnum
+    timeMachineTaskEnum,
+    actRubiksCubeTaskEnum
 } from '../enum/activityType';
 
 let cakeBakerTiming = "",
@@ -2266,6 +2267,7 @@ export default class jdCollectionAct implements Activity {
         carnivalCityTimeOut = 0;
         let getHomeJson: any,
             getTaskJson: any,
+            getGameJson: any,
             energyCount = 0,
             nowJDTime = await (await this.getJDTime()).toString();
         let sid = 'd5fa160b292874b8d51051318e8b00dw';
@@ -2280,7 +2282,7 @@ export default class jdCollectionAct implements Activity {
             .then(function (res) { return res.json(); })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取狂欢时光机首页信息异常，请刷新后重新尝试或联系作者！】`, false);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取热爱时光机首页信息异常，请刷新后重新尝试或联系作者！】`, false);
             });
         //狂欢时光机任务信息
         getTaskJson = await fetch(`${this.rootURI}bc_taskList&appid=publicUseApi&body={}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
@@ -2291,9 +2293,76 @@ export default class jdCollectionAct implements Activity {
             .then(function (res) { return res.json(); })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取狂欢时光机任务信息异常，请刷新后重新尝试或联系作者！】`, false);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取热爱时光机任务信息异常，请刷新后重新尝试或联系作者！】`, false);
             });
+        //狂欢时光机游戏信息
+        getGameJson = await fetch(`${this.rootURI}bc_getGameInfo&appid=publicUseApi&body={}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+            {
+                method: "GET",
+                credentials: "include"
+            })
+            .then(function (res) { return res.json(); })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取热爱时光机游戏信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        if ((getGameJson.code == 0 || getGameJson.msg == "调用成功") && getGameJson.data.success) {
+            let joinedCount = getGameJson.data.result.todayGotEnergyTimes,
+                taskChance = 10;
+            for (let i = 0; i < taskChance - joinedCount; i++) {
+                carnivalCityTimeoutArray.push(setTimeout(() => {
+                    let score = 200;
+                    fetch(`${this.rootURI}bc_getGameReward&appid=publicUseApi&body={"score":${score}}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                        {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                        .then(function (res) { return res.json(); })
+                        .then((bcDoTask) => {
+                            if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
+                                joinedCount++;
+                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】玩游戏成功！`, false);
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, bcDoTask);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【玩游戏失败，请手动刷新或联系作者！】`, false);
+                            }
+                        })
+                        .catch((error) => {
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~玩游戏异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }, carnivalCityTimeOut));
+                carnivalCityTimeOut += Utils.random(2000, 3000);
+            }
+        }
         if ((getHomeJson.code == 0 || getHomeJson.msg == "调用成功") && getHomeJson.data.success) {
+            //签到
+            if (getHomeJson.data.result.todayIsSigned == 0) {
+                carnivalCityTimeoutArray.push(setTimeout(() => {
+                    fetch(`${this.rootURI}bc_doTask&appid=publicUseApi&body={"taskType":0}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                        {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                        .then(function (res) { return res.json(); })
+                        .then((bcDoTask) => {
+                            if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
+                                joinedCount++;
+                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}签到成功！`, false);
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, bcDoTask);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【签到失败，请手动刷新或联系作者！】`, false);
+                            }
+                        })
+                        .catch((error) => {
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~签到异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }, carnivalCityTimeOut));
+                carnivalCityTimeOut += Utils.random(2000, 3000);
+            }
             //逛同城附近好店
             let joinedCount = getHomeJson.data.result.homeAdvertVO.nearbyShopProgress.split('/')[0],
                 taskChance = getHomeJson.data.result.homeAdvertVO.nearbyShopProgress.split('/')[1];
@@ -2781,6 +2850,169 @@ export default class jdCollectionAct implements Activity {
         rubiksCubeTimeOut = 0;
 
         let getNewsInteractionInfoJson: any;
+        let luckyDraw: any,
+            taskSkuInfo: any,
+            viewVenue: any,
+            followView: any;
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
+        let followViewParam = "";
+        //魔方任务信息
+        getNewsInteractionInfoJson = await fetch(`${this.rootURI}getNewsInteractionInfo&appid=smfe&body={}`,
+            {
+                method: "GET",
+                credentials: "include"
+            })
+            .then(function (res) { return res.json(); })
+            .catch((error) => {
+                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取魔方任务信息异常，请刷新后重新尝试或联系作者！】`, false);
+            });
+        //任务分组
+        if (getNewsInteractionInfoJson.result.code == 0 || getNewsInteractionInfoJson.result.toast == "响应成功") {
+            taskSkuInfo = getNewsInteractionInfoJson.result.taskSkuInfo;
+            luckyDraw = getNewsInteractionInfoJson.result.lotteryInfo;
+
+            for (let i = 0; i < getNewsInteractionInfoJson.result.taskPoolInfo.taskList.length; i++) {
+                switch (true) {
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注浏览:
+                        followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == +rubiksCubeTaskEnum.关注浏览 + 1:
+                        followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        followViewParam = `\"shopId\":${getNewsInteractionInfoJson.result.shopInfoList[0].shopId},`;
+                        break;
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览会场:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskName == "浏览会场":
+                        viewVenue = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                        break;
+                }
+            }
+        }
+        else {
+            Utils.debugInfo(consoleEnum.log, getNewsInteractionInfoJson);
+            Utils.outPutLog(this.outputTextarea, `${nick}【获取魔方任务信息请求失败，请手动刷新或联系作者！】`, false);
+        }
+        //完成任务
+        if (taskType == rubiksCubeTaskEnum.浏览新品 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!taskSkuInfo) {
+                let joinedCount = +getNewsInteractionInfoJson.result.taskSkuNum,
+                    taskChance = +taskSkuInfo.length;
+                for (let i = 0; i < taskChance; i++) {
+                    if (taskSkuInfo[i].browseStatus == 0) {
+                        rubiksCubeTimeoutArray.push(setTimeout(() => {
+                            fetch(`${this.rootURI}viewNewsInteractionSkus&appid=smfe&body={\"sku\":\"${taskSkuInfo[i].skuId}\",\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId}}`, {
+                                method: "GET",
+                                credentials: "include"
+                            })
+                                .then(function (res) { return res.json(); })
+                                .then((viewNewsInteractionSkusJson) => {
+                                    if (viewNewsInteractionSkusJson.result.code == 0) {
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】魔方浏览新品成功！`, false);
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, viewNewsInteractionSkusJson);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览新品失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览新品异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }, rubiksCubeTimeOut));
+                        rubiksCubeTimeOut += Utils.random(2000, 3000);
+                    }
+                }
+            }
+        }
+        if (taskType == rubiksCubeTaskEnum.关注浏览 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!followView) {
+                if (followView.taskStatus == 0) {
+                    rubiksCubeTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={${followViewParam}\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},"taskType": ${followView.taskId}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((followViewChannelInteractionJson) => {
+                                if (followViewChannelInteractionJson.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方浏览关注成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, followViewChannelInteractionJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览关注失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览关注异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, rubiksCubeTimeOut));
+                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                }
+            }
+        }
+        if (taskType == rubiksCubeTaskEnum.浏览会场 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!viewVenue) {
+                if (viewVenue.taskStatus == 0) {
+                    rubiksCubeTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},\"taskType\":9}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((executeInteractionTaskJson) => {
+                                if (executeInteractionTaskJson.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方浏览会场成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, executeInteractionTaskJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方浏览会场失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方浏览会场异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, rubiksCubeTimeOut));
+                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                }
+            }
+        }
+        if (taskType == rubiksCubeTaskEnum.抽奖 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!luckyDraw) {
+                let luckyDrawCount = +luckyDraw.lotteryNum;
+                for (let i = 0; i < luckyDrawCount; i++) {
+                    rubiksCubeTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}getNewsInteractionLotteryInfo&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.text(); })
+                            .then((getNewsInteractionLotteryInfoJson) => {
+                                let data = JSON.parse(getNewsInteractionLotteryInfoJson);
+                                if (data.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方抽奖获得${data.result.lotteryInfo?.name ?? "空气"}${data.result.lotteryInfo?.quantity ?? ""}！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, getNewsInteractionLotteryInfoJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方抽奖失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方抽奖异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, rubiksCubeTimeOut));
+                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                }
+            }
+        }
+    }
+    //京东小魔方任务
+    async actRubiksCube(taskType: any, ckObj?: CookieType) {
+        rubiksCubeTimeOut = 0;
+
+        let getNewsInteractionInfoJson: any;
         let viewProduct: any,
             attentionStore: any,
             viewBrowse: any,
@@ -2807,25 +3039,25 @@ export default class jdCollectionAct implements Activity {
             luckyDraw = getNewsInteractionInfoJson.result.lotteryInfo;
             for (let i = 0; i < getNewsInteractionInfoJson.result.taskPoolInfo.taskList.length; i++) {
                 switch (true) {
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览商品:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == actRubiksCubeTaskEnum.浏览商品:
                         viewProduct = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注店铺:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == actRubiksCubeTaskEnum.关注店铺:
                         attentionStore = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览新品会场:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == actRubiksCubeTaskEnum.浏览新品会场:
                         viewBrowse = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注频道任务:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == actRubiksCubeTaskEnum.关注频道任务:
                         attentionChannel = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览直播会场:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == actRubiksCubeTaskEnum.浏览直播会场:
                         viewLive = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览大促会场:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == actRubiksCubeTaskEnum.浏览大促会场:
                         viewLargePresses = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.灵活配置:
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == actRubiksCubeTaskEnum.灵活配置:
                         flexibleConfig = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
                 }

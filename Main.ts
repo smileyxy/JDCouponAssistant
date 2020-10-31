@@ -785,13 +785,14 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:smileyxy', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.6.6】：新增热爱时光机签到和游戏任务', 'color:#009a61');
         console.log('%c【0.6.5】：新增热爱时光机', 'color:#009a61');
         console.log('%c【0.6.4】：新增全民营业活动', 'color:#009a61');
         console.log('%c【0.6.3】：更新京东小魔方，优化宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.6.2】：更新宠汪汪自动换豆', 'color:#009a61');
-        console.log('%c【0.6.1】：优化宠汪汪自动换豆逻辑', 'color:#009a61');
-        console.log('%c【0.6.0】：修复叠蛋糕任务失效，请求时增加4个加密参数', 'color:#009a61');
-        console.log('%c【0.5.9】：优化并修复叠蛋糕一键战队功能', 'color:#009a61');
+        //console.log('%c【0.6.1】：优化宠汪汪自动换豆逻辑', 'color:#009a61');
+        //console.log('%c【0.6.0】：修复叠蛋糕任务失效，请求时增加4个加密参数', 'color:#009a61');
+        //console.log('%c【0.5.9】：优化并修复叠蛋糕一键战队功能', 'color:#009a61');
         //console.log('%c【0.5.8】：修复宠汪汪战队功能', 'color:#009a61');
         //console.log('%c【0.5.7】：新增叠蛋糕战队互助功能；新增叠蛋糕金币互助功能；新增618活动多账号功能', 'color:#009a61');
         //console.log('%c【0.5.6】：新增品牌狂欢城看精选直播功能', 'color:#009a61');

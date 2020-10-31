@@ -112,6 +112,14 @@ export enum timeMachineTaskEnum {
 
 export enum rubiksCubeTaskEnum {
     "全部" = "All",
+    "浏览新品" = "taskSkuInfo",
+    "关注浏览" = 6,
+    "浏览会场" = 9,
+    "抽奖" = "luckyDraw"
+}
+
+export enum actRubiksCubeTaskEnum {
+    "全部" = "All",
     "浏览商品" = 1002,
     "关注店铺" = 1003,
     "浏览新品会场" = 1004,
