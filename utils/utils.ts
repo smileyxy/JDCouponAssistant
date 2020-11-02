@@ -326,6 +326,10 @@ export default class Utils {
     static sha1Encrypt(data: any) {
         return CryptoJS.SHA1(data).toString();
     };
+    //SH256加密
+    static sha256Encrypt(data: any) {
+        return CryptoJS.SHA256(data).toString();
+    };
     //获取Bmob请求Headers
     static getHeaders(requestUrl: string, currentTime: any): Headers {
         let Bmob_Noncestr_Key = this.md5Encrypt(SecretConfig.Bmob_Noncestr_Key + currentTime.toString()).substring(8, 24),

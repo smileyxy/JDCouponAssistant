@@ -892,13 +892,13 @@ export default class jdCollectionAct implements Activity {
                 Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 一键战队已开始！`, false);
 
                 if (Config.multiFlag) {
-                    let buttonTimeOut = 8000;
+                    let buttonTimeOut = 10000;
                     CookieManager.cookieArr.map((item: CookieType) => {
-                        buttonTimeOut += 8000;
+                        buttonTimeOut += 10000;
                         setTimeout(() => {
                             CookieHandler.coverCookie(item);
                             this.pkUserHelp(typeSelectOptions.value, item);
-                        }, item.index * 8000);
+                        }, item.index * 10000);
                     });
 
                     setTimeout(() => {
@@ -958,7 +958,8 @@ export default class jdCollectionAct implements Activity {
             viewArray1: any[] = [],
             viewArray2: any[] = [],
             viewArray3: any[] = [],
-            viewArray4: any[] = [];
+            viewArray4: any[] = [],
+            lotteryArray: any[] = [];
         let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
         //营业首页信息
         await fetch(`${this.rootURI}stall_getHomeData&client=wh5&clientVersion=1.0.0`, {
@@ -1109,7 +1110,7 @@ export default class jdCollectionAct implements Activity {
                             body: `functionId=stall_getTaskDetail&body={"shopSign":"${shop.shopId}"}&client=wh5&clientVersion=1.0.0`
                         })
                             .then(function (res) { return res.json(); })
-                            .then((stallGetTaskDetailJson) => {
+                            .then(async (stallGetTaskDetailJson) => {
                                 if ((stallGetTaskDetailJson.code == 0 || stallGetTaskDetailJson.msg == "调用成功") && stallGetTaskDetailJson.data.success) {
                                     for (let i = 0; i < stallGetTaskDetailJson.data.result.taskVos.length; i++) {
                                         switch (stallGetTaskDetailJson.data.result.taskVos[i].taskId) {
@@ -1127,6 +1128,31 @@ export default class jdCollectionAct implements Activity {
                                                 break;
                                             case cakeBakerSubtaskEnum.浏览任务4:
                                                 viewArray4.push({ "viewArray4Id": shop.shopId, "viewArray4Name": shop.name, "viewArray4Task": stallGetTaskDetailJson.data.result.taskVos[i] });
+                                                break;
+                                            case cakeBakerSubtaskEnum.抽奖:
+                                                await fetch(`${this.rootURI}stall_shopLotteryInfo`, {
+                                                    method: "POST",
+                                                    mode: "cors",
+                                                    credentials: "include",
+                                                    headers: {
+                                                        "Content-Type": "application/x-www-form-urlencoded"
+                                                    },
+                                                    body: `functionId=stall_shopLotteryInfo&body={"shopId":"${shop.shopId}"}&client=wh5&clientVersion=1.0.0`
+                                                })
+                                                    .then(function (res) { return res.json(); })
+                                                    .then((stallShopLotteryInfoJson) => {
+                                                        if ((stallShopLotteryInfoJson.code == 0 || stallShopLotteryInfoJson.msg == "调用成功") && stallShopLotteryInfoJson.data.success) {
+                                                            lotteryArray.push({ "shopId": stallShopLotteryInfoJson.data.result.shopId, "lotteryArrayName": shop.name, "lotteryNum": stallShopLotteryInfoJson.data.result.lotteryNum });
+                                                        }
+                                                        else {
+                                                            Utils.debugInfo(consoleEnum.log, stallGetTaskDetailJson);
+                                                            Utils.outPutLog(this.outputTextarea, `${nick}【获取抽奖信息失败，请手动刷新或联系作者！】`, false);
+                                                        }
+                                                    })
+                                                    .catch((error) => {
+                                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取抽奖信息异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    });
                                                 break;
                                         }
                                     }
@@ -1155,15 +1181,15 @@ export default class jdCollectionAct implements Activity {
                     taskChance = +elf.maxTimes;
                 for (let j = 0; j < taskChance - joinedCount; j++) {
                     cakeBakerTimeoutArray.push(setTimeout(async () => {
-                        //let postData = `&body={\"taskId\":${elf.taskId},\"itemId\":\"${elf.simpleRecordInfoVo.itemId}\",\"ss\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
-                        let postData = `&body={\"taskId\":${elf.taskId},\"itemId\":\"${elf.simpleRecordInfoVo.itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
-                        fetch(`${this.rootURI}stall_collectScore${postData}`, {
+                        let postData = `&body={\"taskId\":${elf.taskId},\"itemId\":\"${elf.simpleRecordInfoVo.itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.小精灵.toString())).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                        fetch(`${this.rootURI}stall_collectScore`, {
                             method: "POST",
                             mode: "cors",
                             credentials: "include",
                             headers: {
                                 "Content-Type": "application/x-www-form-urlencoded"
-                            }
+                            },
+                            body: postData
                         })
                             .then(function (res) { return res.json(); })
                             .then((cakebakerckCollectScoreJson) => {
@@ -1190,7 +1216,7 @@ export default class jdCollectionAct implements Activity {
                 let joinedCount = +signIn.times,
                     taskChance = +signIn.maxTimes;
                 cakeBakerTimeoutArray.push(setTimeout(async () => {
-                    let postData = `&body={\"taskId\":${signIn.taskId},\"itemId\":\"${signIn.simpleRecordInfoVo.itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                    let postData = `&body={\"taskId\":${signIn.taskId},\"itemId\":\"${signIn.simpleRecordInfoVo.itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.签到.toString())).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                     fetch(`${this.rootURI}stall_collectScore${postData}`, {
                         method: "POST",
                         mode: "cors",
@@ -1225,7 +1251,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < shoppingMain.shoppingActivityVos.length; j++) {
                     if (shoppingMain.shoppingActivityVos[j].status == 1) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${shoppingMain.taskId},\"itemId\":\"${shoppingMain.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${shoppingMain.taskId},\"itemId\":\"${shoppingMain.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.逛主会场.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1306,7 +1332,7 @@ export default class jdCollectionAct implements Activity {
                                                 setTimeout(async () => {
                                                     if (joinedCount < taskChance) {
                                                         //postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.viewProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.viewProductVos[k].productInfoVos[l].itemId}\",\"ss\":\"{\\\"secretp\\\":\\\"${secretp}\\\"}\"}&client=wh5&clientVersion=1.0.0`;
-                                                        postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.viewProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.viewProductVos[k].productInfoVos[l].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                                                        postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.viewProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.viewProductVos[k].productInfoVos[l].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.去逛商品.toString())).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                                                         fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                                             method: "POST",
                                                             mode: "cors",
@@ -1358,7 +1384,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < viewGame1.shoppingActivityVos.length; j++) {
                     if (viewGame1.shoppingActivityVos[j].status == 1) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${viewGame1.taskId},\"itemId\":\"${viewGame1.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${viewGame1.taskId},\"itemId\":\"${viewGame1.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.浏览游戏1.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1420,7 +1446,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < viewGame2.shoppingActivityVos.length; j++) {
                     if (viewGame2.shoppingActivityVos[j].status == 1) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${viewGame2.taskId},\"itemId\":\"${viewGame2.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${viewGame2.taskId},\"itemId\":\"${viewGame2.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.浏览游戏2.toString())).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1457,7 +1483,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < viewChannel.shoppingActivityVos.length; j++) {
                     if (viewChannel.shoppingActivityVos[j].status == 1) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${viewChannel.taskId},\"itemId\":\"${viewChannel.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${viewChannel.taskId},\"itemId\":\"${viewChannel.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.浏览频道.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1520,7 +1546,7 @@ export default class jdCollectionAct implements Activity {
                     if (viewVenue.shoppingActivityVos[j].status == 1) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
                             if (joinedCount < taskChance) {
-                                let postData = `&body={\"taskId\":${viewVenue.taskId},\"itemId\":\"${viewVenue.shoppingActivityVos[j].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                                let postData = `&body={\"taskId\":${viewVenue.taskId},\"itemId\":\"${viewVenue.shoppingActivityVos[j].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.浏览会场.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                                 fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                     method: "POST",
                                     mode: "cors",
@@ -1583,7 +1609,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < shoppingFinance.shoppingActivityVos.length; j++) {
                     if (shoppingFinance.shoppingActivityVos[j].status == 1 && joinedCount < taskChance) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${shoppingFinance.taskId},\"itemId\":\"${shoppingFinance.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${shoppingFinance.taskId},\"itemId\":\"${shoppingFinance.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.逛金融主会场.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1645,7 +1671,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < shoppingBrandBirthday.shoppingActivityVos.length; j++) {
                     if (shoppingBrandBirthday.shoppingActivityVos[j].status == 1 && joinedCount < taskChance) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${shoppingBrandBirthday.taskId},\"itemId\":\"${shoppingBrandBirthday.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${shoppingBrandBirthday.taskId},\"itemId\":\"${shoppingBrandBirthday.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.逛品牌庆生.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1707,7 +1733,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < shoppingCampusVenue.shoppingActivityVos.length; j++) {
                     if (shoppingCampusVenue.shoppingActivityVos[j].status == 1 && joinedCount < taskChance) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${shoppingCampusVenue.taskId},\"itemId\":\"${shoppingCampusVenue.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${shoppingCampusVenue.taskId},\"itemId\":\"${shoppingCampusVenue.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.逛预售会场.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1787,7 +1813,7 @@ export default class jdCollectionAct implements Activity {
                                             if (cakebakerckCollectScoreJson.data.result.addProductVos[k].productInfoVos[l].status == 1) {
                                                 setTimeout(async () => {
                                                     if (joinedCount < taskChance) {
-                                                        postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.addProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.addProductVos[k].productInfoVos[l].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                                                        postData = `&body={\"taskId\":${cakebakerckCollectScoreJson.data.result.addProductVos[k].taskId},\"itemId\":\"${cakebakerckCollectScoreJson.data.result.addProductVos[k].productInfoVos[l].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.加购商品.toString())).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                                                         fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                                             method: "POST",
                                                             mode: "cors",
@@ -1855,7 +1881,7 @@ export default class jdCollectionAct implements Activity {
                                     });
                                 //let postData = `&body={"venderId":"${brandMembers.brandMemberVos[j].copy1}","itemId":"${brandMembers.brandMemberVos[j].itemId}"}&client=wh5&clientVersion=1.0.0`;
                                 //await fetch(`${this.rootURI}stall_taskBigBrandAward${postData}`, {
-                                let postData = `&body={\"taskId\":${brandMembers.taskId},\"itemId\":\"${brandMembers.brandMemberVos[j].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                                let postData = `&body={\"taskId\":${brandMembers.taskId},\"itemId\":\"${brandMembers.brandMemberVos[j].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.开通会员.toString())).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                                 await fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                     method: "POST",
                                     mode: "cors",
@@ -1894,7 +1920,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < browseShop.browseShopVo.length; j++) {
                     if (browseShop.browseShopVo[j].status == 1) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${browseShop.taskId},\"itemId\":\"${browseShop.browseShopVo[j].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${browseShop.taskId},\"itemId\":\"${browseShop.browseShopVo[j].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp, browseShop.taskId)).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1957,7 +1983,7 @@ export default class jdCollectionAct implements Activity {
             for (let j = 0; j < signInArray.length; j++) {
                 if (signInArray[j].signInTask.status == 1) {
                     cakeBakerTimeoutArray.push(setTimeout(async () => {
-                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${signInArray[j].signInTask.taskId}\",\"itemId\":\"${signInArray[j].signInTask.simpleRecordInfoVo.itemId}\",\"shopSign\":\"${signInArray[j].signInId}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
+                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${signInArray[j].signInTask.taskId}\",\"itemId\":\"${signInArray[j].signInTask.simpleRecordInfoVo.itemId}\",\"shopSign\":\"${signInArray[j].signInId}\",\"ss\":\"${await (await this.getSafeStr(secretp, signInArray[j].signInTask.taskId)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
                             method: "POST",
                             mode: "cors",
                             credentials: "include",
@@ -1983,6 +2009,36 @@ export default class jdCollectionAct implements Activity {
                     taskTimeout += Utils.random(5000, 8000);
                 }
             }
+            //抽奖
+            for (let j = 0; j < lotteryArray.length; j++) {
+                for (let k = 0; k < lotteryArray[j].lotteryNum; k++) {
+                    cakeBakerTimeoutArray.push(setTimeout(async () => {
+                        await fetch(`${this.rootURI}stall_doShopLottery&body={\"shopId\":\"${lotteryArray[j].shopId}\"&client=wh5&clientVersion=1.0.0`, {
+                            method: "POST",
+                            mode: "cors",
+                            credentials: "include",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            }
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((collectProduceScoreJson) => {
+                                if ((collectProduceScoreJson.code == 0 || collectProduceScoreJson.msg == "调用成功") && collectProduceScoreJson.data.success) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}营业${signInArray[j].lotteryArrayName}抽奖成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, collectProduceScoreJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【营业${signInArray[j].lotteryArrayName}抽奖失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业${signInArray[j].lotteryArrayName}抽奖异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, taskTimeout));
+                    taskTimeout += Utils.random(5000, 8000);
+                }
+            }
             //浏览任务1
             for (let j = 0; j < viewArray1.length; j++) {
                 let joinedCount = +viewArray1[j].viewArray1Task.times,
@@ -1990,7 +2046,7 @@ export default class jdCollectionAct implements Activity {
                 let task = viewArray1[j].viewArray1Task.followShopVo.filter((item: any) => { return item.status == 1 }).splice(0, taskChance - joinedCount);
                 for (let k = 0; k < task.length; k++) {
                     cakeBakerTimeoutArray.push(setTimeout(async () => {
-                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${viewArray1[j].viewArray1Task.taskId}\",\"itemId\":\"${task[k].itemId}\",\"shopSign\":\"${viewArray1[j].viewArray1Id}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
+                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${viewArray1[j].viewArray1Task.taskId}\",\"itemId\":\"${task[k].itemId}\",\"shopSign\":\"${viewArray1[j].viewArray1Id}\",\"ss\":\"${await (await this.getSafeStr(secretp, viewArray1[j].viewArray1Task.taskId)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
                             method: "POST",
                             mode: "cors",
                             credentials: "include",
@@ -2024,7 +2080,7 @@ export default class jdCollectionAct implements Activity {
                 let task = viewArray2[j].viewArray2Task.shoppingActivityVos.filter((item: any) => { return item.status == 1 }).splice(0, taskChance - joinedCount);
                 for (let k = 0; k < task.length; k++) {
                     cakeBakerTimeoutArray.push(setTimeout(async () => {
-                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${viewArray2[j].viewArray2Task.taskId}\",\"itemId\":\"${task[k].itemId}\",\"shopSign\":\"${viewArray2[j].viewArray2Id}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
+                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${viewArray2[j].viewArray2Task.taskId}\",\"itemId\":\"${task[k].itemId}\",\"shopSign\":\"${viewArray2[j].viewArray2Id}\",\"ss\":\"${await (await this.getSafeStr(secretp, viewArray2[j].viewArray2Task.taskId)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
                             method: "POST",
                             mode: "cors",
                             credentials: "include",
@@ -2058,7 +2114,7 @@ export default class jdCollectionAct implements Activity {
                 let task = viewArray3[j].viewArray3Task.shoppingActivityVos.filter((item: any) => { return item.status == 1 }).splice(0, taskChance - joinedCount);
                 for (let k = 0; k < task.length; k++) {
                     cakeBakerTimeoutArray.push(setTimeout(async () => {
-                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${viewArray3[j].viewArray3Task.taskId}\",\"itemId\":\"${task[k].itemId}\",\"shopSign\":\"${viewArray3[j].viewArray3Id}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
+                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${viewArray3[j].viewArray3Task.taskId}\",\"itemId\":\"${task[k].itemId}\",\"shopSign\":\"${viewArray3[j].viewArray3Id}\",\"ss\":\"${await (await this.getSafeStr(secretp, viewArray3[j].viewArray3Task.taskId)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
                             method: "POST",
                             mode: "cors",
                             credentials: "include",
@@ -2092,7 +2148,7 @@ export default class jdCollectionAct implements Activity {
                 let task = viewArray4[j].viewArray4Task.shoppingActivityVos.filter((item: any) => { return item.status == 1 }).splice(0, taskChance - joinedCount);
                 for (let k = 0; k < task.length; k++) {
                     cakeBakerTimeoutArray.push(setTimeout(async () => {
-                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${viewArray4[j].viewArray4Task.taskId}\",\"itemId\":\"${task[k].itemId}\",\"shopSign\":\"${viewArray4[j].viewArray4Id}\",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
+                        await fetch(`${this.rootURI}stall_collectScore&body={\"taskId\":\"${viewArray4[j].viewArray4Task.taskId}\",\"itemId\":\"${task[k].itemId}\",\"shopSign\":\"${viewArray4[j].viewArray4Id}\",\"ss\":\"${await (await this.getSafeStr(secretp, viewArray4[j].viewArray4Task.taskId)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
                             method: "POST",
                             mode: "cors",
                             credentials: "include",
@@ -2180,14 +2236,17 @@ export default class jdCollectionAct implements Activity {
             //}
         }
         if (taskType == cakeBakerTaskEnum.收取金币 || taskType == cakeBakerTaskEnum.全部) {
+            let postData = `functionId=stall_collectProduceScore&body={\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.收取金币)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
             cakeBakerTimeoutArray.push(setTimeout(async () => {
-                await fetch(`${this.rootURI}stall_collectProduceScore&body={\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
+                //await fetch(`${this.rootURI}stall_collectProduceScore&body={\"ss\":\"${await (await this.getSafeStr(secretp, "collectProducedCoin")).toString()}\"}&client=wh5&clientVersion=1.0.0`, {
+                await fetch(`${this.rootURI}stall_collectProduceScore`, {
                     method: "POST",
                     mode: "cors",
                     credentials: "include",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
-                    }
+                    },
+                    body: postData
                 })
                     .then(function (res) { return res.json(); })
                     .then((collectProduceScoreJson) => {
@@ -2204,6 +2263,7 @@ export default class jdCollectionAct implements Activity {
                         Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业收取金币异常，请刷新后重新尝试或联系作者！】`, false);
                     });
             }, taskTimeout));
+            taskTimeout += Utils.random(5000, 8000);
         }
         if (taskType == cakeBakerTaskEnum.营业 || taskType == cakeBakerTaskEnum.全部) {
             cakeBakerTimeoutArray.push(setTimeout(async () => {
@@ -2234,6 +2294,7 @@ export default class jdCollectionAct implements Activity {
                         });
                 }
             }, taskTimeout));
+            taskTimeout += Utils.random(5000, 8000);
         }
         if (taskType == cakeBakerTaskEnum.扔炸弹 || taskType == cakeBakerTaskEnum.全部) {
             //cakeBakerTimeoutArray.push(setTimeout(async () => {
@@ -2348,7 +2409,6 @@ export default class jdCollectionAct implements Activity {
                         .then(function (res) { return res.json(); })
                         .then((bcDoTask) => {
                             if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
-                                joinedCount++;
                                 Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}签到成功！`, false);
                             }
                             else {
@@ -2369,8 +2429,35 @@ export default class jdCollectionAct implements Activity {
             let pendingTask = getHomeJson.data.result.homeAdvertVO.nearbyShopList.filter((item: any) => { return item.isCompleted == 0 }).splice(0, taskChance - joinedCount);
             for (let i = 0; i < pendingTask.length; i++) {
                 carnivalCityTimeoutArray.push(setTimeout(() => {
-                    let param = (pendingTask ? `,"storeId":"${pendingTask[i].storeid}"` : "");
                     fetch(`${this.rootURI}bc_doTask&appid=publicUseApi&body={"taskType":4,"storeId":"${pendingTask[i].storeid}","storeType":2}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                        {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                        .then(function (res) { return res.json(); })
+                        .then((bcDoTask) => {
+                            if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
+                                joinedCount++;
+                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】逛同城附近好店成功！`, false);
+                            }
+                            else {
+                                Utils.debugInfo(consoleEnum.log, bcDoTask);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【逛同城附近好店失败，请手动刷新或联系作者！】`, false);
+                            }
+                        })
+                        .catch((error) => {
+                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~逛同城附近好店异常，请刷新后重新尝试或联系作者！】`, false);
+                        });
+                }, carnivalCityTimeOut));
+                carnivalCityTimeOut += Utils.random(2000, 3000);
+            }
+            joinedCount = getHomeJson.data.result.homeAdvertVO.sendHomeShopProgress.split('/')[0];
+            taskChance = getHomeJson.data.result.homeAdvertVO.sendHomeShopProgress.split('/')[1];
+            pendingTask = getHomeJson.data.result.homeAdvertVO.sendHomeShopList.filter((item: any) => { return item.isCompleted == 0 }).splice(0, taskChance - joinedCount);
+            for (let i = 0; i < pendingTask.length; i++) {
+                carnivalCityTimeoutArray.push(setTimeout(() => {
+                    fetch(`${this.rootURI}bc_doTask&appid=publicUseApi&body={"taskType":4,"storeId":"${pendingTask[i].storeid}","storeType":1}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
                         {
                             method: "GET",
                             credentials: "include"
@@ -2447,30 +2534,66 @@ export default class jdCollectionAct implements Activity {
                         }
                         //完成任务
                         for (let j = 0; j < (pendingTask ? pendingTask.length : taskChance - joinedCount); j++) {
-                            carnivalCityTimeoutArray.push(setTimeout(() => {
-                                let param = (pendingTask ? `,"shopId":"${pendingTask[j].comments0}"` : "");
-                                fetch(`${this.rootURI}bc_doTask&appid=publicUseApi&body={"taskType":${task.taskType}${param}}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
-                                    {
-                                        method: "GET",
-                                        credentials: "include"
-                                    })
-                                    .then(function (res) { return res.json(); })
-                                    .then((bcDoTask) => {
-                                        if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
-                                            joinedCount++;
-                                            Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】${task.mainTitle}成功！`, false);
-                                        }
-                                        else {
-                                            Utils.debugInfo(consoleEnum.log, bcDoTask);
-                                            Utils.outPutLog(this.outputTextarea, `${nick}【${task.mainTitle}失败，请手动刷新或联系作者！】`, false);
-                                        }
-                                    })
-                                    .catch((error) => {
-                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~${task.mainTitle}异常，请刷新后重新尝试或联系作者！】`, false);
-                                    });
-                            }, carnivalCityTimeOut));
-                            carnivalCityTimeOut += Utils.random(2000, 3000);
+                            if (task.taskType == timeMachineTaskEnum.浏览会场采集能量包) {
+                                j = taskChance - joinedCount;
+                                let letterArray = ["A", "B", "C"];
+                                for (let k = 0; k < task.subTaskList.length; k++) {
+                                    let subTask = task.subTaskList[k];
+                                    let cycles = subTask.timesLimit - subTask.doTimes;
+                                    for (let l = 0; l < cycles; l++) {
+                                        carnivalCityTimeoutArray.push(setTimeout(() => {
+                                            let param = `,"channel":${subTask.channel},"babelChannel":"ttt${subTask.doTimes + 1}","ballno":"${letterArray[subTask.doTimes]}"`;
+                                            fetch(`${this.rootURI}bc_doTask&appid=publicUseApi&body={"taskType":${task.taskType}${param}}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                                                {
+                                                    method: "GET",
+                                                    credentials: "include"
+                                                })
+                                                .then(function (res) { return res.json(); })
+                                                .then((bcDoTask) => {
+                                                    if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
+                                                        joinedCount++;
+                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】${task.mainTitle}成功！`, false);
+                                                    }
+                                                    else {
+                                                        Utils.debugInfo(consoleEnum.log, bcDoTask);
+                                                        Utils.outPutLog(this.outputTextarea, `${nick}【${task.mainTitle}失败，请手动刷新或联系作者！】`, false);
+                                                    }
+                                                })
+                                                .catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~${task.mainTitle}异常，请刷新后重新尝试或联系作者！】`, false);
+                                                });
+                                        }, carnivalCityTimeOut));
+                                        carnivalCityTimeOut += Utils.random(2000, 3000);
+                                    }
+                                }
+                            }
+                            else {
+                                carnivalCityTimeoutArray.push(setTimeout(() => {
+                                    let param = (pendingTask ? `,"shopId":"${pendingTask[j].comments0}"` : "");
+                                    fetch(`${this.rootURI}bc_doTask&appid=publicUseApi&body={"taskType":${task.taskType}${param}}&t=${nowJDTime}&client=wh5&clientVersion=1.0.0&sid=${sid}&uuid=${uuid}}`,
+                                        {
+                                            method: "GET",
+                                            credentials: "include"
+                                        })
+                                        .then(function (res) { return res.json(); })
+                                        .then((bcDoTask) => {
+                                            if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
+                                                joinedCount++;
+                                                Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】${task.mainTitle}成功！`, false);
+                                            }
+                                            else {
+                                                Utils.debugInfo(consoleEnum.log, bcDoTask);
+                                                Utils.outPutLog(this.outputTextarea, `${nick}【${task.mainTitle}失败，请手动刷新或联系作者！】`, false);
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~${task.mainTitle}异常，请刷新后重新尝试或联系作者！】`, false);
+                                        });
+                                }, carnivalCityTimeOut));
+                                carnivalCityTimeOut += Utils.random(2000, 3000);
+                            }
                         }
                         //寻找碎片
                         for (let j = 0; j < energyCount; j++) {
@@ -3613,7 +3736,7 @@ export default class jdCollectionAct implements Activity {
                     //开始互助
                     for (let i = 0; i < allHelp.length; i++) {
                         helpFriendTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":\"2\",\"inviteId\":\"${allHelp[i].inviteId}\",\"itemId\":\"${allHelp[i].itemId}\",\"ss\":\"${await(await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":\"2\",\"inviteId\":\"${allHelp[i].inviteId}\",\"itemId\":\"${allHelp[i].itemId}\",\"ss\":\"${await(await this.getSafeStr(secretp, "2")).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -3700,7 +3823,8 @@ export default class jdCollectionAct implements Activity {
                     let stealGroups = stallpkgetStealForms.data.result.stealGroups;
                     for (let i = 0; i < stealGroups.length; i++) {
                         setTimeout(async () => {
-                            let postData = `&body={\"stealId\":"${stealGroups[i].id}",\"ss\":\"${await (await this.getSafeStr(secretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                            let businessId = "BUSINESSID_" + Math.floor(1e6 * Math.random()).toString();
+                            let postData = `&body={\"stealId\":"${stealGroups[i].id}",\"ss\":\"${await (await this.getSafeStr(secretp, businessId)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}stall_pk_doSteal${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -3716,7 +3840,7 @@ export default class jdCollectionAct implements Activity {
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, stallpkdoStealJson);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【营业偷金币失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}${stallpkdoStealJson.data.bizMsg}`, false);
                                     }
                                 })
                                 .catch((error) => {
@@ -3738,9 +3862,10 @@ export default class jdCollectionAct implements Activity {
             });
     }
     //刷新战队
-    async refreshPK() {
+    async refreshPK(ckObj?: CookieType) {
         let pkUserType = document.getElementById('pkUserType');
         let nowJDTime = await (await this.getJDTime()).toString();
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
         //清空好友
         allFriends.splice(0);
         pkUserType!.innerHTML = "";
@@ -3759,15 +3884,15 @@ export default class jdCollectionAct implements Activity {
                         }
                     });
 
-                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} 刷新战队列表成功！`, false);
+                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}刷新战队列表成功！`, false);
                 }
                 else {
                     Utils.debugInfo(consoleEnum.log, getAllUserJson);
-                    Utils.outPutLog(this.outputTextarea, !getAllUserJson.results ? `【获取所有战队信息记录请求失败，请手动刷新或联系作者！】` : `【暂时没有可以助力的战队】`, false);
+                    Utils.outPutLog(this.outputTextarea, !getAllUserJson.results ? `${nick}【获取所有战队信息记录请求失败，请手动刷新或联系作者！】` : `【暂时没有可以助力的战队】`, false);
                 }
             }).catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~获取所有战队信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取所有战队信息记录异常，请刷新后重新尝试或联系作者！】`, false);
             });
     }
     //加入/更新战队互助
@@ -3822,7 +3947,7 @@ export default class jdCollectionAct implements Activity {
                                     if (!!updateCurrentUserJson.updatedAt) {
                                         Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}战队互助ID更新成功！`, false);
                                         //刷新战队
-                                        this.refreshPK();
+                                        this.refreshPK(ckObj);
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
@@ -3852,7 +3977,7 @@ export default class jdCollectionAct implements Activity {
                                     if (!!addCurrentUserJson.objectId) {
                                         Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}加入战队互助成功！`, false);
                                         //刷新战队
-                                        this.refreshPK();
+                                        this.refreshPK(ckObj);
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
@@ -3881,10 +4006,10 @@ export default class jdCollectionAct implements Activity {
     //一键战队助力
     async pkUserHelp(taskType: any, ckObj?: CookieType) {
         await this.pkJoin(ckObj);
-        await this.refreshPK();
+        await this.refreshPK(ckObj);
 
         let helpArray: any[] = [];
-        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : ""
+        let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
 
         if (taskType == cakeBakerTaskEnum.全部) {
             allFriends.forEach((item: any) => {
@@ -3897,7 +4022,8 @@ export default class jdCollectionAct implements Activity {
 
         for (let i = 0; i < helpArray.length; i++) {
             setTimeout(async () => {
-                let postData = `&body={\"confirmFlag\":1,\"inviteId\":\"${helpArray[i]}\",\"ss\":\"${await (await this.getSafeStr(groupSecretp)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
+                let businessId = "BUSINESSID_" + Math.floor(1e6 * Math.random()).toString();
+                let postData = `&body={\"confirmFlag\":1,\"inviteId\":\"${helpArray[i]}\",\"ss\":\"${await (await this.getSafeStr(groupSecretp, businessId)).toString()}\"}&client=wh5&clientVersion=1.0.0`;
                 fetch(`${this.rootURI}stall_pk_assistGroup${postData}`, {
                     method: "POST",
                     mode: "cors",
@@ -3932,11 +4058,24 @@ export default class jdCollectionAct implements Activity {
         }
     }
     //获取请求安全密钥
-    async getSafeStr(secretp: string): Promise<string> {
-        let nowJdDate = await(await this.getJDTime()).toString(),
+    async getSafeStr(secretp: string, taskId: string = ""): Promise<string> {
+        let nowJdDate = await (await this.getJDTime()).toString(),
             nonceStr = this.getNonceStr(10),
-            token = this.getToken();
-        return `{\\\"extraData\\\":{\\\"is_trust\\\":true,\\\"sign\\\":\\\"${this.getSign(nowJdDate, nonceStr, token)}\\\",\\\"fpb\\\":\\\"${this.getCookie("shshshfpb")}\\\",\\\"time\\\":${nowJdDate},\\\"encrypt\\\":3,\\\"nonstr\\\":\\\"${nonceStr}\\\",\\\"token\\\":\\\"${token}\\\"},\\\"secretp\\\":\\\"${secretp}\\\"}`;
+            token = this.getToken(),
+            etid = "1,2,3,4,5,6",
+            cf_v = "1.0.1",
+            client_version = "2.1.3",
+            sceneid ="homePageh5",
+            buttonid = "jmdd-react-smash_0",
+            appid = "50073",
+            businessData = '';
+        let rnd = Utils.random(1000, 999999);
+
+        if (taskId) {
+            businessData = `,\\\"businessData\\\":{\\\"taskId\\\":\\\"${taskId}\\\",\\\"rnd\\\":\\\"${rnd}\\\",\\\"inviteId\\\":\\\"-1\\\",\\\"stealId\\\":\\\"-1\\\"}`;
+        }
+
+        return `{\\\"extraData\\\":{\\\"is_trust\\\":true,\\\"sign\\\":\\\"${this.getSign(nowJdDate, nonceStr, token, rnd, taskId)}\\\",\\\"fpb\\\":\\\"${this.getCookie("shshshfpb")}\\\",\\\"time\\\":${nowJdDate},\\\"encrypt\\\":\\\"3\\\",\\\"nonstr\\\":\\\"${nonceStr}\\\",\\\"jj\\\":\\\"\\\",\\\"token\\\":\\\"${token}\\\",\\\"cf_v\\\":\\\"${cf_v}\\\",\\\"client_version\\\":\\\"${client_version}\\\",\\\"call_stack\\\":\\\"942d15437bf8335dd54ef04d5b2470b4\\\",\\\"session_c\\\":\\\"${this.getTouchSession()}\\\",\\\"buttonid\\\":\\\"${buttonid}\\\",\\\"sceneid\\\":\\\"${sceneid}\\\",\\\"appid\\\":\\\"${appid}\\\"}${businessData},\\\"secretp\\\":\\\"${secretp}\\\"}`;
     }
     //获取cookie
     getCookie(key: string): string {
@@ -3956,8 +4095,9 @@ export default class jdCollectionAct implements Activity {
         return t
     }
     //获取Sign
-    getSign(nowJdDate: string, nonceStr: string, token: string): string {
-        let encryptSignStr = `&token=${token}&time=${nowJdDate}&nonce_str=${nonceStr}&key=${this.getKey(nonceStr, nowJdDate)}&is_trust=true`;
+    getSign(nowJdDate: string, nonceStr: string, token: string, rnd: number, taskId: string): string {
+        //let encryptSignStr = `&token=${token}&time=${nowJdDate}&nonce_str=${nonceStr}&key=${this.getKey(nonceStr, nowJdDate)}&is_trust=true`;
+        let encryptSignStr = `inviteId=-1&rnd=${rnd}&stealId=-1&taskId=${taskId}&token=${token}&time=${nowJdDate}&nonce_str=${nonceStr}&key=${this.getKey(nonceStr, nowJdDate)}&is_trust=true`;
         return Utils.sha1Encrypt(encryptSignStr).toString().toUpperCase();
     }
     //获取Key
@@ -3997,6 +4137,18 @@ export default class jdCollectionAct implements Activity {
             f += Math.abs(a[s] - o[s]),
                 s++;
         return f
+    }
+    getTouchSession(): string {
+        var t = (new Date).getTime()
+            , n = this.getRandomInt(1e3, 9999);
+        return String(t) + String(n)
+    }
+    getRandomInt(start: any, end: any): string {
+        var t = start
+            , n = end;
+        return t = Math.ceil(t),
+            n = Math.floor(n),
+            Math.floor(Math.random() * (n - t + 1)) + t
     }
     //获取京东服务器时间
     getJDTime(): Promise<number> {

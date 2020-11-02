@@ -14,7 +14,7 @@ export enum activityType {
 export enum cakeBakerTaskEnum {
     "全部" = "All",
     "营业" = "foldCake",
-    "收取金币" = "produce",
+    "收取金币" = "collectProducedCoin",
     "小精灵" = 24,
     "签到" = 1,
     "逛主会场" = 3,
@@ -40,7 +40,8 @@ export enum cakeBakerSubtaskEnum {
     "浏览任务1" = 2,
     "浏览任务2" = 3,
     "浏览任务3" = 4,
-    "浏览任务4" = 5
+    "浏览任务4" = 5,
+    "抽奖" = 6
 }
 
 export enum cakeBakerButtonEnum {
@@ -107,6 +108,7 @@ export enum timeMachineTaskEnum {
     "逛同城附近好店" = 4,
     "逛11.11精选会场" = 5,
     "体验AR热爱空间" = 6,
+    "浏览会场采集能量包" = 7,
     "邀请好友一起玩" = 8
 }
 
