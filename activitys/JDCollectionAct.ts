@@ -1111,6 +1111,33 @@ export default class jdCollectionAct implements Activity {
                         })
                             .then(function (res) { return res.json(); })
                             .then(async (stallGetTaskDetailJson) => {
+                                //抽奖
+                                await fetch(`${this.rootURI}stall_shopLotteryInfo`, {
+                                    method: "POST",
+                                    mode: "cors",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/x-www-form-urlencoded"
+                                    },
+                                    body: `functionId=stall_shopLotteryInfo&body={"shopId":"${shop.shopId}"}&client=wh5&clientVersion=1.0.0`
+                                })
+                                    .then(function (res) { return res.json(); })
+                                    .then((stallShopLotteryInfoJson) => {
+                                        if ((stallShopLotteryInfoJson.code == 0 || stallShopLotteryInfoJson.msg == "调用成功") && stallShopLotteryInfoJson.data.success) {
+                                            if (stallShopLotteryInfoJson.data.result.lotteryNum && stallShopLotteryInfoJson.data.result.lotteryNum > 0) {
+                                                lotteryArray.push({ "shopId": stallShopLotteryInfoJson.data.result.shopId, "lotteryArrayName": shop.name, "lotteryNum": stallShopLotteryInfoJson.data.result.lotteryNum });
+                                            }
+                                        }
+                                        else {
+                                            Utils.debugInfo(consoleEnum.log, stallGetTaskDetailJson);
+                                            Utils.outPutLog(this.outputTextarea, `${nick}【获取抽奖信息失败，请手动刷新或联系作者！】`, false);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取抽奖信息异常，请刷新后重新尝试或联系作者！】`, false);
+                                    });
+                                //其他任务
                                 if ((stallGetTaskDetailJson.code == 0 || stallGetTaskDetailJson.msg == "调用成功") && stallGetTaskDetailJson.data.success) {
                                     for (let i = 0; i < stallGetTaskDetailJson.data.result.taskVos.length; i++) {
                                         switch (stallGetTaskDetailJson.data.result.taskVos[i].taskId) {
@@ -1128,31 +1155,6 @@ export default class jdCollectionAct implements Activity {
                                                 break;
                                             case cakeBakerSubtaskEnum.浏览任务4:
                                                 viewArray4.push({ "viewArray4Id": shop.shopId, "viewArray4Name": shop.name, "viewArray4Task": stallGetTaskDetailJson.data.result.taskVos[i] });
-                                                break;
-                                            case cakeBakerSubtaskEnum.抽奖:
-                                                await fetch(`${this.rootURI}stall_shopLotteryInfo`, {
-                                                    method: "POST",
-                                                    mode: "cors",
-                                                    credentials: "include",
-                                                    headers: {
-                                                        "Content-Type": "application/x-www-form-urlencoded"
-                                                    },
-                                                    body: `functionId=stall_shopLotteryInfo&body={"shopId":"${shop.shopId}"}&client=wh5&clientVersion=1.0.0`
-                                                })
-                                                    .then(function (res) { return res.json(); })
-                                                    .then((stallShopLotteryInfoJson) => {
-                                                        if ((stallShopLotteryInfoJson.code == 0 || stallShopLotteryInfoJson.msg == "调用成功") && stallShopLotteryInfoJson.data.success) {
-                                                            lotteryArray.push({ "shopId": stallShopLotteryInfoJson.data.result.shopId, "lotteryArrayName": shop.name, "lotteryNum": stallShopLotteryInfoJson.data.result.lotteryNum });
-                                                        }
-                                                        else {
-                                                            Utils.debugInfo(consoleEnum.log, stallGetTaskDetailJson);
-                                                            Utils.outPutLog(this.outputTextarea, `${nick}【获取抽奖信息失败，请手动刷新或联系作者！】`, false);
-                                                        }
-                                                    })
-                                                    .catch((error) => {
-                                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                        Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取抽奖信息异常，请刷新后重新尝试或联系作者！】`, false);
-                                                    });
                                                 break;
                                         }
                                     }
@@ -2024,16 +2026,16 @@ export default class jdCollectionAct implements Activity {
                             .then(function (res) { return res.json(); })
                             .then((collectProduceScoreJson) => {
                                 if ((collectProduceScoreJson.code == 0 || collectProduceScoreJson.msg == "调用成功") && collectProduceScoreJson.data.success) {
-                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}营业${signInArray[j].lotteryArrayName}抽奖成功！`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${k + 1}/${lotteryArray[j].lotteryNum}】营业${lotteryArray[j].lotteryArrayName}抽奖成功！`, false);
                                 }
                                 else {
                                     Utils.debugInfo(consoleEnum.log, collectProduceScoreJson);
-                                    Utils.outPutLog(this.outputTextarea, `${nick}【营业${signInArray[j].lotteryArrayName}抽奖失败，请手动刷新或联系作者！】`, false);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【营业${lotteryArray[j].lotteryArrayName}抽奖失败，请手动刷新或联系作者！】`, false);
                                 }
                             })
                             .catch((error) => {
                                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业${signInArray[j].lotteryArrayName}抽奖异常，请刷新后重新尝试或联系作者！】`, false);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业${lotteryArray[j].lotteryArrayName}抽奖异常，请刷新后重新尝试或联系作者！】`, false);
                             });
                     }, taskTimeout));
                     taskTimeout += Utils.random(5000, 8000);
@@ -2551,6 +2553,7 @@ export default class jdCollectionAct implements Activity {
                                                 .then(function (res) { return res.json(); })
                                                 .then((bcDoTask) => {
                                                     if ((bcDoTask.code == 0 || bcDoTask.msg == "调用成功") && bcDoTask.data.success) {
+                                                        subTask.doTimes++;
                                                         joinedCount++;
                                                         Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】${task.mainTitle}成功！`, false);
                                                     }
