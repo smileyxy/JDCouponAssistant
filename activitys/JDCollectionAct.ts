@@ -71,7 +71,7 @@ const defaultCakeBakerTiming: string = '01:00',
     defaultARFutureCityDetection: number = 3600000, //1小时
     defaultHelpFriendTiming: string = '05:00',
     defaultHelpFriendDetection: number = 14400000, //4小时
-    defaultMultiPollingDetection: number = 600000; //10分钟
+    defaultMultiPollingDetection: number = 1200000; //20分钟
 
 export default class jdCollectionAct implements Activity {
     rootURI: string = "https://api.m.jd.com/client.action?functionId=";
@@ -2979,7 +2979,8 @@ export default class jdCollectionAct implements Activity {
         let luckyDraw: any,
             taskSkuInfo: any,
             viewVenue: any,
-            followView: any;
+            followView: any,
+            sign: any;
         let nick = Config.multiFlag ? `${ckObj!["mark"]}:` : "";
         let followViewParam = "";
         //魔方任务信息
@@ -3000,15 +3001,17 @@ export default class jdCollectionAct implements Activity {
 
             for (let i = 0; i < getNewsInteractionInfoJson.result.taskPoolInfo.taskList.length; i++) {
                 switch (true) {
+                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.签到:
+                        sign = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                     case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.关注浏览:
                         followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == +rubiksCubeTaskEnum.关注浏览 + 1:
-                        followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
-                        followViewParam = `\"shopId\":${getNewsInteractionInfoJson.result.shopInfoList[0].shopId},`;
-                        break;
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览会场:
-                    case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskName == "浏览会场":
-                        viewVenue = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    //case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == +rubiksCubeTaskEnum.关注浏览 + 1:
+                    //    followView = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
+                    //    followViewParam = `\"shopId\":${getNewsInteractionInfoJson.result.shopInfoList[0].shopId},`;
+                    //    break;
+                    //case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskId == rubiksCubeTaskEnum.浏览会场:
+                    //case getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i].taskName == "浏览会场":
+                        //viewVenue = getNewsInteractionInfoJson.result.taskPoolInfo.taskList[i];
                         break;
                 }
             }
@@ -3018,6 +3021,33 @@ export default class jdCollectionAct implements Activity {
             Utils.outPutLog(this.outputTextarea, `${nick}【获取魔方任务信息请求失败，请手动刷新或联系作者！】`, false);
         }
         //完成任务
+        if (taskType == rubiksCubeTaskEnum.签到 || taskType == rubiksCubeTaskEnum.全部) {
+            if (!!sign) {
+                if (sign.taskStatus == 0) {
+                    rubiksCubeTimeoutArray.push(setTimeout(() => {
+                        fetch(`${this.rootURI}executeInteractionTask&appid=smfe&body={\"interactionId\":${getNewsInteractionInfoJson.result.interactionId},\"taskPoolId\":${getNewsInteractionInfoJson.result.taskPoolInfo.taskPoolId},"taskType": ${sign.taskId}}`, {
+                            method: "GET",
+                            credentials: "include"
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then((viewNewsInteractionSkusJson) => {
+                                if (viewNewsInteractionSkusJson.result.code == 0) {
+                                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}魔方签到成功！`, false);
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, viewNewsInteractionSkusJson);
+                                    Utils.outPutLog(this.outputTextarea, `${nick}【魔方签到失败，请手动刷新或联系作者！】`, false);
+                                }
+                            })
+                            .catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~魔方签到异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
+                    }, rubiksCubeTimeOut));
+                    rubiksCubeTimeOut += Utils.random(2000, 3000);
+                }
+            }
+        }
         if (taskType == rubiksCubeTaskEnum.浏览新品 || taskType == rubiksCubeTaskEnum.全部) {
             if (!!taskSkuInfo) {
                 let joinedCount = +getNewsInteractionInfoJson.result.taskSkuNum,
