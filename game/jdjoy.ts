@@ -422,7 +422,7 @@ export default class JdJoy implements Game {
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动换豆！`, false);
 
                     let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000 + Utils.random(0, 3000);
-                    this.newExchange();
+
                     autoBeanTimeout = setTimeout(() => {
                         this.newExchange();
                         beanInterval = setInterval(() => {
