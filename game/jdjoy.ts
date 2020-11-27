@@ -929,7 +929,7 @@ export default class JdJoy implements Game {
                         let exchangeGift: any;
 
                         exchangeGift = getHomeInfoJson.data.levelSaleInfos.giftSaleInfos.filter((giftItem: any) => {
-                            return giftItem.giftType == "jd_bean" && getHomeInfoJson.data.coin >= giftItem.salePrice && giftItem.leftStock > 0
+                            return giftItem.giftType == "jd_bean" && getHomeInfoJson.data.coin >= giftItem.salePrice/* && giftItem.leftStock > 0*/
                         });
 
                         if (!!exchangeGift) {
