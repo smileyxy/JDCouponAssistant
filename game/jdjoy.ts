@@ -422,10 +422,10 @@ export default class JdJoy implements Game {
                     Utils.outPutLog(this.outputTextarea, `${currentJDDate.toLocaleString()} 已开启自动换豆！`, false);
 
                     let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000;
-                    autoBeanTimeout = setTimeout(() => {
-                        this.newExchange();
-                        beanInterval = setInterval(() => {
-                            this.newExchange();
+                    autoBeanTimeout = setTimeout(async () => {
+                        this.newExchange(new Date(+await this.getJDTime()));
+                        beanInterval = setInterval(async () => {
+                            this.newExchange(new Date(+await this.getJDTime()));
                         }, defaultBeanDetection);
                     }, firstSpan);
                 }
@@ -759,8 +759,16 @@ export default class JdJoy implements Game {
             = nextFeedTime!.innerText
             = "-";
         //获取宠汪汪首页信息
-        const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
-        await fetch(enterRoomUrl, { credentials: "include" })
+        const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom/h5?reqSource=h5&invitePin=';
+        await fetch(enterRoomUrl, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: `{}`
+        })
             .then((res) => { return res.json() })
             .then((enterRoomJson) => {
                 if (enterRoomJson.success) {
@@ -918,7 +926,7 @@ export default class JdJoy implements Game {
             });
     }
     //兑换（新）
-    async newExchange(): Promise<void> {
+    async newExchange(nowJDDate: any): Promise<void> {
         const getHomeInfoUrl = 'https://jdjoy.jd.com/gift/getHomeInfo';
         await fetch(getHomeInfoUrl, { credentials: "include" })
             .then((res) => { return res.json() })
@@ -933,7 +941,6 @@ export default class JdJoy implements Game {
 
                         if (!!exchangeGift) {
                             let sortGift = exchangeGift.sort((a: any, b: any) => { return b.giftValue - a.giftValue });
-                            let nowJDDate = new Date(+await this.getJDTime());
                             if (+(nowJDDate.getHours().toString() + nowJDDate.getMinutes().toString()) <= 800) {
                                 sortGift = sortGift.slice(0, 1);
                             }
