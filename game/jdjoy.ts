@@ -1282,9 +1282,9 @@ export default class JdJoy implements Game {
                             for (let j = 0; j < scanMarketData.scanMarketList.length; j++) {
                                 let scanMarketListData = scanMarketData.scanMarketList[j];
                                 if (!scanMarketListData.status) {
-                                    let linkUrl = scanMarketListData.showDest == "h5" ? scanMarketListData.marketLinkH5 : scanMarketListData.marketLink;
+                                    //let linkUrl = scanMarketListData.showDest == "h5" ? scanMarketListData.marketLinkH5 : scanMarketListData.marketLink;
                                     taskTimeoutArray.push(setTimeout(() => {
-                                        let postData = `{"marketLink":${JSON.stringify(linkUrl)},"taskType":"${petTaskEnum.逛会场}","reqSource":"h5"}`;
+                                        let postData = `{"marketLink":${JSON.stringify(scanMarketListData.marketLinkH5)},"taskType":"${petTaskEnum.逛会场}","reqSource":"h5"}`;
                                         const scanUrl = `https://jdjoy.jd.com/pet/scan`;
                                         fetch(scanUrl, {
                                             method: "POST",
