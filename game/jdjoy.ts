@@ -946,7 +946,7 @@ export default class JdJoy implements Game {
                             }
                             sortGift.map(async (exchangeItem: any) => {
                                 let postData = `{"orderSource": "pet", "saleInfoId":${exchangeItem.id}}`;
-                                const petExchangeUrl = `https://jdjoy.jd.com/gift/exchange`;
+                                const petExchangeUrl = `https://jdjoy.jd.com/gift/new/exchange?reqSource=h5`;
                                 await fetch(petExchangeUrl, {
                                     method: "POST",
                                     mode: "cors",
