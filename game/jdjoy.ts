@@ -1561,34 +1561,34 @@ export default class JdJoy implements Game {
                     Utils.outPutLog(this.outputTextarea, `【哎呀~获取逛店拿积分信息异常，请刷新后重新尝试或联系作者！】`, false);
                 });
         }
-        if (actType == petActEnum.戳泡泡 || actType == petActEnum.全部) {
-            //const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
-            //fetch(visitPetIndex, { credentials: "include" })
-            //    .then((visitPetIndexJson) => {
-            //        const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
-            //        fetch(enterRoomUrl, { credentials: "include" })
-            //            .then((res) => { return res.json() })
-            //            .then((enterRoomJson) => {
-            //                if (enterRoomJson.success) {
-            //                    if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
-            //                        this.bulbble(enterRoomJson);
-            //                    }
-            //                }
-            //                else {
-            //                    Utils.debugInfo(consoleEnum.log, enterRoomJson);
-            //                    Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
-            //                }
-            //            })
-            //            .catch((error) => {
-            //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-            //                Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
-            //            });
-            //    })
-            //    .catch((error) => {
-            //        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-            //        Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
-            //    });
-        }
+        //if (actType == petActEnum.戳泡泡 || actType == petActEnum.全部) {
+        //    const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
+        //    fetch(visitPetIndex, { credentials: "include" })
+        //        .then((visitPetIndexJson) => {
+        //            const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
+        //            fetch(enterRoomUrl, { credentials: "include" })
+        //                .then((res) => { return res.json() })
+        //                .then((enterRoomJson) => {
+        //                    if (enterRoomJson.success) {
+        //                        if (enterRoomJson.data.bubbleOpen || !!enterRoomJson.data.bubbleReward) {
+        //                            this.bulbble(enterRoomJson);
+        //                        }
+        //                    }
+        //                    else {
+        //                        Utils.debugInfo(consoleEnum.log, enterRoomJson);
+        //                        Utils.outPutLog(this.outputTextarea, `【获取戳泡泡信息请求失败，请手动刷新或联系作者！】`, false);
+        //                    }
+        //                })
+        //                .catch((error) => {
+        //                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+        //                    Utils.outPutLog(this.outputTextarea, `【哎呀~获取戳泡泡信息异常，请手动刷新或联系作者！】`, false);
+        //                });
+        //        })
+        //        .catch((error) => {
+        //            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+        //            Utils.outPutLog(this.outputTextarea, `【哎呀~访问宠汪汪主页异常，请刷新后重新尝试或联系作者！】`, false);
+        //        });
+        //}
         //if (actType == petActEnum.聚宝盆终极大奖 || actType == petActEnum.全部) {
         //    if (!investTreasureInterval || investTreasureInterval == 0) {
         //        const investTreasureUrl = 'https://jdjoy.jd.com/pet/investTreasure';

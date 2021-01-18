@@ -87,7 +87,7 @@ function buildOperate() {
     operateAreaDiv.setAttribute("style", "border: 1px solid #000;margin: 10px 0;line-height: 1.6;");
     operateAreaDiv.innerHTML = "<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>操作区</h3>";
     if (coupon || seckill) {
-        buildTimerControl();
+        //buildTimerControl();
     }
     loginMsgDiv.innerHTML = "当前京东帐号：<a href='https://plogin.m.jd.com/login/login' target='_blank'>点击登录</a>";
     operateAreaDiv.append(loginMsgDiv);
@@ -287,7 +287,6 @@ function buildActivity() {
     const activityArea: HTMLDivElement = document.createElement("div");
     activityArea.setAttribute("style", "border: 1px solid #000;margin:10px 0");
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>活动推荐</h3>
-    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://wbbny.m.jd.com/babelDiy/Zeus/4SJUHwGdUQYgg94PFzjZZbGZRjDd/index.html" target="_blank">全民营业</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://wbbny.m.jd.com/babelDiy/Zeus/2cKMj86srRdhgWcKonfExzK4ZMBy/index.html" target="_blank">全民炸年兽</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/QzjyrF2MpMcB5yq9zwaNpwspZWx/index.html?babelChannel=ttt6#/home" target="_blank">品牌狂欢城</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/WgmkHMiiV1JUtcrZAUZTbL3hQss/index.html" target="_blank">京东小魔方</a></p>`;
@@ -714,8 +713,8 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
         Utils.createJsonp(`${Config.JDUserInfoURL}&callback=getLoginMsg`);
     }
     if (coupon) {
-        Config.intervalId = window.setInterval(getTime, Config.intervalSpan);
-        coupon.get();
+        //Config.intervalId = window.setInterval(getTime, Config.intervalSpan);
+        //coupon.get();
     } else if (activity) {
         // buildActivity();
         Utils.loadCss("https://meyerweb.com/eric/tools/css/reset/reset200802.css");
