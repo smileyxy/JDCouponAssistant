@@ -288,6 +288,7 @@ function buildActivity() {
     activityArea.setAttribute("style", "border: 1px solid #000;margin:10px 0");
     activityArea.innerHTML = `<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>活动推荐</h3>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://wbbny.m.jd.com/babelDiy/Zeus/4SJUHwGdUQYgg94PFzjZZbGZRjDd/index.html" target="_blank">全民营业</a></p>
+    <p style="color:red;font-weight:bold;"><a style="color:red" href="https://wbbny.m.jd.com/babelDiy/Zeus/2cKMj86srRdhgWcKonfExzK4ZMBy/index.html" target="_blank">全民炸年兽</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/QzjyrF2MpMcB5yq9zwaNpwspZWx/index.html?babelChannel=ttt6#/home" target="_blank">品牌狂欢城</a></p>
     <p style="color:red;font-weight:bold;"><a style="color:red" href="https://h5.m.jd.com/babelDiy/Zeus/WgmkHMiiV1JUtcrZAUZTbL3hQss/index.html" target="_blank">京东小魔方</a></p>`;
     container.append(activityArea);
@@ -581,7 +582,10 @@ function getEntryType(): couponType | activityType | goodsType | gameType {
         }
     }
     if (Config.locationHref.includes("wbbny.m.jd.com")) {
-        if (Config.locationHref.includes("4SJUHwGdUQYgg94PFzjZZbGZRjDd")) {
+        //if (Config.locationHref.includes("4SJUHwGdUQYgg94PFzjZZbGZRjDd")) {
+        //    type = activityType.allBusiness;
+        //}
+        if (Config.locationHref.includes("2cKMj86srRdhgWcKonfExzK4ZMBy")) {
             type = activityType.allBusiness;
         }
     }
@@ -785,11 +789,12 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:smileyxy', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.7.3】：新增年兽活动', 'color:#009a61');
         console.log('%c【0.7.2】：修复宠汪汪逛会场任务失效', 'color:#009a61');
         console.log('%c【0.7.1】：修复宠汪汪信息获取失败', 'color:#009a61');
         console.log('%c【0.7.0】：优化宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.6.9】：更新宠汪汪自动换豆', 'color:#009a61');
-        console.log('%c【0.6.8】：修复全民营业抽奖、修复热爱时光机采集能量任务', 'color:#009a61');
+        //console.log('%c【0.6.8】：修复全民营业抽奖、修复热爱时光机采集能量任务', 'color:#009a61');
         //console.log('%c【0.6.7】：修复全民营业活动、优化热爱时光机', 'color:#009a61');
         //console.log('%c【0.6.6】：新增热爱时光机签到和游戏任务', 'color:#009a61');
         //console.log('%c【0.6.5】：新增热爱时光机', 'color:#009a61');
