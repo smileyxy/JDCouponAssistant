@@ -927,7 +927,7 @@ export default class JdJoy implements Game {
     }
     //兑换（新）
     async newExchange(nowJDDate: any): Promise<void> {
-        const getHomeInfoUrl = 'https://jdjoy.jd.com/gift/getHomeInfo';
+        const getHomeInfoUrl = 'https://jdjoy.jd.com/gift/getHomeInfo?reqSource=h5';
         await fetch(getHomeInfoUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then(async (getHomeInfoJson) => {
@@ -945,7 +945,8 @@ export default class JdJoy implements Game {
                                 sortGift = sortGift.slice(0, 1);
                             }
                             sortGift.map(async (exchangeItem: any) => {
-                                let postData = `{"orderSource": "pet", "saleInfoId":${exchangeItem.id}}`;
+                                //"deviceInfo":{"eid":"","fp":"","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":""}
+                                let postData = `{"buyParam":{"orderSource": "pet", "saleInfoId":${exchangeItem.id}},"deviceInfo":{}}`;
                                 const petExchangeUrl = `https://jdjoy.jd.com/gift/new/exchange?reqSource=h5`;
                                 await fetch(petExchangeUrl, {
                                     method: "POST",
@@ -1036,7 +1037,11 @@ export default class JdJoy implements Game {
             .then((res) => { return res.json() })
             .then(async (hPetTaskConfigJson) => {
                 if (hPetTaskConfigJson.success) {
-                    let threeMealsData: any,
+                    let exchageData: any,
+                        helpFeedData: any,
+                        everyDayFeedData: any,
+                        raceData: any,
+                        threeMealsData: any,
                         followChannelData: any,
                         followGoodData: any,
                         followShopData: any,
@@ -1044,6 +1049,18 @@ export default class JdJoy implements Game {
                         inviteUserData: any;
                     for (let i = 0; i < hPetTaskConfigJson.datas.length; i++) {
                         switch (hPetTaskConfigJson.datas[i].taskType) {
+                            case petTaskEnum.每日参与一次兑换:
+                                exchageData = hPetTaskConfigJson.datas[i];
+                                break;
+                            case petTaskEnum.每日帮好友喂一次狗粮:
+                                helpFeedData = hPetTaskConfigJson.datas[i];
+                                break;
+                            case petTaskEnum.每日喂狗粮:
+                                everyDayFeedData = hPetTaskConfigJson.datas[i];
+                                break;
+                            case petTaskEnum.每日参与一次宠物赛跑:
+                                raceData = hPetTaskConfigJson.datas[i];
+                                break;
                             case petTaskEnum.每日三餐:
                                 threeMealsData = hPetTaskConfigJson.datas[i];
                                 break;
@@ -1065,6 +1082,106 @@ export default class JdJoy implements Game {
                         }
                     }
 
+                    if (taskType == petTaskEnum.每日参与一次兑换 || taskType == petTaskEnum.全部) {
+                        if (!!exchageData && exchageData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
+                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=exchange`;
+                            await fetch(getFoodUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then((getFoodJson) => {
+                                    if (getFoodJson.success) {
+                                        if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 每日参与一次兑换领取成功！`, false);
+                                        }
+                                        else {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} ${exchageData.errorMessage || "每日参与一次兑换已领取或已领满！"}`, false);
+                                        }
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, getFoodJson);
+                                        Utils.outPutLog(this.outputTextarea, `【每日参与一次兑换请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~每日参与一次兑换异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    }
+                    if (taskType == petTaskEnum.每日帮好友喂一次狗粮 || taskType == petTaskEnum.全部) {
+                        if (!!helpFeedData && helpFeedData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
+                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=HelpFeed`;
+                            await fetch(getFoodUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then((getFoodJson) => {
+                                    if (getFoodJson.success) {
+                                        if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 每日帮好友喂一次狗粮领取成功！`, false);
+                                        }
+                                        else {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} ${helpFeedData.errorMessage || "每日帮好友喂一次狗粮已领取或已领满！"}`, false);
+                                        }
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, getFoodJson);
+                                        Utils.outPutLog(this.outputTextarea, `【每日帮好友喂一次狗粮请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~每日帮好友喂一次狗粮异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    }
+                    if (taskType == petTaskEnum.每日喂狗粮 || taskType == petTaskEnum.全部) {
+                        if (!!everyDayFeedData && everyDayFeedData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
+                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=FeedEveryDay`;
+                            await fetch(getFoodUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then((getFoodJson) => {
+                                    if (getFoodJson.success) {
+                                        if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 每日喂狗粮领取成功！`, false);
+                                        }
+                                        else {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} ${everyDayFeedData.errorMessage || "每日喂狗粮已领取或已领满！"}`, false);
+                                        }
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, getFoodJson);
+                                        Utils.outPutLog(this.outputTextarea, `【每日喂狗粮请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~每日喂狗粮异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    }
+                    if (taskType == petTaskEnum.每日参与一次宠物赛跑 || taskType == petTaskEnum.全部) {
+                        if (!!raceData && raceData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
+                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=race`;
+                            await fetch(getFoodUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then((getFoodJson) => {
+                                    if (getFoodJson.success) {
+                                        if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 每日参与一次宠物赛跑领取成功！`, false);
+                                        }
+                                        else {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} ${raceData.errorMessage || "每日参与一次宠物赛跑已领取或已领满！"}`, false);
+                                        }
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, getFoodJson);
+                                        Utils.outPutLog(this.outputTextarea, `【每日参与一次宠物赛跑请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                })
+                                .catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~每日参与一次宠物赛跑异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
+                    }
                     if (taskType == petTaskEnum.每日三餐 || taskType == petTaskEnum.全部) {
                         if (!!threeMealsData && threeMealsData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
                             let joinedCount = +threeMealsData.joinedCount,
@@ -1284,15 +1401,14 @@ export default class JdJoy implements Game {
                                 if (!scanMarketListData.status) {
                                     //let linkUrl = scanMarketListData.showDest == "h5" ? scanMarketListData.marketLinkH5 : scanMarketListData.marketLink;
                                     taskTimeoutArray.push(setTimeout(() => {
-                                        let postData = `{"marketLink":${JSON.stringify(scanMarketListData.marketLinkH5)},"taskType":"${petTaskEnum.逛会场}","reqSource":"h5"}`;
-                                        const scanUrl = `https://jdjoy.jd.com/pet/scan`;
+                                        let postData = `{"marketLink":${JSON.stringify(scanMarketListData.marketLinkH5)},"taskType":"${petTaskEnum.逛会场}"}`;
+                                        const scanUrl = `https://jdjoy.jd.com/pet/scan?reqSource=h5`;
                                         fetch(scanUrl, {
                                             method: "POST",
                                             mode: "cors",
                                             credentials: "include",
                                             headers: {
-                                                "Content-Type": "application/json",
-                                                "reqSource": "h5"
+                                                "Content-Type": "application/json"
                                             },
                                             body: postData
                                         })
@@ -1638,7 +1754,7 @@ export default class JdJoy implements Game {
                             .then(async (enterFriendRoomJson) => {
                                 if (enterFriendRoomJson.success) {
                                     if (helpType == petHelpEnum.帮助喂养 || helpType == petHelpEnum.全部) {
-                                        if (currentFriend.status == petFriendsStatusEnum.notfeed) {
+                                        if (enterFriendRoomJson.data.helpFeedStatus == petFriendsStatusEnum.notfeed) {
                                             const helpFeedUrl = `https://jdjoy.jd.com/pet/helpFeed?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
                                             await fetch(helpFeedUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
@@ -2257,5 +2373,10 @@ export default class JdJoy implements Game {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
                 return "";
             });
+    }
+    //获取cookie
+    getCookie(key: string): string {
+        var t, r = new RegExp("(^| )" + key + "=([^;]*)(;|$)");
+        return (t = document.cookie.match(r)) ? unescape(t[2]) : ""
     }
 }

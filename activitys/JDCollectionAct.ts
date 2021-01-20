@@ -1032,7 +1032,7 @@ export default class jdCollectionAct implements Activity {
             },
             body: `functionId=${actNick}myShop&body={}&client=wh5&clientVersion=1.0.0&uuid=${uuid}`
         })
-            .then(function (res) { return res.json(); })
+            .then(function (res) { /*return res.json();*/ return { code: -1} })
             .catch((error) => {
                 Utils.debugInfo(consoleEnum.error, 'request failed', error);
                 Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~获取营业版图信息异常，请刷新后重新尝试或联系作者！】`, false);
@@ -1065,12 +1065,12 @@ export default class jdCollectionAct implements Activity {
                     case cakeBakerTaskEnum.浏览会场:
                         viewVenue = getTaskDetailJson.data.result.taskVos[i];
                         break;
-                    //case cakeBakerTaskEnum.逛金融主会场:
-                    //    shoppingFinance = getTaskDetailJson.data.result.taskVos[i];
-                    //    break;
-                    //case cakeBakerTaskEnum.逛品牌庆生:
-                    //    shoppingBrandBirthday = getTaskDetailJson.data.result.taskVos[i];
-                    //    break;
+                    case cakeBakerTaskEnum.逛金融主会场:
+                        shoppingFinance = getTaskDetailJson.data.result.taskVos[i];
+                        break;
+                    case cakeBakerTaskEnum.逛品牌庆生:
+                        shoppingBrandBirthday = getTaskDetailJson.data.result.taskVos[i];
+                        break;
                     case cakeBakerTaskEnum.逛预售会场:
                         shoppingCampusVenue = getTaskDetailJson.data.result.taskVos[i];
                         break;
@@ -1177,8 +1177,8 @@ export default class jdCollectionAct implements Activity {
             }
         }
         else {
-            Utils.debugInfo(consoleEnum.log, getStallMyShopJson);
-            Utils.outPutLog(this.outputTextarea, `${nick}【获取营业任务信息3请求失败，请手动刷新或联系作者！】`, false);
+            //Utils.debugInfo(consoleEnum.log, getStallMyShopJson);
+            //Utils.outPutLog(this.outputTextarea, `${nick}【获取营业任务信息3请求失败，请手动刷新或联系作者！】`, false);
         }
         //完成任务1
         if (taskType == cakeBakerTaskEnum.小精灵 || taskType == cakeBakerTaskEnum.全部) {
@@ -1635,38 +1635,46 @@ export default class jdCollectionAct implements Activity {
                                 .then(function (res) { return res.json(); })
                                 .then((cakebakerckCollectScoreJson) => {
                                     if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
-                                        setTimeout(() => {
-                                            postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${shoppingFinance.shoppingActivityVos[j].taskToken}%22%7D&appid=publicUseApi`;
-                                            fetch(`${this.rootURI}tc_doTask_mongo`, {
-                                                method: "POST",
-                                                mode: "cors",
-                                                credentials: "include",
-                                                headers: {
-                                                    "Content-Type": "application/x-www-form-urlencoded"
-                                                },
-                                                body: postData
-                                            })
-                                                .then(function (res) { return res.json(); })
-                                                .then((tcdoTaskmongoJson) => {
-                                                    if ((tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") && tcdoTaskmongoJson.data.success) {
-                                                        joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】营业逛金融主会场成功！`, false);
-                                                    }
-                                                    else {
-                                                        Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
-                                                        Utils.outPutLog(this.outputTextarea, `${nick}【营业逛金融主会场请求失败，请手动刷新或联系作者！】`, false);
-                                                    }
-                                                })
-                                                .catch((error) => {
-                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业逛金融主会场请求异常，请刷新后重新尝试或联系作者！】`, false);
-                                                });
-                                        }, Utils.random(9000, 10000));
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】逛金融主会场成功！`, false);
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【营业逛金融主会场领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【逛金融主会场请求失败，请手动刷新或联系作者！】`, false);
                                     }
+                                    //if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
+                                    //    setTimeout(() => {
+                                    //        postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${shoppingFinance.shoppingActivityVos[j].taskToken}%22%7D&appid=publicUseApi`;
+                                    //        fetch(`${this.rootURI}tc_doTask_mongo`, {
+                                    //            method: "POST",
+                                    //            mode: "cors",
+                                    //            credentials: "include",
+                                    //            headers: {
+                                    //                "Content-Type": "application/x-www-form-urlencoded"
+                                    //            },
+                                    //            body: postData
+                                    //        })
+                                    //            .then(function (res) { return res.json(); })
+                                    //            .then((tcdoTaskmongoJson) => {
+                                    //                if ((tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") && tcdoTaskmongoJson.data.success) {
+                                    //                    joinedCount++;
+                                    //                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】营业逛金融主会场成功！`, false);
+                                    //                }
+                                    //                else {
+                                    //                    Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
+                                    //                    Utils.outPutLog(this.outputTextarea, `${nick}【营业逛金融主会场请求失败，请手动刷新或联系作者！】`, false);
+                                    //                }
+                                    //            })
+                                    //            .catch((error) => {
+                                    //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    //                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业逛金融主会场请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                    //            });
+                                    //    }, Utils.random(9000, 10000));
+                                    //}
+                                    //else {
+                                    //    Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
+                                    //    Utils.outPutLog(this.outputTextarea, `${nick}【营业逛金融主会场领取失败，请手动刷新或联系作者！】`, false);
+                                    //}
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);
@@ -1685,7 +1693,7 @@ export default class jdCollectionAct implements Activity {
                 for (let j = 0; j < shoppingBrandBirthday.shoppingActivityVos.length; j++) {
                     if (shoppingBrandBirthday.shoppingActivityVos[j].status == 1 && joinedCount < taskChance) {
                         cakeBakerTimeoutArray.push(setTimeout(async () => {
-                            let postData = `&body={\"taskId\":${shoppingBrandBirthday.taskId},\"itemId\":\"${shoppingBrandBirthday.shoppingActivityVos[j].advId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.逛品牌庆生.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
+                            let postData = `&body={\"taskId\":${shoppingBrandBirthday.taskId},\"itemId\":\"${shoppingBrandBirthday.shoppingActivityVos[j].itemId}\",\"ss\":\"${await (await this.getSafeStr(secretp, cakeBakerTaskEnum.逛品牌庆生.toString())).toString()}\",\"actionType\":1}&client=wh5&clientVersion=1.0.0`;
                             fetch(`${this.rootURI}${actNick}collectScore${postData}`, {
                                 method: "POST",
                                 mode: "cors",
@@ -1697,38 +1705,46 @@ export default class jdCollectionAct implements Activity {
                                 .then(function (res) { return res.json(); })
                                 .then((cakebakerckCollectScoreJson) => {
                                     if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
-                                        setTimeout(() => {
-                                            postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${shoppingBrandBirthday.shoppingActivityVos[j].taskToken}%22%7D&appid=publicUseApi`;
-                                            fetch(`${this.rootURI}tc_doTask_mongo`, {
-                                                method: "POST",
-                                                mode: "cors",
-                                                credentials: "include",
-                                                headers: {
-                                                    "Content-Type": "application/x-www-form-urlencoded"
-                                                },
-                                                body: postData
-                                            })
-                                                .then(function (res) { return res.json(); })
-                                                .then((tcdoTaskmongoJson) => {
-                                                    if ((tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") && tcdoTaskmongoJson.data.success) {
-                                                        joinedCount++;
-                                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】营业逛品牌庆生成功！`, false);
-                                                    }
-                                                    else {
-                                                        Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
-                                                        Utils.outPutLog(this.outputTextarea, `${nick}【营业逛品牌庆生请求失败，请手动刷新或联系作者！】`, false);
-                                                    }
-                                                })
-                                                .catch((error) => {
-                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                    Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业逛品牌庆生请求异常，请刷新后重新尝试或联系作者！】`, false);
-                                                });
-                                        }, Utils.random(9000, 10000));
+                                        joinedCount++;
+                                        Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】营业逛品牌庆生成功！`, false);
                                     }
                                     else {
                                         Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
-                                        Utils.outPutLog(this.outputTextarea, `${nick}【营业逛品牌庆生领取失败，请手动刷新或联系作者！】`, false);
+                                        Utils.outPutLog(this.outputTextarea, `${nick}【营业逛品牌庆生请求失败，请手动刷新或联系作者！】`, false);
                                     }
+                                    //if ((cakebakerckCollectScoreJson.code == 0 || cakebakerckCollectScoreJson.msg == "调用成功") && cakebakerckCollectScoreJson.data.success) {
+                                    //    setTimeout(() => {
+                                    //        postData = `adid=719BE990-0425-4C06-984C-AF6E27C1111E&area=2_2826_51941_0&body=%7B%22taskToken%22%3A%22${shoppingBrandBirthday.shoppingActivityVos[j].taskToken}%22%7D&appid=publicUseApi`;
+                                    //        fetch(`${this.rootURI}tc_doTask_mongo`, {
+                                    //            method: "POST",
+                                    //            mode: "cors",
+                                    //            credentials: "include",
+                                    //            headers: {
+                                    //                "Content-Type": "application/x-www-form-urlencoded"
+                                    //            },
+                                    //            body: postData
+                                    //        })
+                                    //            .then(function (res) { return res.json(); })
+                                    //            .then((tcdoTaskmongoJson) => {
+                                    //                if ((tcdoTaskmongoJson.code == 0 || tcdoTaskmongoJson.msg == "调用成功") && tcdoTaskmongoJson.data.success) {
+                                    //                    joinedCount++;
+                                    //                    Utils.outPutLog(this.outputTextarea, `${new Date().toLocaleString()} ${nick}【${joinedCount}/${taskChance}】营业逛品牌庆生成功！`, false);
+                                    //                }
+                                    //                else {
+                                    //                    Utils.debugInfo(consoleEnum.log, tcdoTaskmongoJson);
+                                    //                    Utils.outPutLog(this.outputTextarea, `${nick}【营业逛品牌庆生请求失败，请手动刷新或联系作者！】`, false);
+                                    //                }
+                                    //            })
+                                    //            .catch((error) => {
+                                    //                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    //                Utils.outPutLog(this.outputTextarea, `${nick}【哎呀~营业逛品牌庆生请求异常，请刷新后重新尝试或联系作者！】`, false);
+                                    //            });
+                                    //    }, Utils.random(9000, 10000));
+                                    //}
+                                    //else {
+                                    //    Utils.debugInfo(consoleEnum.log, cakebakerckCollectScoreJson);
+                                    //    Utils.outPutLog(this.outputTextarea, `${nick}【营业逛品牌庆生领取失败，请手动刷新或联系作者！】`, false);
+                                    //}
                                 })
                                 .catch((error) => {
                                     Utils.debugInfo(consoleEnum.error, 'request failed', error);

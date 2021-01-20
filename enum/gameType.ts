@@ -37,6 +37,10 @@ export enum petButtonEnum {
 
 export enum petTaskEnum {
     "全部" = "All",
+    "每日参与一次兑换" = "exchange",
+    "每日帮好友喂一次狗粮" = "HelpFeed",
+    "每日喂狗粮" = "FeedEveryDay",
+    "每日参与一次宠物赛跑" = "race",
     "每日三餐" = "ThreeMeals",
     "邀请用户" = "InviteUser",
     "浏览频道" = "FollowChannel",

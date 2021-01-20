@@ -87,7 +87,7 @@ function buildOperate() {
     operateAreaDiv.setAttribute("style", "border: 1px solid #000;margin: 10px 0;line-height: 1.6;");
     operateAreaDiv.innerHTML = "<h3 style='border-bottom: 1px solid #2196F3;display: inline-block;margin: 5px;'>操作区</h3>";
     if (coupon || seckill) {
-        //buildTimerControl();
+        buildTimerControl();
     }
     loginMsgDiv.innerHTML = "当前京东帐号：<a href='https://plogin.m.jd.com/login/login' target='_blank'>点击登录</a>";
     operateAreaDiv.append(loginMsgDiv);
@@ -579,6 +579,10 @@ function getEntryType(): couponType | activityType | goodsType | gameType {
         } else if (Config.locationHref.includes("WgmkHMiiV1JUtcrZAUZTbL3hQss")) {
             type = activityType.rubiksCube;
         }
+        //宠汪汪
+        else if (Config.locationHref.includes("2wuqXrZrhygTQzYA7VufBEpj4amH")) {
+            type = gameType.jdjoy;
+        }
     }
     if (Config.locationHref.includes("wbbny.m.jd.com")) {
         //if (Config.locationHref.includes("4SJUHwGdUQYgg94PFzjZZbGZRjDd")) {
@@ -600,9 +604,9 @@ function getEntryType(): couponType | activityType | goodsType | gameType {
         }
     }
 
-    if (Config.locationHref.includes("jdjoy")) {
-        type = gameType.jdjoy;
-    }
+    //if (Config.locationHref.includes("jdjoy")) {
+    //    type = gameType.jdjoy;
+    //}
     return type;
 }
 
@@ -713,8 +717,8 @@ function getEntryDesc(type: couponType | activityType | goodsType | gameType) {
         Utils.createJsonp(`${Config.JDUserInfoURL}&callback=getLoginMsg`);
     }
     if (coupon) {
-        //Config.intervalId = window.setInterval(getTime, Config.intervalSpan);
-        //coupon.get();
+        Config.intervalId = window.setInterval(getTime, Config.intervalSpan);
+        coupon.get();
     } else if (activity) {
         // buildActivity();
         Utils.loadCss("https://meyerweb.com/eric/tools/css/reset/reset200802.css");
@@ -788,11 +792,12 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:smileyxy', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.7.4】：修复宠汪汪自动换豆及部分任务；新增宠汪汪及年兽新任务', 'color:#009a61');
         console.log('%c【0.7.3】：新增年兽活动', 'color:#009a61');
         console.log('%c【0.7.2】：修复宠汪汪逛会场任务失效', 'color:#009a61');
         console.log('%c【0.7.1】：修复宠汪汪信息获取失败', 'color:#009a61');
         console.log('%c【0.7.0】：优化宠汪汪自动换豆', 'color:#009a61');
-        console.log('%c【0.6.9】：更新宠汪汪自动换豆', 'color:#009a61');
+        //console.log('%c【0.6.9】：更新宠汪汪自动换豆', 'color:#009a61');
         //console.log('%c【0.6.8】：修复全民营业抽奖、修复热爱时光机采集能量任务', 'color:#009a61');
         //console.log('%c【0.6.7】：修复全民营业活动、优化热爱时光机', 'color:#009a61');
         //console.log('%c【0.6.6】：新增热爱时光机签到和游戏任务', 'color:#009a61');
