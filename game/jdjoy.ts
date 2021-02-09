@@ -414,7 +414,7 @@ export default class JdJoy implements Game {
         //自动换豆
         const autoBean = _$('.autoBean');
         autoBean!.addEventListener('click', () => {
-            this.getJDTime().then((currentJDTime) => {
+            this.getJDTime().then(async(currentJDTime) => {
                 let autoBeanTimeout = 0;
                 let currentJDDate = new Date(+currentJDTime);
                 if (autoBean.innerHTML == petButtonEnum.autoBeanStart) {
@@ -423,9 +423,9 @@ export default class JdJoy implements Game {
 
                     let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000;
                     autoBeanTimeout = setTimeout(async () => {
-                        this.newExchange(new Date(+await this.getJDTime()));
+                        this.newExchange(new Date(+await this.getJDTime()), +await this.getJDTime());
                         beanInterval = setInterval(async () => {
-                            this.newExchange(new Date(+await this.getJDTime()));
+                            this.newExchange(new Date(+await this.getJDTime()), +await this.getJDTime());
                         }, defaultBeanDetection);
                     }, firstSpan);
                 }
@@ -926,8 +926,10 @@ export default class JdJoy implements Game {
             });
     }
     //兑换（新）
-    async newExchange(nowJDDate: any): Promise<void> {
-        const getHomeInfoUrl = 'https://jdjoy.jd.com/gift/getHomeInfo?reqSource=h5';
+    async newExchange(nowJDDate: any, timestamp: any): Promise<void> {
+        const keyCode = "98c14c997fde50cc18bdefecfd48ceb7";
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
+        const getHomeInfoUrl = `https://jdjoy.jd.com/common/gift/getHomeInfo?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
         await fetch(getHomeInfoUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then(async (getHomeInfoJson) => {
@@ -946,8 +948,8 @@ export default class JdJoy implements Game {
                             }
                             sortGift.map(async (exchangeItem: any) => {
                                 //"deviceInfo":{"eid":"","fp":"","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":""}
-                                let postData = `{"buyParam":{"orderSource": "pet", "saleInfoId":${exchangeItem.id}},"deviceInfo":{}}`;
-                                const petExchangeUrl = `https://jdjoy.jd.com/gift/new/exchange?reqSource=h5`;
+                                let postData = `{"buyParam":{"orderSource": "pet", "saleInfoId":${exchangeItem.id}},"deviceInfo":{"eid":"${this.getCookie("equipmentId")}","fp":"${this.getCookie("fingerprint")}","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":"jdd016QKQBJDJCDFKMHHR63H7V4BLI7GFTVCK4NAKN7LUNVR6VN3GMZZXSLNEHVU65VVHN2JTXUAOMML4NVZWF5BZ4DWPYADOQBTRGB4GKGY01234567"}}}`;
+                                const petExchangeUrl = `https://jdjoy.jd.com/common/gift/new/exchange?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
                                 await fetch(petExchangeUrl, {
                                     method: "POST",
                                     mode: "cors",
@@ -1490,112 +1492,112 @@ export default class JdJoy implements Game {
                         }
                     }
                     if (taskType == petTaskEnum.邀请用户 || taskType == petTaskEnum.全部) {
-                        //if (!!inviteUserData && inviteUserData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
-                        //    //领取狗粮
-                        //    const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=InviteUser`;
-                        //    await fetch(getFoodUrl, { credentials: "include" })
-                        //        .then((res) => { return res.json() })
-                        //        .then((getFoodJson) => {
-                        //            if (getFoodJson.success) {
-                        //                if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
-                        //                    Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 成功领取${getFoodJson.data}g助力狗粮！`, false);
-                        //                }
-                        //                else {
-                        //                    Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 没有可以领取的助力狗粮了！`, false);
-                        //                }
-                        //            }
-                        //            else {
-                        //                Utils.debugInfo(consoleEnum.log, getFoodJson);
-                        //                Utils.outPutLog(this.outputTextarea, `【领取助力狗粮请求失败，请手动刷新或联系作者！】`, false);
-                        //            }
-                        //        }).catch((error) => {
-                        //            Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                        //            Utils.outPutLog(this.outputTextarea, `【哎呀~领取助力狗粮异常，请刷新后重新尝试或联系作者！】`, false);
-                        //        });
-                        //}
+                        if (!!inviteUserData && inviteUserData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
+                            //领取狗粮
+                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=InviteUser`;
+                            await fetch(getFoodUrl, { credentials: "include" })
+                                .then((res) => { return res.json() })
+                                .then((getFoodJson) => {
+                                    if (getFoodJson.success) {
+                                        if (getFoodJson.errorCode == petTaskErrorCodeEnum.received) {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 成功领取${getFoodJson.data}g助力狗粮！`, false);
+                                        }
+                                        else {
+                                            Utils.outPutLog(this.outputTextarea, `${new Date(+getFoodJson.currentTime).toLocaleString()} 没有可以领取的助力狗粮了！`, false);
+                                        }
+                                    }
+                                    else {
+                                        Utils.debugInfo(consoleEnum.log, getFoodJson);
+                                        Utils.outPutLog(this.outputTextarea, `【领取助力狗粮请求失败，请手动刷新或联系作者！】`, false);
+                                    }
+                                }).catch((error) => {
+                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                    Utils.outPutLog(this.outputTextarea, `【哎呀~领取助力狗粮异常，请刷新后重新尝试或联系作者！】`, false);
+                                });
+                        }
 
-                        //let getData = `?where=${encodeURIComponent(`{ "pin": "${petPin}" }`)}`;
-                        //await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime) })
-                        //    .then((res) => { return res.json() })
-                        //    .then((getCurrentUserJson) => {
-                        //        if (!!getCurrentUserJson.results) {
-                        //            if (getCurrentUserJson.results.length > 0) {
-                        //                let currentUserData = getCurrentUserJson.results[0];
-                        //                if (currentUserData.isBlock) {
-                        //                    Utils.outPutLog(this.outputTextarea, `【哎呀~做坏事被列入黑名单了，永久失去互助资格！】`, false);
-                        //                }
-                        //                else if (currentUserData.helpStatus) {
-                        //                    //助力
-                        //                    this.helpFriend(hPetTaskConfigJson.currentTime);
-                        //                }
-                        //                else {
-                        //                    //更新
-                        //                    if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("是否再次开启【邀请用户】功能？")) {
-                        //                        helpConfirmStatus = petHelpConfirmEnum.已确认;
-                        //                        let putData = `{ "helpStatus": true }`;
-                        //                        fetch(`${Config.BmobHost + Config.BmobUserInfoUrl}/${currentUserData.objectId}`, {
-                        //                            method: "PUT",
-                        //                            headers: Utils.getHeaders(`${Config.BmobUserInfoUrl}/${currentUserData.objectId}`, hPetTaskConfigJson.currentTime),
-                        //                            body: putData
-                        //                        }).then((res) => { return res.json() })
-                        //                            .then((updateCurrentUserJson) => {
-                        //                                if (!!updateCurrentUserJson.updatedAt) {
-                        //                                    //助力
-                        //                                    this.helpFriend(hPetTaskConfigJson.currentTime);
-                        //                                }
-                        //                                else {
-                        //                                    Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
-                        //                                    Utils.outPutLog(this.outputTextarea, `【再次开启互助功能失败，请手动刷新或联系作者！】`, false);
-                        //                                }
-                        //                            }).catch((error) => {
-                        //                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                        //                                Utils.outPutLog(this.outputTextarea, `【哎呀~再次开启互助功能异常，请刷新后重新尝试或联系作者！】`, false);
-                        //                            });
-                        //                    }
-                        //                    else {
-                        //                        helpConfirmStatus = petHelpConfirmEnum.已取消;
-                        //                        Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
-                        //                    }
-                        //                }
-                        //            }
-                        //            else {
-                        //                //新增
-                        //                if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("确定后将记录您的PIN码并开启【邀请用户】功能，取消则不记录您的PIN码并暂停【邀请用户】功能。")) {
-                        //                    helpConfirmStatus = petHelpConfirmEnum.已确认;
-                        //                    let postData = `{ "pin": "${petPin}", "helpStatus": true }`;
-                        //                    fetch(Config.BmobHost + Config.BmobUserInfoUrl, {
-                        //                        method: "POST",
-                        //                        headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime),
-                        //                        body: postData
-                        //                    }).then((res) => { return res.json() })
-                        //                        .then((addCurrentUserJson) => {
-                        //                            if (!!addCurrentUserJson.objectId) {
-                        //                                //助力
-                        //                                this.helpFriend(hPetTaskConfigJson.currentTime);
-                        //                            }
-                        //                            else {
-                        //                                Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
-                        //                                Utils.outPutLog(this.outputTextarea, `【记录用户请求失败，请手动刷新或联系作者！】`, false);
-                        //                            }
-                        //                        }).catch((error) => {
-                        //                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                        //                            Utils.outPutLog(this.outputTextarea, `【哎呀~记录用户异常，请刷新后重新尝试或联系作者！】`, false);
-                        //                        });
-                        //                }
-                        //                else {
-                        //                    helpConfirmStatus = petHelpConfirmEnum.已取消;
-                        //                    Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
-                        //                }
-                        //            }
-                        //        }
-                        //        else {
-                        //            Utils.debugInfo(consoleEnum.log, getCurrentUserJson);
-                        //            Utils.outPutLog(this.outputTextarea, `【获取当前用户信息记录请求失败，请手动刷新或联系作者！】`, false);
-                        //        }
-                        //    }).catch((error) => {
-                        //        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                        //        Utils.outPutLog(this.outputTextarea, `【哎呀~获取当前用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
-                        //    });
+                        let getData = `?where=${encodeURIComponent(`{ "pin": "${petPin}" }`)}`;
+                        await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime) })
+                            .then((res) => { return res.json() })
+                            .then((getCurrentUserJson) => {
+                                if (!!getCurrentUserJson.results) {
+                                    if (getCurrentUserJson.results.length > 0) {
+                                        let currentUserData = getCurrentUserJson.results[0];
+                                        if (currentUserData.isBlock) {
+                                            Utils.outPutLog(this.outputTextarea, `【哎呀~做坏事被列入黑名单了，永久失去互助资格！】`, false);
+                                        }
+                                        else if (currentUserData.helpStatus) {
+                                            //助力
+                                            this.helpFriend(hPetTaskConfigJson.currentTime);
+                                        }
+                                        else {
+                                            //更新
+                                            if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("是否再次开启【邀请用户】功能？")) {
+                                                helpConfirmStatus = petHelpConfirmEnum.已确认;
+                                                let putData = `{ "helpStatus": true }`;
+                                                fetch(`${Config.BmobHost + Config.BmobUserInfoUrl}/${currentUserData.objectId}`, {
+                                                    method: "PUT",
+                                                    headers: Utils.getHeaders(`${Config.BmobUserInfoUrl}/${currentUserData.objectId}`, hPetTaskConfigJson.currentTime),
+                                                    body: putData
+                                                }).then((res) => { return res.json() })
+                                                    .then((updateCurrentUserJson) => {
+                                                        if (!!updateCurrentUserJson.updatedAt) {
+                                                            //助力
+                                                            this.helpFriend(hPetTaskConfigJson.currentTime);
+                                                        }
+                                                        else {
+                                                            Utils.debugInfo(consoleEnum.log, updateCurrentUserJson);
+                                                            Utils.outPutLog(this.outputTextarea, `【再次开启互助功能失败，请手动刷新或联系作者！】`, false);
+                                                        }
+                                                    }).catch((error) => {
+                                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                        Utils.outPutLog(this.outputTextarea, `【哎呀~再次开启互助功能异常，请刷新后重新尝试或联系作者！】`, false);
+                                                    });
+                                            }
+                                            else {
+                                                helpConfirmStatus = petHelpConfirmEnum.已取消;
+                                                Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        //新增
+                                        if (helpConfirmStatus == petHelpConfirmEnum.待确认 && confirm("确定后将记录您的PIN码并开启【邀请用户】功能，取消则不记录您的PIN码并暂停【邀请用户】功能。")) {
+                                            helpConfirmStatus = petHelpConfirmEnum.已确认;
+                                            let postData = `{ "pin": "${petPin}", "helpStatus": true }`;
+                                            fetch(Config.BmobHost + Config.BmobUserInfoUrl, {
+                                                method: "POST",
+                                                headers: Utils.getHeaders(Config.BmobUserInfoUrl, hPetTaskConfigJson.currentTime),
+                                                body: postData
+                                            }).then((res) => { return res.json() })
+                                                .then((addCurrentUserJson) => {
+                                                    if (!!addCurrentUserJson.objectId) {
+                                                        //助力
+                                                        this.helpFriend(hPetTaskConfigJson.currentTime);
+                                                    }
+                                                    else {
+                                                        Utils.debugInfo(consoleEnum.log, addCurrentUserJson);
+                                                        Utils.outPutLog(this.outputTextarea, `【记录用户请求失败，请手动刷新或联系作者！】`, false);
+                                                    }
+                                                }).catch((error) => {
+                                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                                    Utils.outPutLog(this.outputTextarea, `【哎呀~记录用户异常，请刷新后重新尝试或联系作者！】`, false);
+                                                });
+                                        }
+                                        else {
+                                            helpConfirmStatus = petHelpConfirmEnum.已取消;
+                                            Utils.outPutLog(this.outputTextarea, `【您已主动取消互助功能！】`, false);
+                                        }
+                                    }
+                                }
+                                else {
+                                    Utils.debugInfo(consoleEnum.log, getCurrentUserJson);
+                                    Utils.outPutLog(this.outputTextarea, `【获取当前用户信息记录请求失败，请手动刷新或联系作者！】`, false);
+                                }
+                            }).catch((error) => {
+                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取当前用户信息记录异常，请刷新后重新尝试或联系作者！】`, false);
+                            });
                     }
                 }
                 else {
@@ -2156,14 +2158,22 @@ export default class JdJoy implements Game {
                 if (!!getOtherUserJson.results && getOtherUserJson.results.length > 0) {
                     getOtherUserJson.results.forEach(async (item: any) => {
                         if (item.helpStatus && !item.isBlock) {
-                            const enterRoomUrl = `https://jdjoy.jd.com/pet/enterRoom?reqSource=weapp&invitePin=${item.pin}&inviteSource=task_invite&shareSource=h5&inviteTimeStamp=${await (await this.getJDTime()).toString()}&openId=`;
-                            await fetch(enterRoomUrl, { credentials: "include" })
+                            const enterRoomUrl = `https://jdjoy.jd.com/pet/enterRoom/h5?invitePin=${item.pin}&inviteSource=task_invite&shareSource=h5&inviteTimeStamp=${await (await this.getJDTime()).toString()}&reqSource=weapp`;
+                            await fetch(enterRoomUrl, {
+                                method: "POST",
+                                mode: "cors",
+                                credentials: "include",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: "{}"
+                            })
                                 .then((res) => { return res.json() })
                                 .then(async (enterRoomJson) => {
                                     if (enterRoomJson.success) {
                                         if (enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.canHelp || enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.cardExpire) {
                                             //const addUserUrl = `https://draw.jdfcloud.com//api/user/addUser?code=081zHm7A0JqZZb1kxm5A0cbn7A0zHm7M&source=UNKNOWN&type=&appId=wxccb5c536b0ecd1bf`;
-                                            const helpFriendUrl = `https://jdjoy.jd.com/pet/helpFriend?friendPin=${item.pin}`;
+                                            const helpFriendUrl = `https://jdjoy.jd.com/pet/helpFriend?friendPin=${item.pin}&reqSource=weapp`;
                                             await fetch(helpFriendUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
                                                 .then(async (helpFriendJson) => {
