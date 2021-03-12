@@ -52,9 +52,12 @@ const defaultBeanDetection: number = 3600000, //1小时
     defaultHelpDetection: number = 14400000, //4小时
     defaultCombatTiming: string = '19:00',
     defaultCombatDetection: number = 3600000; //1小时
+const keyCode = "98c14c997fde50cc18bdefecfd48ceb7",
+    utf8KeyCode = Utils.utf8Parse(keyCode),
+    utf8IV = Utils.utf8Parse("ea653f4f3c5eda12");
 
 export default class JdJoy implements Game {
-    //url: string = "https://api.m.jd.com/client.action";
+    petUrl: string = "https://jdjoy.jd.com/common";
     params: any;
     data: any;
     container: HTMLDivElement;
@@ -86,7 +89,7 @@ export default class JdJoy implements Game {
     vaild(): Promise<boolean> {
         //验证用户登录状态及宠物领养状态
         let isValid = false;
-        const userBasicInfoUrl = 'https://jdjoy.jd.com/pet/getUserBasicInfo';
+        const userBasicInfoUrl = `${this.petUrl}/pet/getUserBasicInfo`;
         return fetch(userBasicInfoUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then((userBasicInfoJson) => {
@@ -423,9 +426,9 @@ export default class JdJoy implements Game {
 
                     let firstSpan = defaultBeanDetection - currentJDDate.getMinutes() * 60000;
                     autoBeanTimeout = setTimeout(async () => {
-                        this.newExchange(new Date(+await this.getJDTime()), +await this.getJDTime());
+                        this.exchange(new Date(+await this.getJDTime()), +await this.getJDTime());
                         beanInterval = setInterval(async () => {
-                            this.newExchange(new Date(+await this.getJDTime()), +await this.getJDTime());
+                            this.exchange(new Date(+await this.getJDTime()), +await this.getJDTime());
                         }, defaultBeanDetection);
                     }, firstSpan);
                 }
@@ -738,6 +741,8 @@ export default class JdJoy implements Game {
     }
 
     async info(tipsShow: boolean = true): Promise<void> {
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
         let isGetAllInfo = true,
             petLevel = document.getElementById('petLevel'),
             petCoin = document.getElementById('petCoin'),
@@ -759,7 +764,7 @@ export default class JdJoy implements Game {
             = nextFeedTime!.innerText
             = "-";
         //获取宠汪汪首页信息
-        const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom/h5?reqSource=h5&invitePin=';
+        const enterRoomUrl = `${this.petUrl}/pet/enterRoom/h5?reqSource=h5&invitePin=&lks=${lks}&lkt=${timestamp}`;
         await fetch(enterRoomUrl, {
             method: "POST",
             mode: "cors",
@@ -802,7 +807,7 @@ export default class JdJoy implements Game {
             pages = -1;
         //allFriends.splice(0); //清空好友
         while (pages == -1 || currentPage <= pages) {
-            const getFriendsUrl = `https://jdjoy.jd.com/pet/getFriends?itemsPerPage=20&currentPage=${currentPage}`;
+            const getFriendsUrl = `${this.petUrl}/pet/h5/getFriends?itemsPerPage=20&currentPage=${currentPage}&reqSource=h5&lks=${lks}&lkt=${timestamp}`;
             await fetch(getFriendsUrl, { credentials: "include" })
                 .then((res) => { return res.json() })
                 .then((getFriendsJson) => {
@@ -831,7 +836,7 @@ export default class JdJoy implements Game {
                 });
         }
         //获取今日喂养信息
-        const getTodayFeedInfoUrl = 'https://jdjoy.jd.com/pet/getTodayFeedInfo';
+        const getTodayFeedInfoUrl = `${this.petUrl}/pet/getTodayFeedInfo?lks=${lks}&lkt=${timestamp}`;
         await fetch(getTodayFeedInfoUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then((todayFeedInfoJson) => {
@@ -860,119 +865,58 @@ export default class JdJoy implements Game {
         }
     }
     //兑换
-    async exchange(): Promise<void> {
-        const levelSpan = 5,
-            getExchangeRewardsUrl = 'https://jdjoy.jd.com/pet/getExchangeRewards';
-        await fetch(getExchangeRewardsUrl, { credentials: "include" })
-            .then((res) => { return res.json() })
-            .then(async (getExchangeRewardsJson) => {
-                if (getExchangeRewardsJson.success) {
-                    if (!getExchangeRewardsJson.datas[0].todayExchanged) {
-                        let exchangeReward: any,
-                            totalScore: number = 0;
-                        getExchangeRewardsJson.datas.forEach((dataItem: any) => {
-                            if (dataItem.petLevel >= (dataItem.rewardLevel * levelSpan - levelSpan + 1) && dataItem.petLevel <= (dataItem.rewardLevel * levelSpan)) {
-                                totalScore = dataItem.score;
-                                exchangeReward = dataItem.rewardDetailVOS.find((rewardItem: any) => {
-                                    return rewardItem.rewardType == 3 && rewardItem.rewardName.indexOf('京豆') >= 0 && rewardItem.leftStock > 0
-                                });
-                            }
-                        });
-
-                        if (!!exchangeReward) {
-                            //let exchangeQuantity = Math.floor(totalScore / exchangeReward.petScore);
-                            let exchangeQuantity = Math.floor(totalScore / exchangeReward.petScore) > 0 ? 1 : 0;
-
-                            for (let i = 0; i < exchangeQuantity; i++) {
-                                let postData = `{"id":"${exchangeReward.id}"}`;
-                                const petExchangeUrl = `https://jdjoy.jd.com/pet/exchange`;
-                                await fetch(petExchangeUrl, {
-                                    method: "POST",
-                                    mode: "cors",
-                                    credentials: "include",
-                                    headers: {
-                                        "Content-Type": "application/json"
-                                    },
-                                    body: postData
-                                })
-                                    .then((res) => { return res.json() })
-                                    .then((petExchangeJson) => {
-                                        if (petExchangeJson.success) {
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} 京豆兑换成功！`, false);
-                                        }
-                                        else {
-                                            Utils.debugInfo(consoleEnum.log, petExchangeJson);
-                                            Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
-                                        }
-                                    })
-                                    .catch((error) => {
-                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                        Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
-                                    });
-                            }
-
-                            this.info(false);
-                        }
-                    }
-                }
-                else {
-                    Utils.debugInfo(consoleEnum.log, getExchangeRewardsJson);
-                    Utils.outPutLog(this.outputTextarea, `【获取积分兑换信息失败，请手动刷新或联系作者！】`, false);
-                }
-            })
-            .catch((error) => {
-                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~获取积分兑换信息异常，请手动刷新或联系作者！】`, false);
-            });
-    }
-    //兑换（新）
-    async newExchange(nowJDDate: any, timestamp: any): Promise<void> {
-        const keyCode = "98c14c997fde50cc18bdefecfd48ceb7";
+    async exchange(nowJDDate: any, timestamp: any): Promise<void> {
         let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
-        const getHomeInfoUrl = `https://jdjoy.jd.com/common/gift/getHomeInfo?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
+        const getHomeInfoUrl = `${this.petUrl}/gift/getBeanConfigs?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
         await fetch(getHomeInfoUrl, { credentials: "include" })
             .then((res) => { return res.json() })
-            .then(async (getHomeInfoJson) => {
-                if (getHomeInfoJson.success && getHomeInfoJson.data) {
-                    if (getHomeInfoJson.data.levelSaleInfos && getHomeInfoJson.data.levelSaleInfos.giftSaleInfos) {
+            .then(async (getBeanConfigsJson) => {
+                if (getBeanConfigsJson.success && getBeanConfigsJson.data) {
+                    let giftIndex = Math.floor(nowJDDate.getHours() / 8) * 8;
+                    let currentGiftList = getBeanConfigsJson.data[`beanConfigs${giftIndex}`];
+
+                    if (currentGiftList) {
                         let exchangeGift: any;
 
-                        exchangeGift = getHomeInfoJson.data.levelSaleInfos.giftSaleInfos.filter((giftItem: any) => {
-                            return giftItem.giftType == "jd_bean" && getHomeInfoJson.data.coin >= giftItem.salePrice/* && giftItem.leftStock > 0*/
+                        exchangeGift = currentGiftList.filter((giftItem: any) => {
+                            return giftItem.giftType == "jd_bean"/* && getBeanConfigsJson.data.petCoin >= giftItem.salePrice && giftItem.leftStock > 0*/
                         });
 
-                        if (!!exchangeGift) {
+                        if (exchangeGift) {
                             let sortGift = exchangeGift.sort((a: any, b: any) => { return b.giftValue - a.giftValue });
-                            if (+(nowJDDate.getHours().toString() + nowJDDate.getMinutes().toString()) <= 800) {
+                            if (+(nowJDDate.getHours().toString() + nowJDDate.getMinutes().toString()) <= 1600) {
                                 sortGift = sortGift.slice(0, 1);
                             }
+
                             sortGift.map(async (exchangeItem: any) => {
-                                //"deviceInfo":{"eid":"","fp":"","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":""}
-                                let postData = `{"buyParam":{"orderSource": "pet", "saleInfoId":${exchangeItem.id}},"deviceInfo":{"eid":"${this.getCookie("equipmentId")}","fp":"${this.getCookie("fingerprint")}","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":"jdd016QKQBJDJCDFKMHHR63H7V4BLI7GFTVCK4NAKN7LUNVR6VN3GMZZXSLNEHVU65VVHN2JTXUAOMML4NVZWF5BZ4DWPYADOQBTRGB4GKGY01234567"}}}`;
-                                const petExchangeUrl = `https://jdjoy.jd.com/common/gift/new/exchange?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
-                                await fetch(petExchangeUrl, {
-                                    method: "POST",
-                                    mode: "cors",
-                                    credentials: "include",
-                                    headers: {
-                                        "Content-Type": "application/json"
-                                    },
-                                    body: postData
-                                })
-                                    .then((res) => { return res.json() })
-                                    .then((petExchangeJson) => {
-                                        if (petExchangeJson.success && petExchangeJson.errorCode == "buy_success") {
-                                            Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} ${exchangeItem.giftName}兑换成功！`, false);
-                                        }
-                                        //else {
-                                        //    Utils.debugInfo(consoleEnum.log, petExchangeJson);
-                                        //    Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
-                                        //}
+                                if (getBeanConfigsJson.data.petCoin >= exchangeItem.salePrice) {
+                                    //"deviceInfo":{"eid":"","fp":"","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":""}
+                                    let postData = `{"buyParam":{"orderSource": "pet", "saleInfoId":${exchangeItem.id}},"deviceInfo":{"eid":"${this.getCookie("equipmentId")}","fp":"${this.getCookie("fingerprint")}","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":"jdd016QKQBJDJCDFKMHHR63H7V4BLI7GFTVCK4NAKN7LUNVR6VN3GMZZXSLNEHVU65VVHN2JTXUAOMML4NVZWF5BZ4DWPYADOQBTRGB4GKGY01234567"}}}`;
+                                    const petExchangeUrl = `${this.petUrl}/gift/new/exchange?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
+                                    await fetch(petExchangeUrl, {
+                                        method: "POST",
+                                        mode: "cors",
+                                        credentials: "include",
+                                        headers: {
+                                            "Content-Type": "application/json"
+                                        },
+                                        body: postData
                                     })
-                                    .catch((error) => {
-                                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                        Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
-                                    });
+                                        .then((res) => { return res.json() })
+                                        .then((petExchangeJson) => {
+                                            if (petExchangeJson.success && petExchangeJson.errorCode == "buy_success") {
+                                                Utils.outPutLog(this.outputTextarea, `${new Date(+petExchangeJson.currentTime).toLocaleString()} ${exchangeItem.giftName}兑换成功！`, false);
+                                            }
+                                            //else {
+                                            //    Utils.debugInfo(consoleEnum.log, petExchangeJson);
+                                            //    Utils.outPutLog(this.outputTextarea, `【京豆兑换失败，请手动刷新或联系作者！】`, false);
+                                            //}
+                                        })
+                                        .catch((error) => {
+                                            Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                                            Utils.outPutLog(this.outputTextarea, `【哎呀~京豆兑换异常，请刷新后重新尝试或联系作者！】`, false);
+                                        });
+                                }
                             });
 
                             this.info(false);
@@ -980,7 +924,7 @@ export default class JdJoy implements Game {
                     }
                 }
                 else {
-                    Utils.debugInfo(consoleEnum.log, getHomeInfoJson);
+                    Utils.debugInfo(consoleEnum.log, getBeanConfigsJson);
                     Utils.outPutLog(this.outputTextarea, `【获取积分兑换信息失败，请手动刷新或联系作者！】`, false);
                 }
             })
@@ -991,10 +935,12 @@ export default class JdJoy implements Game {
     }
     //喂养
     async feed(grams: string | number): Promise<void> {
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
         if (grams == feedGramsEnum.smartFeed) {
             grams = this.smartFeedCount();
         }
-        const enterRoomUrl = `https://jdjoy.jd.com/pet/feed?feedCount=${grams}`;
+        const enterRoomUrl = `${this.petUrl}/pet/feed?feedCount=${grams}&lks=${lks}&lkt=${timestamp}`;
         await fetch(enterRoomUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then((feedJson) => {
@@ -1033,8 +979,10 @@ export default class JdJoy implements Game {
     //任务
     async task(taskType: string): Promise<void> {
         let taskTimeout = 0;
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
         //h5
-        const getHPetTaskConfigUrl = `https://jdjoy.jd.com/pet/getPetTaskConfig?reqSource=h5`;
+        const getHPetTaskConfigUrl = `${this.petUrl}/pet/getPetTaskConfig?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
         await fetch(getHPetTaskConfigUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then(async (hPetTaskConfigJson) => {
@@ -1086,7 +1034,7 @@ export default class JdJoy implements Game {
 
                     if (taskType == petTaskEnum.每日参与一次兑换 || taskType == petTaskEnum.全部) {
                         if (!!exchageData && exchageData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
-                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=exchange`;
+                            const getFoodUrl = `${this.petUrl}/pet/getFood?taskType=exchange&lks=${lks}&lkt=${timestamp}`;
                             await fetch(getFoodUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFoodJson) => {
@@ -1111,7 +1059,7 @@ export default class JdJoy implements Game {
                     }
                     if (taskType == petTaskEnum.每日帮好友喂一次狗粮 || taskType == petTaskEnum.全部) {
                         if (!!helpFeedData && helpFeedData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
-                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=HelpFeed`;
+                            const getFoodUrl = `${this.petUrl}/pet/getFood?taskType=HelpFeed&lks=${lks}&lkt=${timestamp}`;
                             await fetch(getFoodUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFoodJson) => {
@@ -1136,7 +1084,7 @@ export default class JdJoy implements Game {
                     }
                     if (taskType == petTaskEnum.每日喂狗粮 || taskType == petTaskEnum.全部) {
                         if (!!everyDayFeedData && everyDayFeedData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
-                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=FeedEveryDay`;
+                            const getFoodUrl = `${this.petUrl}/pet/getFood?taskType=FeedEveryDay&lks=${lks}&lkt=${timestamp}`;
                             await fetch(getFoodUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFoodJson) => {
@@ -1161,7 +1109,7 @@ export default class JdJoy implements Game {
                     }
                     if (taskType == petTaskEnum.每日参与一次宠物赛跑 || taskType == petTaskEnum.全部) {
                         if (!!raceData && raceData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
-                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=race`;
+                            const getFoodUrl = `${this.petUrl}/pet/getFood?taskType=race&lks=${lks}&lkt=${timestamp}`;
                             await fetch(getFoodUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFoodJson) => {
@@ -1188,7 +1136,7 @@ export default class JdJoy implements Game {
                         if (!!threeMealsData && threeMealsData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
                             let joinedCount = +threeMealsData.joinedCount,
                                 taskChance = +threeMealsData.taskChance;
-                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=ThreeMeals`;
+                            const getFoodUrl = `${this.petUrl}/pet/getFood?taskType=ThreeMeals&lks=${lks}&lkt=${timestamp}`;
                             await fetch(getFoodUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFoodJson) => {
@@ -1213,7 +1161,7 @@ export default class JdJoy implements Game {
                     }
                     if (taskType == petTaskEnum.浏览频道 || taskType == petTaskEnum.全部) {
                         if (!!followChannelData && followChannelData.receiveStatus == petTaskReceiveStatusEnum.chanceLeft) {
-                            const getFollowChannelsUrl = `https://jdjoy.jd.com/pet/getFollowChannels`;
+                            const getFollowChannelsUrl = `${this.petUrl}/pet/getFollowChannels?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
                             await fetch(getFollowChannelsUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFollowChannelsJson) => {
@@ -1225,7 +1173,8 @@ export default class JdJoy implements Game {
                                             if (!datas.status) {
                                                 taskTimeoutArray.push(setTimeout(() => {
                                                     let postData = `{"channelId":"${datas.channelId}","taskType":"${petTaskEnum.浏览频道}"}`;
-                                                    const scanUrl = `https://jdjoy.jd.com/pet/scan`;
+                                                    let postlks = `${Utils.md5Encrypt(`${Utils.base64Encode(Utils.aesEncryptCiphertext(this.sortByLetter(postData), utf8KeyCode, utf8IV))}_${keyCode}_${timestamp}`)}`
+                                                    const scanUrl = `${this.petUrl}/pet/scan?reqSource=h5&lks=${postlks}&lkt=${timestamp}`;
                                                     fetch(scanUrl, {
                                                         method: "POST",
                                                         mode: "cors",
@@ -1286,7 +1235,7 @@ export default class JdJoy implements Game {
                                 if (!followGoodListData.status) {
                                     taskTimeoutArray.push(setTimeout(() => {
                                         let postData = `sku=${followGoodListData.sku}`;
-                                        const followGoodUrl = `https://jdjoy.jd.com/pet/followGood`;
+                                        const followGoodUrl = `${this.petUrl}/pet/followGood?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
                                         fetch(followGoodUrl, {
                                             method: "POST",
                                             mode: "cors",
@@ -1330,7 +1279,7 @@ export default class JdJoy implements Game {
                     } 
                     if (taskType == petTaskEnum.关注店铺 || taskType == petTaskEnum.全部) {
                         if (!!followShopData && followShopData.receiveStatus == petTaskReceiveStatusEnum.chanceLeft) {
-                            const getFollowShopsUrl = `https://jdjoy.jd.com/pet/getFollowShops`;
+                            const getFollowShopsUrl = `${this.petUrl}/pet/getFollowShops?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
                             await fetch(getFollowShopsUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFollowShopsJson) => {
@@ -1342,7 +1291,7 @@ export default class JdJoy implements Game {
                                             if (!datas.status) {
                                                 taskTimeoutArray.push(setTimeout(() => {
                                                     let postData = `shopId=${datas.shopId}`;
-                                                    const followShopUrl = `https://jdjoy.jd.com/pet/followShop`;
+                                                    const followShopUrl = `${this.petUrl}/pet/followShop?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
                                                     fetch(followShopUrl, {
                                                         method: "POST",
                                                         mode: "cors",
@@ -1404,7 +1353,8 @@ export default class JdJoy implements Game {
                                     //let linkUrl = scanMarketListData.showDest == "h5" ? scanMarketListData.marketLinkH5 : scanMarketListData.marketLink;
                                     taskTimeoutArray.push(setTimeout(() => {
                                         let postData = `{"marketLink":${JSON.stringify(scanMarketListData.marketLinkH5)},"taskType":"${petTaskEnum.逛会场}"}`;
-                                        const scanUrl = `https://jdjoy.jd.com/pet/scan?reqSource=h5`;
+                                        let postlks = `${Utils.md5Encrypt(`${Utils.base64Encode(Utils.aesEncryptCiphertext(this.sortByLetter(postData), utf8KeyCode, utf8IV))}_${keyCode}_${timestamp}`)}`
+                                        const scanUrl = `${this.petUrl}/pet/scan?reqSource=h5&lks=${postlks}&lkt=${timestamp}`;
                                         fetch(scanUrl, {
                                             method: "POST",
                                             mode: "cors",
@@ -1451,8 +1401,9 @@ export default class JdJoy implements Game {
                             taskChance = 10;
                         for (let j = 0; j < taskChance; j++) {
                             taskTimeoutArray.push(setTimeout(() => {
-                                let postData = `{"taskType":"${petTaskEnum.看激励视频}","reqSource":"h5"}`;
-                                const scanUrl = `https://jdjoy.jd.com/pet/scan`;
+                                let postData = `{"taskType":"${petTaskEnum.看激励视频}"}`;
+                                let postlks = `${Utils.md5Encrypt(`${Utils.base64Encode(Utils.aesEncryptCiphertext(this.sortByLetter(postData), utf8KeyCode, utf8IV))}_${keyCode}_${timestamp}`)}`
+                                const scanUrl = `${this.petUrl}/pet/scan?reqSource=h5&lks=${postlks}&lkt=${timestamp}`;
                                 fetch(scanUrl, {
                                     method: "POST",
                                     mode: "cors",
@@ -1494,7 +1445,7 @@ export default class JdJoy implements Game {
                     if (taskType == petTaskEnum.邀请用户 || taskType == petTaskEnum.全部) {
                         if (!!inviteUserData && inviteUserData.receiveStatus == petTaskReceiveStatusEnum.unReceive) {
                             //领取狗粮
-                            const getFoodUrl = `https://jdjoy.jd.com/pet/getFood?taskType=InviteUser`;
+                            const getFoodUrl = `${this.petUrl}/pet/getFood?taskType=InviteUser&lks=${lks}&lkt=${timestamp}`;
                             await fetch(getFoodUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then((getFoodJson) => {
@@ -1613,8 +1564,10 @@ export default class JdJoy implements Game {
     //活动
     async activity(actType: string): Promise<void> {
         let actTimeout = 0;
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
         if (actType == petActEnum.逛店拿积分 || actType == petActEnum.全部) {
-            const getDeskGoodDetailsUrl = `https://jdjoy.jd.com/pet/getDeskGoodDetails`;
+            const getDeskGoodDetailsUrl = `${this.petUrl}/pet/getDeskGoodDetails?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
             await fetch(getDeskGoodDetailsUrl, { credentials: "include" })
                 .then((res) => { return res.json() })
                 .then((deskGoodDetailsJson) => {
@@ -1627,7 +1580,7 @@ export default class JdJoy implements Game {
                                 if (!deskGoodsData.status && j < taskChance) {
                                     actTimeoutArray.push(setTimeout(() => {
                                         let postData = `{"taskType":"${petActEnum.逛店拿积分}","sku":"${deskGoodsData.sku}"}`;
-                                        const scanUrl = `https://jdjoy.jd.com/pet/scan`;
+                                        const scanUrl = `${this.petUrl}/pet/scan?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
                                         fetch(scanUrl, {
                                             method: "POST",
                                             mode: "cors",
@@ -1680,10 +1633,10 @@ export default class JdJoy implements Game {
                 });
         }
         //if (actType == petActEnum.戳泡泡 || actType == petActEnum.全部) {
-        //    const visitPetIndex = 'https://jdjoy.jd.com/pet/index/';
+        //    const visitPetIndex = `${this.petUrl}/pet/index/`;
         //    fetch(visitPetIndex, { credentials: "include" })
         //        .then((visitPetIndexJson) => {
-        //            const enterRoomUrl = 'https://jdjoy.jd.com/pet/enterRoom?reqSource=h5&invitePin=';
+        //            const enterRoomUrl = `${this.petUrl}/pet/enterRoom?reqSource=h5&invitePin=`;
         //            fetch(enterRoomUrl, { credentials: "include" })
         //                .then((res) => { return res.json() })
         //                .then((enterRoomJson) => {
@@ -1709,7 +1662,7 @@ export default class JdJoy implements Game {
         //}
         //if (actType == petActEnum.聚宝盆终极大奖 || actType == petActEnum.全部) {
         //    if (!investTreasureInterval || investTreasureInterval == 0) {
-        //        const investTreasureUrl = 'https://jdjoy.jd.com/pet/investTreasure';
+        //        const investTreasureUrl = `${this.petUrl}/pet/investTreasure`;
         //        investTreasureInterval = setInterval(() => {
         //            let localeDate = +Utils.formatDate3(new Date().getTime().toString());
         //            if (localeDate >= 5930000 && localeDate <= 10000000) {
@@ -1746,18 +1699,20 @@ export default class JdJoy implements Game {
     async dropAround(helpType: string): Promise<void> {
         let helpTimeout = 0,
             friends = JSON.parse(JSON.stringify(allFriends)); //深拷贝
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
         if (friends.length > 0) {
             friends.forEach((currentFriend: any) => {
                 if (currentFriend.friendPin != petPin) {
                     helpTimeoutArray.push(setTimeout(async () => {
-                        const enterFriendRoomUrl = `https://jdjoy.jd.com/pet/enterFriendRoom?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                        const enterFriendRoomUrl = `${this.petUrl}/pet/enterFriendRoom?friendPin=${encodeURIComponent(currentFriend.friendPin)}&lks=${lks}&lkt=${timestamp}`;
                         await fetch(enterFriendRoomUrl, { credentials: "include" })
                             .then((res) => { return res.json() })
                             .then(async (enterFriendRoomJson) => {
                                 if (enterFriendRoomJson.success) {
                                     if (helpType == petHelpEnum.帮助喂养 || helpType == petHelpEnum.全部) {
                                         if (enterFriendRoomJson.data.helpFeedStatus == petFriendsStatusEnum.notfeed) {
-                                            const helpFeedUrl = `https://jdjoy.jd.com/pet/helpFeed?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                            const helpFeedUrl = `${this.petUrl}/pet/helpFeed?friendPin=${encodeURIComponent(currentFriend.friendPin)}&lks=${lks}&lkt=${timestamp}`;
                                             await fetch(helpFeedUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
                                                 .then((helpFeedJson) => {
@@ -1786,7 +1741,7 @@ export default class JdJoy implements Game {
                                     }
                                     if (helpType == petHelpEnum.偷取狗粮 || helpType == petHelpEnum.全部) {
                                         if (+enterFriendRoomJson.data.stealFood > 0) {
-                                            const getRandomFoodUrl = `https://jdjoy.jd.com/pet/getRandomFood?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                            const getRandomFoodUrl = `${this.petUrl}/pet/getRandomFood?friendPin=${encodeURIComponent(currentFriend.friendPin)}&lks=${lks}&lkt=${timestamp}`;
                                             await fetch(getRandomFoodUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
                                                 .then((getRandomFoodJson) => {
@@ -1815,7 +1770,7 @@ export default class JdJoy implements Game {
                                     }
                                     if (helpType == petHelpEnum.获取金币 || helpType == petHelpEnum.全部) {
                                         if (+enterFriendRoomJson.data.friendHomeCoin > 0) {
-                                            const getFriendCoinUrl = `https://jdjoy.jd.com/pet/getFriendCoin?friendPin=${encodeURIComponent(currentFriend.friendPin)}`;
+                                            const getFriendCoinUrl = `${this.petUrl}/pet/getFriendCoin?friendPin=${encodeURIComponent(currentFriend.friendPin)}&lks=${lks}&lkt=${timestamp}`;
                                             await fetch(getFriendCoinUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
                                                 .then((getFriendCoinJson) => {
@@ -1855,114 +1810,20 @@ export default class JdJoy implements Game {
             })
         }
     }
-    //组队
-    async combat(combatName: string, combatValue: string): Promise<void> {
-        let isJoinCombat = false;
-        const limit = 50;
-        const myCombatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail?help=false&reqSource=h5`
-        await fetch(myCombatDetailUrl, { credentials: "include" })
-            .then((res) => { return res.json() })
-            .then(async (myCombatDetailJson) => {
-                if (myCombatDetailJson.success) {
-                    if (myCombatDetailJson.data.hasHistoryReward) {
-                        const combatReceiveUrl = `https://jdjoy.jd.com/pet/combat/receive`;
-                        await fetch(combatReceiveUrl, { credentials: "include" })
-                            .then((res) => { return res.json() })
-                            .then((combatReceiveJson) => {
-                                if (combatReceiveJson.success) {
-                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatReceiveJson.currentTime).toLocaleString()} 成功领取组队奖励！`, false);
-                                }
-                                else {
-                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatReceiveJson.currentTime).toLocaleString()} 已经领取过组队奖励或无奖励！`, false);
-                                }
-
-                            })
-                            .catch((error) => {
-                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                Utils.outPutLog(this.outputTextarea, `【哎呀~领取组队奖励异常，请手动刷新或联系作者！】`, false);
-                            });
-                    }
-                    if (myCombatDetailJson.data.userStatus == petCombatEnum.notParticipate) {
-                        if (combatValue == "-1") {
-                            let friends = JSON.parse(JSON.stringify(allFriends)); //深拷贝
-                            if (friends.length > 0) {
-                                for (let currentFriend of friends) {
-                                    if (currentFriend.friendPin != petPin) {
-                                        const combatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail?help=true&inviterPin=${currentFriend.friendPin}&leaderPin=${currentFriend.friendPin}`;
-                                        await fetch(combatDetailUrl, { credentials: "include" })
-                                            .then((res) => { return res.json() })
-                                            .then(async (combatDetailJson) => {
-                                                if (combatDetailJson.success) {
-                                                    if (+combatDetailJson.data.teamMemberCount < 500 && +combatDetailJson.data.teamMemberCount - +combatDetailJson.data.enemyMemberCount >= limit) {
-                                                        const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/join?inviterPin=${currentFriend.friendPin}`;
-                                                        await fetch(combatJoinUrl, { credentials: "include" })
-                                                            .then((res) => { return res.json() })
-                                                            .then(async (combatJoinJson) => {
-                                                                if (combatJoinJson.success && !combatJoinJson.errorCode) {
-                                                                    isJoinCombat = true;
-                                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${currentFriend.friendName}】战队成功！`, false);
-                                                                }
-                                                                else {
-                                                                    Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${currentFriend.friendName}】战队失败或战队已满！`, false);
-                                                                }
-                                                            })
-                                                            .catch((error) => {
-                                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                                Utils.outPutLog(this.outputTextarea, `【哎呀~加入【${currentFriend.friendName}】战队异常，请手动刷新或联系作者！】`, false);
-                                                            });
-                                                    }
-                                                }
-                                            })
-                                            .catch((error) => {
-                                                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                                Utils.outPutLog(this.outputTextarea, `【哎呀~获取${currentFriend.friendName}的战队信息异常，请手动刷新或联系作者！】`, false);
-                                            });
-
-                                        if (isJoinCombat) break;
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/join?inviterPin=${Utils.aesDecrypt(combatValue)}`;
-                            await fetch(combatJoinUrl, { credentials: "include" })
-                                .then((res) => { return res.json() })
-                                .then(async (combatJoinJson) => {
-                                    if (combatJoinJson.success) {
-                                        Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 加入【${combatName}】战队成功！`, false);
-                                    }
-                                    else {
-                                        Utils.outPutLog(this.outputTextarea, `${new Date(+combatJoinJson.currentTime).toLocaleString()} 【${combatName}】暂未加入任何战队或加入失败！`, false);
-                                    }
-                                })
-                                .catch((error) => {
-                                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                                    Utils.outPutLog(this.outputTextarea, `【哎呀~加入【${combatName}】战队异常，请手动刷新或联系作者！】`, false);
-                                });
-                        }
-                    }
-                }
-                else {
-                    Utils.outPutLog(this.outputTextarea, `【获取自己的战队信息失败，请手动刷新或联系作者！】`, false);
-                }
-            })
-            .catch((error) => {
-                Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                Utils.outPutLog(this.outputTextarea, `【哎呀~获取自己的战队信息异常，请手动刷新或联系作者！】`, false);
-            });
-    }
     //组队V2
     async combatV2(combatType: string): Promise<void> {
         let maxRetryCount = 5,
             combatMatchInterval = 0;
-        const myCombatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail/v2?help=false&reqSource=h5`
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
+        const myCombatDetailUrl = `${this.petUrl}/pet/combat/detail/v2?reqSource=h5&help=false&reqSource=h5&lks=${lks}&lkt=${timestamp}`
         await fetch(myCombatDetailUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then(async (myCombatDetailJson) => {
                 if (myCombatDetailJson.success) {
                     //领取奖励
                     if (+myCombatDetailJson.data.winCoin > 0 && (myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.raceWin || myCombatDetailJson.data.petRaceResult == petCombatV2ResultEnum.unreceive)) {
-                        const combatReceiveUrl = `https://jdjoy.jd.com/pet/combat/receive`;
+                        const combatReceiveUrl = `${this.petUrl}/pet/combat/receive?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
                         await fetch(combatReceiveUrl, { credentials: "include" })
                             .then((res) => { return res.json() })
                             .then((combatReceiveJson) => {
@@ -1984,7 +1845,7 @@ export default class JdJoy implements Game {
                         combatMatchInterval = setInterval(async () => {
                             if (maxRetryCount > 0) {
                                 maxRetryCount--;
-                                const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/match?teamLevel=${combatType}`;
+                                const combatJoinUrl = `${this.petUrl}/pet/combat/match?reqSource=h5&teamLevel=${combatType}&lks=${lks}&lkt=${timestamp}`;
                                 await fetch(combatJoinUrl, { credentials: "include" })
                                     .then((res) => { return res.json() })
                                     .then(async (matchJson) => {
@@ -2000,7 +1861,7 @@ export default class JdJoy implements Game {
                                                     break;
                                                 default:
                                                     Utils.debugInfo(consoleEnum.log, matchJson);
-                                                    Utils.outPutLog(this.outputTextarea, `【加入【${petCombatV2TypeEnum[+combatType]}】失败，请手动刷新或联系作者！】！`, false);
+                                                    Utils.outPutLog(this.outputTextarea, `【开启【${petCombatV2TypeEnum[+combatType]}】失败，请手动刷新或联系作者！】！`, false);
                                                     break;
                                             }
                                         }
@@ -2117,7 +1978,9 @@ export default class JdJoy implements Game {
         let bubbleFloatTime = +enterRoomJson.data.bubbleFloatTime * 1000;
         let bubbleRewardData = Utils.deleteEmptyProperty(enterRoomJson.data.bubbleReward);
         let postData = JSON.stringify(bubbleRewardData);
-        const getBubbleRewardUrl = `https://jdjoy.jd.com/pet/getBubbleReward`;
+        let timestamp = this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
+        const getBubbleRewardUrl = `${this.petUrl}/pet/getBubbleReward&lks=${lks}&lkt=${timestamp}`;
         setTimeout(() => {
             fetch(getBubbleRewardUrl, {
                 method: "POST",
@@ -2151,6 +2014,8 @@ export default class JdJoy implements Game {
     }
     //互助
     async helpFriend(currentTime: any): Promise<void> {
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
         let getData = `?where=${encodeURIComponent(`{ "pin": { "$ne": "${petPin}" }}`)}`;
         await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, currentTime) })
             .then((res) => { return res.json() })
@@ -2158,7 +2023,7 @@ export default class JdJoy implements Game {
                 if (!!getOtherUserJson.results && getOtherUserJson.results.length > 0) {
                     getOtherUserJson.results.forEach(async (item: any) => {
                         if (item.helpStatus && !item.isBlock) {
-                            const enterRoomUrl = `https://jdjoy.jd.com/pet/enterRoom/h5?invitePin=${item.pin}&inviteSource=task_invite&shareSource=h5&inviteTimeStamp=${await (await this.getJDTime()).toString()}&reqSource=weapp`;
+                            const enterRoomUrl = `${this.petUrl}/pet/enterRoom/h5?invitePin=${item.pin}&inviteSource=task_invite&shareSource=h5&inviteTimeStamp=${await (await this.getJDTime()).toString()}&reqSource=weapp&lks=${lks}&lkt=${timestamp}`;
                             await fetch(enterRoomUrl, {
                                 method: "POST",
                                 mode: "cors",
@@ -2173,7 +2038,7 @@ export default class JdJoy implements Game {
                                     if (enterRoomJson.success) {
                                         if (enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.canHelp || enterRoomJson.data.helpStatus == petTaskReceiveStatusEnum.cardExpire) {
                                             //const addUserUrl = `https://draw.jdfcloud.com//api/user/addUser?code=081zHm7A0JqZZb1kxm5A0cbn7A0zHm7M&source=UNKNOWN&type=&appId=wxccb5c536b0ecd1bf`;
-                                            const helpFriendUrl = `https://jdjoy.jd.com/pet/helpFriend?friendPin=${item.pin}&reqSource=weapp`;
+                                            const helpFriendUrl = `${this.petUrl}/pet/helpFriend?friendPin=${item.pin}&reqSource=weapp&lks=${lks}&lkt=${timestamp}`;
                                             await fetch(helpFriendUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
                                                 .then(async (helpFriendJson) => {
@@ -2230,7 +2095,9 @@ export default class JdJoy implements Game {
     }
     //战队补给
     async combatSupply(supplyOrder: string): Promise<void> {
-        const combatJoinUrl = `https://jdjoy.jd.com/pet/combat/getSupplyInfo?showOrder=${supplyOrder}`;
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
+        const combatJoinUrl = `${this.petUrl}/pet/combat/getSupplyInfo?reqSource=h5&showOrder=${(!supplyOrder ? "" : supplyOrder)}&lks=${lks}&lkt=${timestamp}`;
         await fetch(combatJoinUrl, { credentials: "include" })
             .then((res) => { return res.json() })
             .then(async (getSupplyInfoJson) => {
@@ -2240,7 +2107,7 @@ export default class JdJoy implements Game {
                             let marketData = getSupplyInfoJson.data.marketList[i];
                             if (!marketData.status) {
                                 let postData = `{"showOrder":${getSupplyInfoJson.data.showOrder},"supplyType":"scan_market","taskInfo":"${marketData.marketLinkH5}","reqSource":"h5"}`;
-                                const supplyUrl = `https://jdjoy.jd.com/pet/combat/supply`;
+                                const supplyUrl = `${this.petUrl}/pet/combat/supply?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
                                 fetch(supplyUrl, {
                                     method: "POST",
                                     mode: "cors",
@@ -2276,6 +2143,8 @@ export default class JdJoy implements Game {
     }
     //战队互助
     async combatHelpFriend(currentTime: any): Promise<void> {
+        let timestamp = +await this.getJDTime();
+        let lks = `${Utils.md5Encrypt(`_${keyCode}_${timestamp}`)}`;
         let getData = `?where=${encodeURIComponent(`{ "pin": { "$ne": "${petPin}" }}`)}`;
         await fetch(Config.BmobHost + Config.BmobUserInfoUrl + getData, { headers: Utils.getHeaders(Config.BmobUserInfoUrl, currentTime) })
             .then((res) => { return res.json() })
@@ -2283,13 +2152,13 @@ export default class JdJoy implements Game {
                 if (!!getOtherUserJson.results && getOtherUserJson.results.length > 0) {
                     getOtherUserJson.results.forEach(async (item: any) => {
                         if (item.combatHelpStatus && !item.isBlock) {
-                            const combatDetailUrl = `https://jdjoy.jd.com/pet/combat/detail/v2?help=true&inviterPin=${item.pin}&shareSource=weapp&inviteTime=${await (await this.getJDTime()).toString()}&reqSource=weapp&openId=`;
+                            const combatDetailUrl = `${this.petUrl}/pet/combat/detail/v2?help=true&inviterPin=${item.pin}&shareSource=weapp&inviteTime=${await (await this.getJDTime()).toString()}&reqSource=weapp&openId=&lks=${lks}&lkt=${timestamp}`;
                             await fetch(combatDetailUrl, { credentials: "include" })
                                 .then((res) => { return res.json() })
                                 .then(async (combatDetailJson) => {
                                     if (combatDetailJson.success) {
                                         if (combatDetailJson.data.petRaceResult == petTaskReceiveStatusEnum.canHelp || combatDetailJson.data.helpStatus == petTaskReceiveStatusEnum.cardExpire) {
-                                            const combatHelpFriendUrl = `https://jdjoy.jd.com/pet/combat/help?friendPin=${item.pin}`;
+                                            const combatHelpFriendUrl = `${this.petUrl}/pet/combat/help?friendPin=${item.pin}&lks=${lks}&lkt=${timestamp}`;
                                             await fetch(combatHelpFriendUrl, { credentials: "include" })
                                                 .then((res) => { return res.json() })
                                                 .then(async (combatHelpFriendJson) => {
@@ -2388,5 +2257,18 @@ export default class JdJoy implements Game {
     getCookie(key: string): string {
         var t, r = new RegExp("(^| )" + key + "=([^;]*)(;|$)");
         return (t = document.cookie.match(r)) ? unescape(t[2]) : ""
+    }
+    //根据字母排序
+    sortByLetter(e: any, t: any = undefined): string {
+        if (e instanceof Array) {
+            t = t || [];
+            for (var a = 0; a < e.length; a++)
+                t[a] = this.sortByLetter(e[a], t[a])
+        } else
+            !(e instanceof Array) && e instanceof Object ? (t = t || {},
+                Object.keys(e).sort().map(function (a) {
+                    t[a] = JdJoy.prototype.sortByLetter(e[a], t[a])
+                })) : t = e;
+        return t
     }
 }

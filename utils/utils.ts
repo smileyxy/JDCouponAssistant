@@ -293,6 +293,26 @@ export default class Utils {
 
         return object;
     }
+    //UTF8
+    static utf8Parse(data: any) {
+        return CryptoJS.enc.Utf8.parse(data);
+    }
+    //Base64 Encode
+    static base64Encode(data: any) {
+        var utf8Data = CryptoJS.enc.Utf8.parse(data);
+        return CryptoJS.enc.Base64.stringify(utf8Data);
+    }
+    //aes加密（ciphertext）
+    static aesEncryptCiphertext(data: any, key: any, iv: any) {
+        var srcs = CryptoJS.enc.Utf8.parse(data);
+        var encrypted = CryptoJS.AES.encrypt(srcs, key,
+            {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+        return encrypted.ciphertext.toString();
+    }
     //aes加密
     static aesEncrypt(data: any, key?: any, iv?: any) {
         var key = key ? CryptoJS.enc.Utf8.parse(key) : SecretConfig.aesKey;
