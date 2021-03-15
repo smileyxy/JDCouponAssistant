@@ -884,7 +884,10 @@ export default class JdJoy implements Game {
 
                         if (exchangeGift) {
                             let sortGift = exchangeGift.sort((a: any, b: any) => { return b.giftValue - a.giftValue });
-                            if (+(nowJDDate.getHours().toString() + nowJDDate.getMinutes().toString()) <= 1600) {
+                            let hours = nowJDDate.getHours() < 10 ? `0${nowJDDate.getHours()}` : nowJDDate.getHours(); 
+                            let minutes = nowJDDate.getMinutes() < 10 ? `0${nowJDDate.getMinutes()}` : nowJDDate.getMinutes(); 
+
+                            if (+(hours + minutes) <= 1600) {
                                 sortGift = sortGift.slice(0, 1);
                             }
 
