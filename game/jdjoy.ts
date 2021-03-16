@@ -806,34 +806,34 @@ export default class JdJoy implements Game {
         let currentPage = 1,
             pages = -1;
         //allFriends.splice(0); //清空好友
-        while (pages == -1 || currentPage <= pages) {
-            const getFriendsUrl = `${this.petUrl}/pet/h5/getFriends?itemsPerPage=20&currentPage=${currentPage}&reqSource=h5&lks=${lks}&lkt=${timestamp}`;
-            await fetch(getFriendsUrl, { credentials: "include" })
-                .then((res) => { return res.json() })
-                .then((getFriendsJson) => {
-                    if (getFriendsJson.success) {
-                        friendCount!.innerText = getFriendsJson.page.items;
-                        pages = getFriendsJson.page.pages;
-                        if (tipsShow) {
+        if (tipsShow) {
+            while (pages == -1 || currentPage <= pages) {
+                const getFriendsUrl = `${this.petUrl}/pet/h5/getFriends?itemsPerPage=20&currentPage=${currentPage}&reqSource=h5&lks=${lks}&lkt=${timestamp}`;
+                await fetch(getFriendsUrl, { credentials: "include" })
+                    .then((res) => { return res.json() })
+                    .then((getFriendsJson) => {
+                        if (getFriendsJson.success) {
+                            friendCount!.innerText = getFriendsJson.page.items;
+                            pages = getFriendsJson.page.pages;
                             getFriendsJson.datas.forEach((item: any) => {
                                 if (!allFriends.some(friend => { return friend.friendPin === item.friendPin })) {
                                     allFriends.push(item);
                                     //combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
                                 }
                             });
+                            currentPage++;
                         }
-                        currentPage++;
-                    }
-                    else {
-                        isGetAllInfo = !isGetAllInfo;
-                        Utils.debugInfo(consoleEnum.log, getFriendsJson);
-                        Utils.outPutLog(this.outputTextarea, `【没有查找到${currentPage}页好友信息，请手动刷新或联系作者！】`, false);
-                    }
-                })
-                .catch((error) => {
-                    Utils.debugInfo(consoleEnum.error, 'request failed', error);
-                    Utils.outPutLog(this.outputTextarea, `【哎呀~查询${currentPage}页好友信息异常，请手动刷新或联系作者！】`, false);
-                });
+                        else {
+                            isGetAllInfo = !isGetAllInfo;
+                            Utils.debugInfo(consoleEnum.log, getFriendsJson);
+                            Utils.outPutLog(this.outputTextarea, `【没有查找到${currentPage}页好友信息，请手动刷新或联系作者！】`, false);
+                        }
+                    })
+                    .catch((error) => {
+                        Utils.debugInfo(consoleEnum.error, 'request failed', error);
+                        Utils.outPutLog(this.outputTextarea, `【哎呀~查询${currentPage}页好友信息异常，请手动刷新或联系作者！】`, false);
+                    });
+            }
         }
         //获取今日喂养信息
         const getTodayFeedInfoUrl = `${this.petUrl}/pet/getTodayFeedInfo?lks=${lks}&lkt=${timestamp}`;
@@ -894,8 +894,9 @@ export default class JdJoy implements Game {
                             sortGift.map(async (exchangeItem: any) => {
                                 if (getBeanConfigsJson.data.petCoin >= exchangeItem.salePrice) {
                                     //"deviceInfo":{"eid":"","fp":"","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":""}
-                                    let postData = `{"buyParam":{"orderSource": "pet", "saleInfoId":${exchangeItem.id}},"deviceInfo":{"eid":"${this.getCookie("equipmentId")}","fp":"${this.getCookie("fingerprint")}","deviceType":"","macAddress":"","imei":"","os":"","osVersion":"","ip":"","appId":"","openUUID":"","idfa":"","uuid":"","clientVersion":"","networkType":"","appType":"","sdkToken":"jdd016QKQBJDJCDFKMHHR63H7V4BLI7GFTVCK4NAKN7LUNVR6VN3GMZZXSLNEHVU65VVHN2JTXUAOMML4NVZWF5BZ4DWPYADOQBTRGB4GKGY01234567"}}}`;
-                                    const petExchangeUrl = `${this.petUrl}/gift/new/exchange?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
+                                    let postData = `{"buyParam":{"orderSource":"pet","saleInfoId":${exchangeItem.id}},"deviceInfo":{"appId":"","appType":"","clientVersion":"","deviceType":"","eid":"${this.getCookie("3AB9D23F7A4B3C9B")}","fp":"${this.getCookie("fingerprint")}","idfa":"","imei":"","ip":"","macAddress":"","networkType":"","openUUID":"","os":"","osVersion":"","sdkToken":"","uuid":""}}`;
+                                    let postlks = `${Utils.md5Encrypt(`${Utils.base64Encode(Utils.aesEncryptCiphertext(postData, utf8KeyCode, utf8IV))}_${keyCode}_${timestamp}`)}`
+                                    const petExchangeUrl = `${this.petUrl}/gift/new/exchange?reqSource=h5&lks=${postlks}&lkt=${timestamp}`;
                                     await fetch(petExchangeUrl, {
                                         method: "POST",
                                         mode: "cors",
