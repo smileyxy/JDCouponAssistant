@@ -792,11 +792,12 @@ function copyRights() {
         console.group('%c京东领券助手', 'color:#009a61; font-size: 36px; font-weight: 400');
         console.log('%c本插件仅供学习交流使用\n作者:smileyxy', 'color:#009a61');
         console.log('%c近五次更新内容：', 'color:#009a61');
+        console.log('%c【0.7.8】：修复宠汪汪自动活动无效', 'color:#009a61');
         console.log('%c【0.7.7】：修复宠汪汪自动换豆无效', 'color:#009a61');
         console.log('%c【0.7.6】：修复宠汪汪功能失效', 'color:#009a61');
         console.log('%c【0.7.5】：修复宠汪汪自动换豆', 'color:#009a61');
         console.log('%c【0.7.4】：修复宠汪汪自动换豆及部分任务；新增宠汪汪及年兽新任务', 'color:#009a61');
-        console.log('%c【0.7.3】：新增年兽活动', 'color:#009a61');
+        //console.log('%c【0.7.3】：新增年兽活动', 'color:#009a61');
         //console.log('%c【0.7.2】：修复宠汪汪逛会场任务失效', 'color:#009a61');
         //console.log('%c【0.7.1】：修复宠汪汪信息获取失败', 'color:#009a61');
         //console.log('%c【0.7.0】：优化宠汪汪自动换豆', 'color:#009a61');

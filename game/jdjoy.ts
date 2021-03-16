@@ -1582,8 +1582,9 @@ export default class JdJoy implements Game {
                                 let deskGoodsData = deskGoodDetailsJson.data.deskGoods[j];
                                 if (!deskGoodsData.status && j < taskChance) {
                                     actTimeoutArray.push(setTimeout(() => {
-                                        let postData = `{"taskType":"${petActEnum.逛店拿积分}","sku":"${deskGoodsData.sku}"}`;
-                                        const scanUrl = `${this.petUrl}/pet/scan?reqSource=h5&lks=${lks}&lkt=${timestamp}`;
+                                        let postData = `{"sku":"${deskGoodsData.sku}","taskType":"${petActEnum.逛店拿积分}"}`;
+                                        let postlks = `${Utils.md5Encrypt(`${Utils.base64Encode(Utils.aesEncryptCiphertext(postData, utf8KeyCode, utf8IV))}_${keyCode}_${timestamp}`)}`
+                                        const scanUrl = `${this.petUrl}/pet/scan?reqSource=h5&lks=${postlks}&lkt=${timestamp}`;
                                         fetch(scanUrl, {
                                             method: "POST",
                                             mode: "cors",
