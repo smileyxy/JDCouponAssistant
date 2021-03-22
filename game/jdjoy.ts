@@ -805,7 +805,7 @@ export default class JdJoy implements Game {
         //获取好友信息
         let currentPage = 1,
             pages = -1;
-        //allFriends.splice(0); //清空好友
+        allFriends.splice(0); //清空好友
         if (tipsShow) {
             while (pages == -1 || currentPage <= pages) {
                 const getFriendsUrl = `${this.petUrl}/pet/h5/getFriends?itemsPerPage=20&currentPage=${currentPage}&reqSource=h5&lks=${lks}&lkt=${timestamp}`;
@@ -821,7 +821,6 @@ export default class JdJoy implements Game {
                                     //combatType!.innerHTML += `<option value="${Utils.aesEncrypt(item.friendPin)}">${item.friendName}</option>`;
                                 }
                             });
-                            currentPage++;
                         }
                         else {
                             isGetAllInfo = !isGetAllInfo;
@@ -833,6 +832,8 @@ export default class JdJoy implements Game {
                         Utils.debugInfo(consoleEnum.error, 'request failed', error);
                         Utils.outPutLog(this.outputTextarea, `【哎呀~查询${currentPage}页好友信息异常，请手动刷新或联系作者！】`, false);
                     });
+
+                currentPage++;
             }
         }
         //获取今日喂养信息
